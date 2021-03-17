@@ -1,7 +1,6 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradProjectServer.Services.Infrastructure
 {
@@ -13,5 +12,16 @@ namespace GradProjectServer.Services.Infrastructure
         public Major Major { get; set; }
         public ICollection<CourseCategory> Categories { get; set; }
         public ICollection<StudyPlanCourse> Courses { get; set; }
+        public static void ConfigureEntity(EntityTypeBuilder<StudyPlan> b)
+        {
+            b.HasKey(p => p.Id);
+            b.Property(p => p.Year)
+                 .IsRequired();
+            b.HasOne(p => p.Major)
+                 .WithMany(m => m.StudyPlans)
+                 .HasForeignKey(p => p.MajorId)
+                 .IsRequired();
+            b.HasCheckConstraint("CK_STUDYPLAN_YEAR", $@"{nameof(StudyPlan.Year)} > 0");
+        }
     }
 }

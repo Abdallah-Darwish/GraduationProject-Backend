@@ -1,8 +1,6 @@
 ﻿using GradProjectServer.Services.Infrastructure;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GradProjectServer.Services.Exams.Entities
 {
@@ -10,5 +8,13 @@ namespace GradProjectServer.Services.Exams.Entities
     {
         public int CheckerId { get; set; }
         public Program Checker { get; set; }
+        public static void ConfigureEntity(EntityTypeBuilder<ProgrammingSubQuestion> b)
+        {
+            b.HasOne(q => q.Checker)
+                .WithOne()
+                .HasForeignKey<ProgrammingSubQuestion>(q => q.CheckerId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

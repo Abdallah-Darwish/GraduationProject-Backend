@@ -1,7 +1,6 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradProjectServer.Services.Exams.Entities
 {
@@ -9,5 +8,12 @@ namespace GradProjectServer.Services.Exams.Entities
     {
         public bool IsCheckBox { get; set; }
         public ICollection<MCQSubQuestionChoice> Choices { get; set; }
+        public static void ConfigureEntity(EntityTypeBuilder<MCQSubQuestion> b)
+        {
+            b.HasBaseType<SubQuestion>()
+             .ToTable(nameof(MCQSubQuestion));
+            b.Property(m => m.IsCheckBox)
+                .IsRequired();
+        }
     }
 }

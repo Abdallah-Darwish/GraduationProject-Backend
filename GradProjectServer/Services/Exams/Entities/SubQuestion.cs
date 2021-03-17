@@ -1,7 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradProjectServer.Services.Exams.Entities
 {
@@ -14,5 +12,19 @@ namespace GradProjectServer.Services.Exams.Entities
         public int QuestionId { get; set; }
         public Question Question { get; set; }
         public ICollection<SubQuestionTag> Tags { get; set; }
+        public static void ConfigureEntity(EntityTypeBuilder<SubQuestion> b)
+        {
+            b.HasKey(q => q.Id);
+            b.Property(q => q.Content)
+                .IsRequired()
+                .IsUnicode();
+            b.Property(q => q.Type)
+                .IsRequired()
+                .HasConversion<byte>();
+            b.HasOne(sq => sq.Question)
+                .WithMany(q => q.SubQuestions)
+                .HasForeignKey(sq => sq.QuestionId)
+                .IsRequired();
+        }
     }
 }

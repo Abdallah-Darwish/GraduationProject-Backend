@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GradProjectServer.Services.Exams.Entities
 {
@@ -17,5 +15,20 @@ namespace GradProjectServer.Services.Exams.Entities
         /// </summary>
         public float Weight { get; set; }
         public MCQSubQuestion Question { get; set; }
+        public static void ConfigureEntity(EntityTypeBuilder<MCQSubQuestionChoice> b)
+        {
+            b.HasKey(m => new { m.Id, m.QuestionId });
+            b.Property(m => m.Content)
+                .IsRequired()
+                .IsUnicode();
+            b.Property(m => m.Weight)
+                .IsRequired();
+            b.HasOne(m => m.Question)
+                .WithMany(q => q.Choices)
+                .HasForeignKey(m => m.QuestionId);
+
+            b.HasCheckConstraint("CK_MCQSubQuestionChoice_WEIGHT", $@"{nameof(MCQSubQuestionChoice.Weight)} >= -1 AND {nameof(MCQSubQuestionChoice.Weight)} <= 1");
+
+        }
     }
 }

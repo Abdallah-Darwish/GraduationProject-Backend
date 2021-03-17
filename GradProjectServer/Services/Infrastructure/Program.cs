@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GradProjectServer.Services.Infrastructure
 {
@@ -13,6 +10,13 @@ namespace GradProjectServer.Services.Infrastructure
     {
         public int Id { get; set; }
         public ProgramLanguage Language { get; set; }
+        public static void ConfigureEntity(EntityTypeBuilder<Program> b)
+        {
+            b.HasKey(p => p.Id);
+            b.Property(p => p.Language)
+             .IsRequired()
+             .HasConversion<byte>();
+        }
         //init script
         //init code(creating db)
         //companion code(opening tcp connection)

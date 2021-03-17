@@ -1,7 +1,6 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradProjectServer.Services.Infrastructure
 {
@@ -12,5 +11,17 @@ namespace GradProjectServer.Services.Infrastructure
         public Course Course { get; set; }
         public CourseCategory Category { get; set; }
         public ICollection<StudyPlanCoursePrerequisite> Prerequisites { get; set; }
+        public static void ConfigureEntity(EntityTypeBuilder<StudyPlanCourse> b)
+        {
+            b.HasOne(c => c.Course)
+                .WithMany()
+                .HasForeignKey(c => c.CourseId)
+                .IsRequired();
+            b.HasOne(c => c.Category)
+               .WithMany(ca => ca.Courses)
+               .HasForeignKey(c => c.CategoryId)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }
