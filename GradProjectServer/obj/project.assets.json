@@ -2,6 +2,57 @@
   "version": 3,
   "targets": {
     "net5.0": {
+      "AutoMapper/10.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.CSharp": "4.7.0",
+          "System.Reflection.Emit": "4.7.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/AutoMapper.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/AutoMapper.dll": {}
+        }
+      },
+      "AutoMapper.Collection/7.0.0": {
+        "type": "package",
+        "dependencies": {
+          "AutoMapper": "[10.0.0, 11.0.0)"
+        },
+        "compile": {
+          "lib/netstandard2.0/AutoMapper.Collection.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/AutoMapper.Collection.dll": {}
+        }
+      },
+      "AutoMapper.Collection.EntityFrameworkCore/7.0.1": {
+        "type": "package",
+        "dependencies": {
+          "AutoMapper.Collection": "[7.0.0, 8.0.0)",
+          "AutoMapper.Extensions.ExpressionMapping": "4.0.2",
+          "Microsoft.EntityFrameworkCore": "2.1.14"
+        },
+        "compile": {
+          "lib/netstandard2.0/AutoMapper.Collection.EntityFrameworkCore.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/AutoMapper.Collection.EntityFrameworkCore.dll": {}
+        }
+      },
+      "AutoMapper.Extensions.ExpressionMapping/4.0.2": {
+        "type": "package",
+        "dependencies": {
+          "AutoMapper": "[10.0.0, 11.0.0)"
+        },
+        "compile": {
+          "lib/netstandard2.0/AutoMapper.Extensions.ExpressionMapping.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/AutoMapper.Extensions.ExpressionMapping.dll": {}
+        }
+      },
       "Humanizer.Core/2.8.26": {
         "type": "package",
         "compile": {
@@ -329,6 +380,15 @@
           "lib/net5.0/System.Diagnostics.DiagnosticSource.dll": {}
         }
       },
+      "System.Reflection.Emit/4.7.0": {
+        "type": "package",
+        "compile": {
+          "ref/netcoreapp2.0/_._": {}
+        },
+        "runtime": {
+          "lib/netcoreapp2.0/_._": {}
+        }
+      },
       "System.Runtime.CompilerServices.Unsafe/4.6.0": {
         "type": "package",
         "compile": {
@@ -341,6 +401,64 @@
     }
   },
   "libraries": {
+    "AutoMapper/10.0.0": {
+      "sha512": "T09NoqMZBqw0/JEauXulxnmmerl0Zj03e0r6VCcJ0LURWBIaYxZPPoiDv8bHf5Y4x2xcXJp4JPXoCaeOMJfHEA==",
+      "type": "package",
+      "path": "automapper/10.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "automapper.10.0.0.nupkg.sha512",
+        "automapper.nuspec",
+        "icon.png",
+        "lib/net461/AutoMapper.dll",
+        "lib/net461/AutoMapper.xml",
+        "lib/netstandard2.0/AutoMapper.dll",
+        "lib/netstandard2.0/AutoMapper.xml"
+      ]
+    },
+    "AutoMapper.Collection/7.0.0": {
+      "sha512": "03uGVaRTYK+5n2rwXlLdlvrjJO/NC33Z20CfOih/0cmpEBnjn3FQuNiNHgLASP0MnczNRGUWmHITgaFBAQ7AZw==",
+      "type": "package",
+      "path": "automapper.collection/7.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "automapper.collection.7.0.0.nupkg.sha512",
+        "automapper.collection.nuspec",
+        "lib/net461/AutoMapper.Collection.dll",
+        "lib/netstandard2.0/AutoMapper.Collection.dll"
+      ]
+    },
+    "AutoMapper.Collection.EntityFrameworkCore/7.0.1": {
+      "sha512": "mZThwj4iEIuKGk9o8La/UD5PML2kclxfn4M13alA00jyhogdyBZeod2JNSC25OpJj/9m8WLr1RPLXvW6BtfV2A==",
+      "type": "package",
+      "path": "automapper.collection.entityframeworkcore/7.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "automapper.collection.entityframeworkcore.7.0.1.nupkg.sha512",
+        "automapper.collection.entityframeworkcore.nuspec",
+        "icon.png",
+        "lib/net461/AutoMapper.Collection.EntityFrameworkCore.dll",
+        "lib/netstandard2.0/AutoMapper.Collection.EntityFrameworkCore.dll"
+      ]
+    },
+    "AutoMapper.Extensions.ExpressionMapping/4.0.2": {
+      "sha512": "GgjegxzI0e+1J8ZUnyGDhMrYpb4TIGo+9lHsz6mXstt5at+uqmm7wPOr2O5yKSiFzo7oOVef3ZFYjd620Ncwfw==",
+      "type": "package",
+      "path": "automapper.extensions.expressionmapping/4.0.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "automapper.extensions.expressionmapping.4.0.2.nupkg.sha512",
+        "automapper.extensions.expressionmapping.nuspec",
+        "lib/net461/AutoMapper.Extensions.ExpressionMapping.dll",
+        "lib/net461/AutoMapper.Extensions.ExpressionMapping.xml",
+        "lib/netstandard2.0/AutoMapper.Extensions.ExpressionMapping.dll",
+        "lib/netstandard2.0/AutoMapper.Extensions.ExpressionMapping.xml"
+      ]
+    },
     "Humanizer.Core/2.8.26": {
       "sha512": "OiKusGL20vby4uDEswj2IgkdchC1yQ6rwbIkZDVBPIR6al2b7n3pC91elBul9q33KaBgRKhbZH3+2Ur4fnWx2A==",
       "type": "package",
@@ -1050,6 +1168,60 @@
         "version.txt"
       ]
     },
+    "System.Reflection.Emit/4.7.0": {
+      "sha512": "VR4kk8XLKebQ4MZuKuIni/7oh+QGFmZW3qORd1GvBq/8026OpW501SzT/oypwiQl4TvT8ErnReh/NzY9u+C6wQ==",
+      "type": "package",
+      "path": "system.reflection.emit/4.7.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net45/_._",
+        "lib/netcore50/System.Reflection.Emit.dll",
+        "lib/netcoreapp2.0/_._",
+        "lib/netstandard1.1/System.Reflection.Emit.dll",
+        "lib/netstandard1.1/System.Reflection.Emit.xml",
+        "lib/netstandard1.3/System.Reflection.Emit.dll",
+        "lib/netstandard2.0/System.Reflection.Emit.dll",
+        "lib/netstandard2.0/System.Reflection.Emit.xml",
+        "lib/netstandard2.1/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "lib/xamarintvos10/_._",
+        "lib/xamarinwatchos10/_._",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net45/_._",
+        "ref/netcoreapp2.0/_._",
+        "ref/netstandard1.1/System.Reflection.Emit.dll",
+        "ref/netstandard1.1/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/de/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/es/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/fr/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/it/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/ja/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/ko/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/ru/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/zh-hans/System.Reflection.Emit.xml",
+        "ref/netstandard1.1/zh-hant/System.Reflection.Emit.xml",
+        "ref/netstandard2.0/System.Reflection.Emit.dll",
+        "ref/netstandard2.0/System.Reflection.Emit.xml",
+        "ref/netstandard2.1/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "ref/xamarintvos10/_._",
+        "ref/xamarinwatchos10/_._",
+        "runtimes/aot/lib/netcore50/System.Reflection.Emit.dll",
+        "runtimes/aot/lib/netcore50/System.Reflection.Emit.xml",
+        "system.reflection.emit.4.7.0.nupkg.sha512",
+        "system.reflection.emit.nuspec",
+        "useSharedDesignerContext.txt",
+        "version.txt"
+      ]
+    },
     "System.Runtime.CompilerServices.Unsafe/4.6.0": {
       "sha512": "HxozeSlipUK7dAroTYwIcGwKDeOVpQnJlpVaOkBz7CM4TsE5b/tKlQBZecTjh6FzcSbxndYaxxpsBMz+wMJeyw==",
       "type": "package",
@@ -1078,6 +1250,7 @@
   },
   "projectFileDependencyGroups": {
     "net5.0": [
+      "AutoMapper.Collection.EntityFrameworkCore >= 7.0.1",
       "Microsoft.EntityFrameworkCore.Design >= 5.0.4",
       "Microsoft.VisualStudio.Azure.Containers.Tools.Targets >= 1.10.13",
       "Npgsql.EntityFrameworkCore.PostgreSQL >= 5.0.2",
@@ -1131,6 +1304,10 @@
       "net5.0": {
         "targetAlias": "net5.0",
         "dependencies": {
+          "AutoMapper.Collection.EntityFrameworkCore": {
+            "target": "Package",
+            "version": "[7.0.1, )"
+          },
           "Microsoft.EntityFrameworkCore.Design": {
             "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
             "suppressParent": "All",

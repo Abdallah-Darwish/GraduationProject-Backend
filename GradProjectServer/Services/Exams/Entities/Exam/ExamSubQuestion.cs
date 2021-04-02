@@ -5,6 +5,7 @@ namespace GradProjectServer.Services.Exams.Entities
 {
     public class ExamSubQuestion
     {
+        //todo: add order or postion
         public int Id { get; set; }
         public int ExamId { get; set; }
         public int SubQuestionId { get; set; }

@@ -1,0 +1,7 @@
+C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradProjectServer.csprojAssemblyReference.cache
+C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradProjectServer.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradProjectServer.AssemblyInfoInputs.cache
+C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradProjectServer.AssemblyInfo.cs
+C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradProjectServer.csproj.CoreCompileInputs.cache
+C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradProjectServer.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradProjectServer.MvcApplicationPartsAssemblyInfo.cache

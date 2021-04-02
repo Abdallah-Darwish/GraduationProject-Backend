@@ -14,7 +14,7 @@ namespace GradProjectServer.Services.Exams.Entities
         {
             b.HasKey(e => e.Id);
             b.Property(e => e.StartTime)
-                .IsRequired();
+              .IsRequired();
             b.HasOne(a => a.Exam)
                 .WithMany()
                 .HasForeignKey(a => a.ExamId)

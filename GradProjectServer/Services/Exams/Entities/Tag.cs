@@ -12,8 +12,8 @@ namespace GradProjectServer.Services.Exams.Entities
         {
             b.HasKey(t => t.Id);
             b.Property(t => t.Name)
-            .IsRequired()
-            .IsUnicode();
+                .IsRequired()
+                .IsUnicode();
         }
     }
 }

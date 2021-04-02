@@ -1,9 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using GradProjectServer.Common;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Collections.Generic;
 
 namespace GradProjectServer.Services.Exams.Entities
 {
-    public enum SubQuestionType { MultipleChoice, Blank, Code }
     public class SubQuestion
     {
         public int Id { get; set; }

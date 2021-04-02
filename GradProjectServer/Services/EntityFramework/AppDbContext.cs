@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace GradProjectServer.Services.EntityFramework
 {
-    public class MyContext : DbContext
+    public class AppDbContext : DbContext
     {
         public const string EntityConfigurationMethodName = "ConfigureEntity";
         public DbSet<Exam> Exams { get; set; }
@@ -16,7 +16,7 @@ namespace GradProjectServer.Services.EntityFramework
         public DbSet<ExamSubQuestion> ExamsSubQuestions { get; set; }
         public DbSet<SubQuestionAnswer> SubQuestionsAnswers { get; set; }
         public DbSet<MCQSubQuestion> MCQSubQuestions { get; set; }
-        public DbSet<MCQSubQuestionChoice> CQSubQuestionsChoices { get; set; }
+        public DbSet<MCQSubQuestionChoice> MCQSubQuestionsChoices { get; set; }
         public DbSet<BlankSubQuestion> BlankSubQuestions { get; set; }
         public DbSet<ProgrammingSubQuestion> ProgrammingSubQuestions { get; set; }
         public DbSet<Question> Questions { get; set; }

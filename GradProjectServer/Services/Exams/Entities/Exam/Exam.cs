@@ -1,18 +1,21 @@
-﻿using GradProjectServer.Services.Infrastructure;
+﻿using GradProjectServer.Common;
+using GradProjectServer.Services.Infrastructure;
+using GradProjectServer.Services.UserSystem;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GradProjectServer.Services.Exams.Entities
 {
-    public enum ExamType { TestBank, Quiz, University }
-    public enum Semester { First, Second, Summer }
+  
     public class Exam
     {
         public int Id { get; set; }
         public int Year { get; set; }
+        public bool IsApproved { get; set; }
         public ExamType Type { get; set; }
         public Semester Semester { get; set; }
         public string Name { get; set; }
@@ -20,7 +23,10 @@ namespace GradProjectServer.Services.Exams.Entities
         public TimeSpan Duration { get; set; }
         public int CourseId { get; set; }
         public Course Course { get; set; }
-        //volunteer, tags
+        public int VolunteerId { get; set; }
+        public User Volunteer { get; set; }
+        public IEnumerable<Tag> Tags => SubQuestions.SelectMany(e => e.SubQuestion.Tags.Select(t => t.Tag)).Distinct();
+        //tags
         public static void ConfigureEntity(EntityTypeBuilder<Exam> b)
         {
             b.HasKey(e => e.Id);
@@ -28,8 +34,10 @@ namespace GradProjectServer.Services.Exams.Entities
                 .IsRequired()
                 .IsUnicode();
             b.Property(e => e.Year)
+                .IsRequired();
+            b.Property(e => e.IsApproved)
                 .IsRequired()
-                .HasConversion<byte>();
+                .HasDefaultValue(false);
             b.Property(e => e.Semester)
                 .IsRequired()
                 .HasConversion<byte>();
@@ -43,6 +51,11 @@ namespace GradProjectServer.Services.Exams.Entities
             b.HasOne(e => e.Course)
                 .WithMany(c => c.Exams)
                 .HasForeignKey(e => e.CourseId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasOne(e => e.Volunteer)
+                .WithMany(u => u.VolunteeredExams)
+                .HasForeignKey(e => e.VolunteerId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 

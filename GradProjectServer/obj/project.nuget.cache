@@ -1,9 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "EJsmIbkx/Cz/01r37HchYY35uOQWuK5WrYUL4xQM2h4T7ZmRU1GP3gwwXWB/iYRkgbx8RRAJ4/xiYHnYXcMbfA==",
+  "dgSpecHash": "mxt6RhB3watiRunLiBscI5q3R0SOxmU0lFkHepfGaQvpsOvn/BMRG/0gjyEpcVvuUufPXLhWQLDZ93nqmh5j7g==",
   "success": true,
   "projectFilePath": "C:\\Users\\abdal\\source\\repos\\GradProject\\GradProjectServer\\GradProjectServer.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\abdal\\.nuget\\packages\\automapper\\10.0.0\\automapper.10.0.0.nupkg.sha512",
+    "C:\\Users\\abdal\\.nuget\\packages\\automapper.collection\\7.0.0\\automapper.collection.7.0.0.nupkg.sha512",
+    "C:\\Users\\abdal\\.nuget\\packages\\automapper.collection.entityframeworkcore\\7.0.1\\automapper.collection.entityframeworkcore.7.0.1.nupkg.sha512",
+    "C:\\Users\\abdal\\.nuget\\packages\\automapper.extensions.expressionmapping\\4.0.2\\automapper.extensions.expressionmapping.4.0.2.nupkg.sha512",
     "C:\\Users\\abdal\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
     "C:\\Users\\abdal\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",
     "C:\\Users\\abdal\\.nuget\\packages\\microsoft.entityframeworkcore\\5.0.4\\microsoft.entityframeworkcore.5.0.4.nupkg.sha512",
@@ -32,6 +36,7 @@
     "C:\\Users\\abdal\\.nuget\\packages\\system.collections.immutable\\5.0.0\\system.collections.immutable.5.0.0.nupkg.sha512",
     "C:\\Users\\abdal\\.nuget\\packages\\system.componentmodel.annotations\\5.0.0\\system.componentmodel.annotations.5.0.0.nupkg.sha512",
     "C:\\Users\\abdal\\.nuget\\packages\\system.diagnostics.diagnosticsource\\5.0.1\\system.diagnostics.diagnosticsource.5.0.1.nupkg.sha512",
+    "C:\\Users\\abdal\\.nuget\\packages\\system.reflection.emit\\4.7.0\\system.reflection.emit.4.7.0.nupkg.sha512",
     "C:\\Users\\abdal\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\4.6.0\\system.runtime.compilerservices.unsafe.4.6.0.nupkg.sha512"
   ],
   "logs": []

@@ -27,7 +27,7 @@ namespace GradProjectServer.Services.Exams.Entities
                 .WithMany(q => q.Choices)
                 .HasForeignKey(m => m.QuestionId);
 
-            b.HasCheckConstraint("CK_MCQSubQuestionChoice_WEIGHT", $@"{nameof(MCQSubQuestionChoice.Weight)} >= -1 AND {nameof(MCQSubQuestionChoice.Weight)} <= 1");
+            b.HasCheckConstraint("CK_MCQSubQuestionChoice_WEIGHT", $@"{nameof(Weight)} >= -1 AND {nameof(Weight)} <= 1");
 
         }
     }
