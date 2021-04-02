@@ -23,6 +23,8 @@ namespace GradProjectServer.DTO.Exams
         /// Will be considered only if the user is an admin.
         /// </summary>
         public bool? IsApproved { get; set; }
+        public int[]? SubQuestionsToDelete { get; set; }
+        public CreateExamSubQuestionDto[]? SubQuestionsToAdd { get; set; }
 
     }
 }

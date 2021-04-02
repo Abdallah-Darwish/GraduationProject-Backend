@@ -217,7 +217,6 @@ namespace GradProjectServer.Controllers
                            Description = "Not all of the questions have the same course.",
                        });
             }
-
             var user = this.GetUser()!;
             var exam = new Exam
             {
@@ -243,152 +242,33 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok(exam.Id);
         }
-        [HttpGet]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        //todo: admin only
-        //redundant
-        public async Task<IActionResult> Approve([FromBody] int[] examsIds)
-        {
-            var existingExams = _dbContext.Exams.Where(e => examsIds.Contains(e.Id));
-            var nonExistingExams = examsIds.Except(existingExams.Select(e => e.Id)).ToArray();
-            if (nonExistingExams.Length > 0)
-            {
-                return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following exams don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingExams"] = nonExistingExams }
-                        });
-            }
-            foreach (var exam in existingExams)
-            {
-                exam.IsApproved = true;
-            }
-            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return Ok();
-        }
         [HttpPatch]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> UpdateInfo([FromBody] UpdateExamDto[] infos)
-        {
-            var examsIds = infos.Select(e => e.ExamId).ToArray();
-            var existingExams = _dbContext.Exams.Where(e => examsIds.Contains(e.Id));
-            var nonExistingExams = examsIds.Except(existingExams.Select(e => e.Id)).ToArray();
-            if (nonExistingExams.Length > 0)
-            {
-                return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following exams don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingExams"] = nonExistingExams }
-                        });
-            }
-            var user = this.GetUser()!;
-            if (!user.IsAdmin)
-            {
-                var notOwnedExams = existingExams.Where(e => e.VolunteerId != user.Id).ToArray();
-                if (notOwnedExams.Length > 0)
-                {
-                    return StatusCode(StatusCodes.Status403Forbidden,
-                        new ErrorDTO
-                        {
-                            Description = "User doesn't own the following exams so he can't modify them.",
-                            Data = new Dictionary<string, object> { ["NotOwnedExams"] = notOwnedExams }
-                        });
-                }
-                var approvedExams = existingExams.Where(e => e.IsApproved).ToArray();
-                if (approvedExams.Length > 0)
-                {
-                    return StatusCode(StatusCodes.Status403Forbidden,
-                       new ErrorDTO
-                       {
-                           Description = "The following exams are already approved so the user can't modify them.",
-                           Data = new Dictionary<string, object> { ["ApprovedExams"] = approvedExams }
-                       });
-                }
-            }
-            var infoDic = infos.ToDictionary(i => i.ExamId);
-            foreach (var exam in existingExams)
-            {
-                var info = infoDic[exam.Id];
-                if (info.CourseId.HasValue) { exam.CourseId = info.CourseId.Value; }
-                if (info.Duration.HasValue) { exam.Duration = info.Duration.Value; }
-                if (!string.IsNullOrWhiteSpace(info.Name)) { exam.Name = info.Name; }
-                if (info.Semester.HasValue) { exam.Semester = info.Semester.Value; }
-                if (info.Type.HasValue) { exam.Type = info.Type.Value; }
-                if (info.Year.HasValue) { exam.Year = info.Year.Value; }
-                //todo: log if user is not admin and it has value
-                if (user.IsAdmin && info.IsApproved.HasValue) { exam.IsApproved = info.IsApproved.Value; }
-            }
-            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return Ok();
-        }
-        public async Task<IActionResult> UpdateQuestions([FromBody] UpdateExamQuestionsDto update)
+        public async Task<IActionResult> Update([FromBody] UpdateExamDto update)
         {
             var exam = await _dbContext.Exams.FindAsync(update.ExamId).ConfigureAwait(false);
-            if (exam == null)
-            {
-                return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "There is no exam with the specified id.",
-                            Data = new Dictionary<string, object> { ["ExamId"] = update.ExamId }
-                        });
-            }
             var user = this.GetUser()!;
-            if (!user.IsAdmin)
-            {
-                if (exam.VolunteerId != user.Id)
-                {
-                    return StatusCode(StatusCodes.Status403Forbidden,
-                           new ErrorDTO
-                           {
-                               Description = "User doesn't own the exam so he can't update it.",
-                               Data = new Dictionary<string, object> { ["ExamId"] = update.ExamId }
-                           });
-                }
-                if (exam.IsApproved)
-                {
-                    return StatusCode(StatusCodes.Status403Forbidden,
-                           new ErrorDTO
-                           {
-                               Description = "The exam is already approved so only admins can update it.",
-                               Data = new Dictionary<string, object> { ["ExamId"] = update.ExamId }
-                           });
-                }
-            }
 
+
+            if (update.CourseId.HasValue) { exam.CourseId = update.CourseId.Value; }
+            if (update.Duration.HasValue) { exam.Duration = update.Duration.Value; }
+            if (!string.IsNullOrWhiteSpace(update.Name)) { exam.Name = update.Name; }
+            if (update.Semester.HasValue) { exam.Semester = update.Semester.Value; }
+            if (update.Type.HasValue) { exam.Type = update.Type.Value; }
+            if (update.Year.HasValue) { exam.Year = update.Year.Value; }
+            //todo: log if user is not admin and it has value
+            if (user.IsAdmin && update.IsApproved.HasValue) { exam.IsApproved = update.IsApproved.Value; }
             if ((update.SubQuestionsToAdd?.Length ?? 0) > 0)
             {
-
-                var subQuestionsToAddIds = update.SubQuestionsToAdd!
-                    .Select(q => q.QuestionId)
-                    .Distinct()
-                    .Except(exam.SubQuestions.Select(q => q.SubQuestionId))
-                    .ToArray();
-
-                var existingQuestions = _dbContext.SubQuestions.Select(q => q.Id).Intersect(subQuestionsToAddIds);
-                var nonExistingQuestions = subQuestionsToAddIds.Except(existingQuestions).ToArray();
-                if (nonExistingQuestions.Length > 0)
-                {
-                    return StatusCode(StatusCodes.Status404NotFound,
-                           new ErrorDTO
-                           {
-                               Description = "The following questions don't exist.",
-                               Data = new Dictionary<string, object> { ["NonExistingQuestionsIds"] = nonExistingQuestions }
-                           });
-                }
-                var subQuestionsToAddWeights = update.SubQuestionsToAdd!.ToDictionary(q => q.QuestionId, q => q.Weight);
-                var subQuestionsToAdd = subQuestionsToAddIds
-                    .Select(id =>
+                var subQuestionsToAdd = update.SubQuestionsToAdd!
+                    .Select(q =>
                     new ExamSubQuestion
                     {
                         ExamId = exam.Id,
-                        SubQuestionId = id,
-                        Weight = subQuestionsToAddWeights[id]
+                        SubQuestionId = q.QuestionId,
+                        Weight = q.Weight
                     });
                 _dbContext.ExamsSubQuestions.AddRange(subQuestionsToAdd);
             }
@@ -398,8 +278,8 @@ namespace GradProjectServer.Controllers
                     .Where(q => update.SubQuestionsToDelete!.Contains(q.SubQuestionId));
                 _dbContext.ExamsSubQuestions.RemoveRange(subQuestionsToDelete);
             }
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
-
     }
 }

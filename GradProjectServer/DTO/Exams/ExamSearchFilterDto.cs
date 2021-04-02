@@ -21,7 +21,8 @@ namespace GradProjectServer.DTO.Exams
         public bool? IsApproved { get; set; }
         //useful for admins and user page
         /// <summary>
-        /// Will be applied only if the user is an admin.
+        /// Will be applied only if the user is an admin,
+        /// else if its not null or empty then only the user id will be considered.
         /// </summary>
         public int[]? VolunteersIds { get; set; }
         public int Offset { get; set; }
