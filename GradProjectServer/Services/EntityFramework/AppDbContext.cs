@@ -30,6 +30,8 @@ namespace GradProjectServer.Services.EntityFramework
         public DbSet<StudyPlan> StudyPlans { get; set; }
         public DbSet<StudyPlanCourse> StudyPlansCourses { get; set; }
         public DbSet<StudyPlanCoursePrerequisite> StudyPlansCoursesPrerequisites { get; set; }
+        public DbSet<Dependency> Dependencies { get; set; }
+        public DbSet<ProgramDependency> ProgramsDependencies { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             static MethodInfo? FindEntityConfigurationMethod(Type t)

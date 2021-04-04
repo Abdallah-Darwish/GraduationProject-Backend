@@ -197,30 +197,10 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<int>> Create([FromBody] CreateExamDto data)
         {
-            var subQuestionsIds = data.SubQuestions.Select(q => q.QuestionId).ToArray();
-            var existingQuestions = _dbContext.Questions.Where(q => subQuestionsIds.Contains(q.Id));
-            var nonExistingQuestions = subQuestionsIds.Except(existingQuestions.Select(q => q.Id)).ToArray();
-            if (nonExistingQuestions.Length > 0)
-            {
-                return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following questions don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingQuestions"] = nonExistingQuestions }
-                        });
-            }
-            if (!existingQuestions.Select(q => q.CourseId).IsSingle())
-            {
-                return StatusCode(StatusCodes.Status422UnprocessableEntity,
-                       new ErrorDTO
-                       {
-                           Description = "Not all of the questions have the same course.",
-                       });
-            }
             var user = this.GetUser()!;
             var exam = new Exam
             {
-                CourseId = existingQuestions.First().CourseId,
+                CourseId = (await _dbContext.SubQuestions.FindAsync(data.SubQuestions[0].QuestionId).ConfigureAwait(false)).Question.CourseId,
                 Duration = data.Duration,
                 IsApproved = false,
                 Name = data.Name,

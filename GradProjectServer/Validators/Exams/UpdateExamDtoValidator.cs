@@ -14,6 +14,8 @@ namespace GradProjectServer.Validators.Exams
     {
         public UpdateExamDtoValidator(AppDbContext dbContext, IHttpContextAccessor httpContext)
         {
+            //todo: set cascade mode for all validators
+            CascadeMode = CascadeMode.Stop;
             RuleFor(d => d.ExamId)
                 .MustAsync(async (id, _) => (await dbContext.Exams.FindAsync(id).ConfigureAwait(false)) != null)
                 .WithMessage(d => $"Exam(Id: {d.ExamId}) doesn't exist.")
@@ -81,12 +83,18 @@ namespace GradProjectServer.Validators.Exams
                 .MustAsync(async (d, questions, _) =>
                 {
                     var exam = await dbContext.Exams
-                    .FindAsync(d.ExamId)
-                    .ConfigureAwait(false);
+                        .FindAsync(d.ExamId)
+                        .ConfigureAwait(false);
                     return !questions!.Except(exam.SubQuestions.Select(q => q.Id)).Any();
                 })
                 .WithMessage($"Some questions in \"{nameof(UpdateExamDto.SubQuestionsToDelete)}\" don't exist or belong to this exam.")
                 .When(d => d.SubQuestionsToDelete != null);
+            RuleFor(d => d.Type)
+                .IsInEnum()
+                .When(d => d.Type.HasValue);
+            RuleFor(d => d.Semester)
+                .IsInEnum()
+                .When(d => d.Type.HasValue);
         }
     }
 }

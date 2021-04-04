@@ -94,7 +94,7 @@ namespace GradProjectServer.Controllers
             {
                 q.Content = dto.Content;
                 q.Type = dto.Type;
-                q.Tags = dto.TagsIds.Select(t => new SubQuestionTag { TagId = t, SubQuestion = q }).ToArray();
+                q.Tags = dto.Tags?.Select(t => new SubQuestionTag { TagId = t, SubQuestion = q }).ToArray() ?? Array.Empty<SubQuestionTag>();
                 q.Question = container;
             }
             switch (dto)
@@ -122,7 +122,7 @@ namespace GradProjectServer.Controllers
                         }).ToArray();
                     FillBase(mq);
                     return mq;
-                case CreateProgrammingSubQuestion pro:
+                case CreateProgrammingSubQuestionDto pro:
                     ProgrammingSubQuestion pq = new()
                     {
                         Checker = _mapper.Map<Program>(pro.Checker)

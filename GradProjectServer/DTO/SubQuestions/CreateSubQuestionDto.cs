@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace GradProjectServer.DTO.SubQuestions
 {
-    public class CreateSubQuestionDto
+    public abstract class CreateSubQuestionDto
     {
         public string Content { get; set; }
         public SubQuestionType Type { get; set; }
-        public int[] TagsIds { get; set; }
+        public int[]? Tags { get; set; }
     }
 }

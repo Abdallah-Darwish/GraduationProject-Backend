@@ -26,7 +26,7 @@ namespace GradProjectServer.Validators.Exams
 			RuleFor(d => d.SubQuestions)
 				.NotNull()
 				.WithMessage($"{nameof(CreateExamDto.SubQuestions)} can't be null.")
-				.Must(questions => questions.Length > 1)
+				.Must(questions => questions.Length >= 1)
 				.WithMessage($"{nameof(CreateExamDto.SubQuestions)} size must be >= 1.")
 				.InjectValidator()
 				.Must(questions =>
@@ -40,6 +40,10 @@ namespace GradProjectServer.Validators.Exams
 					return questionsCoursesCount == 1;
 				})
 				.WithMessage($"Not all questions in \"{nameof(CreateExamDto.SubQuestions)}\" belong to the same course.");
+			RuleFor(d => d.Type)
+				.IsInEnum();
+			RuleFor(d => d.Semester)
+				.IsInEnum();
 		}
 	}
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GradProjectServer.DTO.SubQuestions
 {
-    public class CreateProgrammingSubQuestion : CreateSubQuestionDto
+    public class CreateProgrammingSubQuestionDto : CreateSubQuestionDto
     {
         public CreateProgramDto Checker { get; set; }
 

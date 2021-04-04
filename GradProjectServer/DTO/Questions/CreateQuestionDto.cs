@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GradProjectServer.DTO.Questions
 {
-    public class CreateQuestionDto
+    public abstract class CreateQuestionDto
     {
         public string Content { get; set; }
         public CreateSubQuestionDto[] SubQuestions { get; set; }
