@@ -1,5 +1,6 @@
 ﻿using GradProjectServer.Services.Exams.Entities;
 using GradProjectServer.Services.Infrastructure;
+using GradProjectServer.Services.UserSystem;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -32,6 +33,7 @@ namespace GradProjectServer.Services.EntityFramework
         public DbSet<StudyPlanCoursePrerequisite> StudyPlansCoursesPrerequisites { get; set; }
         public DbSet<Dependency> Dependencies { get; set; }
         public DbSet<ProgramDependency> ProgramsDependencies { get; set; }
+        public DbSet<User> Users { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             static MethodInfo? FindEntityConfigurationMethod(Type t)

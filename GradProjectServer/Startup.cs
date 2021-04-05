@@ -34,6 +34,7 @@ namespace GradProjectServer
             services.AddEntityFrameworkNpgsql();
             var connString = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connString));
+            services.AddDbContextFactory<AppDbContext>(opt => opt.UseNpgsql(connString));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

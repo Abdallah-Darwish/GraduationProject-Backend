@@ -145,6 +145,7 @@ namespace GradProjectServer.Controllers
         /// </summary>
         /// <param name="examsIds">Ids of the exams to delete</param>
         [HttpDelete]
+        [LoggedInFilter]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -192,6 +193,7 @@ namespace GradProjectServer.Controllers
             return Ok();
         }
         [HttpPost]
+        [LoggedInFilter]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -223,6 +225,7 @@ namespace GradProjectServer.Controllers
             return Ok(exam.Id);
         }
         [HttpPatch]
+        [LoggedInFilter]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]

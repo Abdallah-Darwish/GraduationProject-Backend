@@ -57,7 +57,7 @@ namespace GradProjectServer.Controllers
             }
             return Ok(await _mapper.ProjectTo<QuestionMetadataDto>(existingQuestions).ToArrayAsync().ConfigureAwait(false));
         }
-        //todo: is admin
+        [LoggedInFilter]
         public async Task<IActionResult> Delete([FromBody] int[] questionsIds)
         {
             var existingQuestions = _dbContext.Questions.Where(e => questionsIds.Contains(e.Id));
@@ -133,7 +133,7 @@ namespace GradProjectServer.Controllers
                     throw new ArgumentOutOfRangeException(nameof(dto), "The dto isn't known.");
             }
         }
-        //todo: logged in
+        [LoggedInFilter]
         public async Task<ActionResult<int>> Create(CreateQuestionDto info)
         {
             var user = this.GetUser()!;
@@ -191,6 +191,7 @@ namespace GradProjectServer.Controllers
             QuestionMetadataDto[] resultDto = await _mapper.ProjectTo<QuestionMetadataDto>(result).ToArrayAsync().ConfigureAwait(false);
             return resultDto;
         }
+        [LoggedInFilter]
         public async Task<IActionResult> Update([FromBody] UpdateQuestionDto update)
         {
             var question = await _dbContext.Questions
