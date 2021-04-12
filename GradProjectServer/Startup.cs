@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System;
+using System.Reflection;
 
 namespace GradProjectServer
 {
@@ -26,10 +27,13 @@ namespace GradProjectServer
 
             services.AddControllers()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>());
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "GradProjectServer", Version = "v1" });
             });
+
+            services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
             services.AddEntityFrameworkNpgsql();
             var connString = Configuration.GetConnectionString("DefaultConnection");

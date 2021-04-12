@@ -1,14 +1,17 @@
 ﻿using AutoMapper;
 using GradProjectServer.DTO;
+using GradProjectServer.DTO.Programs;
 using GradProjectServer.DTO.Questions;
 using GradProjectServer.DTO.SubQuestions;
 using GradProjectServer.Services.EntityFramework;
 using GradProjectServer.Services.Exams.Entities;
 using GradProjectServer.Services.Infrastructure;
+using GradProjectServer.Services.Infrastructure.Programs;
 using GradProjectServer.Services.UserSystem;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,8 +30,8 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
-
-        public async Task<ActionResult<QuestionDto[]>> GetMetadata([FromBody] int[] questionsIds)
+        [HttpGet]
+        public IActionResult Get([FromBody] int[] questionsIds, [FromQuery] bool metadata = false)
         {
             var existingQuestions = _dbContext.Questions.Where(e => questionsIds.Contains(e.Id));
             var nonExistingQuestions = questionsIds.Except(existingQuestions.Select(e => e.Id)).ToArray();
@@ -55,8 +58,13 @@ namespace GradProjectServer.Controllers
                         });
                 }
             }
-            return Ok(await _mapper.ProjectTo<QuestionMetadataDto>(existingQuestions).ToArrayAsync().ConfigureAwait(false));
+            if (metadata)
+            {
+                return Ok(_mapper.ProjectTo<QuestionMetadataDto>(existingQuestions));
+            }
+            return Ok(_mapper.ProjectTo<QuestionDto>(existingQuestions));
         }
+        [HttpDelete]
         [LoggedInFilter]
         public async Task<IActionResult> Delete([FromBody] int[] questionsIds)
         {
@@ -85,56 +93,13 @@ namespace GradProjectServer.Controllers
                         });
                 }
             }
-            return Ok(await _mapper.ProjectTo<QuestionDto>(existingQuestions).ToArrayAsync().ConfigureAwait(false));
-        }
-        //todo: shouldn't this be in FluentMapper ?
-        private SubQuestion SubQustionDtoToEntity(Question container, CreateSubQuestionDto dto)
-        {
-            void FillBase(SubQuestion q)
-            {
-                q.Content = dto.Content;
-                q.Type = dto.Type;
-                q.Tags = dto.Tags?.Select(t => new SubQuestionTag { TagId = t, SubQuestion = q }).ToArray() ?? Array.Empty<SubQuestionTag>();
-                q.Question = container;
-            }
-            switch (dto)
-            {
-                case CreateBlankSubQuestionDto blank:
-                    BlankSubQuestion bq = new()
-                    {
-                        Answer = blank.Answer,
-                        Checker = _mapper.Map<Program>(blank.Checker)
-                    };
-                    FillBase(bq);
-                    return bq;
-
-                case CreateMCQSubQuestionDto mcq:
-                    MCQSubQuestion mq = new()
-                    {
-                        IsCheckBox = mcq.IsCheckBox,
-                    };
-                    mq.Choices = mcq.Choices
-                        .Select(c => new MCQSubQuestionChoice
-                        {
-                            Content = c.Content,
-                            Weight = c.Weight,
-                            Question = mq
-                        }).ToArray();
-                    FillBase(mq);
-                    return mq;
-                case CreateProgrammingSubQuestionDto pro:
-                    ProgrammingSubQuestion pq = new()
-                    {
-                        Checker = _mapper.Map<Program>(pro.Checker)
-                    };
-                    FillBase(pq);
-                    return pq;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(dto), "The dto isn't known.");
-            }
+            _dbContext.Questions.RemoveRange(existingQuestions);
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+            return Ok();
         }
         [LoggedInFilter]
-        public async Task<ActionResult<int>> Create(CreateQuestionDto info)
+        [HttpPost]
+        public async Task<IActionResult> Create(CreateQuestionDto info)
         {
             var user = this.GetUser()!;
             var question = new Question
@@ -145,15 +110,16 @@ namespace GradProjectServer.Controllers
                 IsApproved = false,
                 VolunteerId = user.Id,
             };
-            question.SubQuestions = info.SubQuestions.Select(sq => SubQustionDtoToEntity(question, sq)).ToArray();
+            question.SubQuestions = new List<SubQuestion>();
             await _dbContext.Questions.AddAsync(question).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return Ok(question.Id);
+            return CreatedAtAction(nameof(Get), new { questionsIds = new int[] { question.Id }, metadata = true }, _mapper.Map<QuestionMetadataDto>(question));
         }
         /// <summary>
-        /// result is ordered by the id.
+        /// result is ordered by the title.
         /// </summary>
-        public async Task<ActionResult<QuestionMetadataDto[]>> Search(QuestionSearchFilterDto filter)
+        [HttpPost]
+        public IActionResult Search(QuestionSearchFilterDto filter)
         {
             var questions = _dbContext.Questions.AsQueryable();
             var user = this.GetUser();
@@ -187,11 +153,15 @@ namespace GradProjectServer.Controllers
             {
                 questions = questions.Where(e => filter.VolunteersIds!.Contains(e.VolunteerId));
             }
-            var result = questions.OrderByDescending(e => e.Id).Skip(filter.Offset).Take(filter.Count);
-            QuestionMetadataDto[] resultDto = await _mapper.ProjectTo<QuestionMetadataDto>(result).ToArrayAsync().ConfigureAwait(false);
-            return resultDto;
+            var result = questions.OrderBy(e => e.Title).Skip(filter.Offset).Take(filter.Count);
+            if (filter.Metadata)
+            {
+                return Ok(_mapper.ProjectTo<QuestionMetadataDto>(result));
+            }
+            return Ok(_mapper.ProjectTo<QuestionDto>(result));
         }
         [LoggedInFilter]
+        [HttpPatch]
         public async Task<IActionResult> Update([FromBody] UpdateQuestionDto update)
         {
             var question = await _dbContext.Questions
@@ -209,17 +179,7 @@ namespace GradProjectServer.Controllers
             {
                 question.Title = update.Title;
             }
-            if ((update.SubQuestionsToDelete?.Length ?? 0) > 0)
-            {
-                var questionsToDelete = question.SubQuestions.Where(q => update.SubQuestionsToDelete!.Contains(q.Id));
-                _dbContext.SubQuestions.RemoveRange(questionsToDelete);
-            }
-            if ((update.SubQuestionsToAdd?.Length ?? 0) > 0)
-            {
-                var newQuestions = update.SubQuestionsToAdd!
-                    .Select(q => SubQustionDtoToEntity(question, q));
-                await _dbContext.SubQuestions.AddRangeAsync(newQuestions).ConfigureAwait(false);
-            }
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
 

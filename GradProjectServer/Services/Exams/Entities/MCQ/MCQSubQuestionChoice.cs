@@ -6,7 +6,7 @@ namespace GradProjectServer.Services.Exams.Entities
     public class MCQSubQuestionChoice
     {
         public byte Id { get; set; }
-        public int QuestionId { get; set; }
+        public int SubQuestionId { get; set; }
         public string Content { get; set; }
         /// <summary>
         /// Range [-1, 1]
@@ -14,18 +14,18 @@ namespace GradProjectServer.Services.Exams.Entities
         /// If <see cref="MCQSubQuestion.IsCheckBox"/> is false only one <see cref="Weight"/> can be > 0.
         /// </summary>
         public float Weight { get; set; }
-        public MCQSubQuestion Question { get; set; }
+        public MCQSubQuestion SubQuestion { get; set; }
         public static void ConfigureEntity(EntityTypeBuilder<MCQSubQuestionChoice> b)
         {
-            b.HasKey(m => new { m.Id, m.QuestionId });
+            b.HasKey(m => new { m.Id, m.SubQuestionId });
             b.Property(m => m.Content)
                 .IsRequired()
                 .IsUnicode();
             b.Property(m => m.Weight)
                 .IsRequired();
-            b.HasOne(m => m.Question)
+            b.HasOne(m => m.SubQuestion)
                 .WithMany(q => q.Choices)
-                .HasForeignKey(m => m.QuestionId);
+                .HasForeignKey(m => m.SubQuestionId);
 
             b.HasCheckConstraint("CK_MCQSubQuestionChoice_WEIGHT", $@"{nameof(Weight)} >= -1 AND {nameof(Weight)} <= 1");
 

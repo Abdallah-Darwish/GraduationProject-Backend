@@ -12,11 +12,10 @@ namespace GradProjectServer.Validators.SubQuestions
         public CreateMCQSubQuestionChoiceDtoValidator()
         {
             RuleFor(d => d.Content)
-                .MinimumLength(1)
-                .WithMessage($"{nameof(CreateMCQSubQuestionChoiceDto.Content)} can't be null or empty");
+                .NotEmpty();
             RuleFor(d => d.Weight)
                 .InclusiveBetween(-1, 1)
-                .WithMessage($"{nameof(CreateMCQSubQuestionChoiceDto.Weight)} must be in range [-1, 1].");
+                .WithMessage("{PropertyName} must be in range [-1, 1].");
         }
     }
 }

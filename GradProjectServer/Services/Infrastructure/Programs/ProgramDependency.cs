@@ -27,6 +27,5 @@ namespace GradProjectServer.Services.Infrastructure
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
         }
-
     }
 }

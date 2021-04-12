@@ -8,7 +8,6 @@ namespace GradProjectServer.DTO.Exams
 {
     public class ExamSearchFilterDto
     {
-        public int[]? Ids { get; set; }
         public string? NameMask { get; set; }
         public int? MinYear { get; set; }
         public int? MaxYear { get; set; }
@@ -27,5 +26,6 @@ namespace GradProjectServer.DTO.Exams
         public int[]? VolunteersIds { get; set; }
         public int Offset { get; set; }
         public int Count { get; set; }
+        public bool Metadata { get; set; }
     }
 }

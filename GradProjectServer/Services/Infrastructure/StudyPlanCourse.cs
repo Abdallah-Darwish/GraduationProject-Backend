@@ -9,7 +9,7 @@ namespace GradProjectServer.Services.Infrastructure
         public int CourseId { get; set; }
         public int CategoryId { get; set; }
         public Course Course { get; set; }
-        public CourseCategory Category { get; set; }
+        public StudyPlanCourseCategory Category { get; set; }
         public ICollection<StudyPlanCoursePrerequisite> Prerequisites { get; set; }
         public static void ConfigureEntity(EntityTypeBuilder<StudyPlanCourse> b)
         {

@@ -5,5 +5,5 @@ using System.Threading.Tasks;
 
 namespace GradProjectServer.Common
 {
-    public enum SubQuestionType { MultipleChoice, Blank, Code }
+    public enum SubQuestionType { MultipleChoice, Blank, Programming }
 }

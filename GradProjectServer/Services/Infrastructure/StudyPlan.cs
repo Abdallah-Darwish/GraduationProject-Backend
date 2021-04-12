@@ -10,7 +10,7 @@ namespace GradProjectServer.Services.Infrastructure
         public int Year { get; set; }
         public int MajorId { get; set; }
         public Major Major { get; set; }
-        public ICollection<CourseCategory> Categories { get; set; }
+        public ICollection<StudyPlanCourseCategory> Categories { get; set; }
         public ICollection<StudyPlanCourse> Courses { get; set; }
         public static void ConfigureEntity(EntityTypeBuilder<StudyPlan> b)
         {

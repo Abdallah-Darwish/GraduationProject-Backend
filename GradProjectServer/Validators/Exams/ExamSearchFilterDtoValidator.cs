@@ -13,10 +13,10 @@ namespace GradProjectServer.Validators.Exams
         {
             RuleFor(d => d.Count)
                 .GreaterThan(0)
-                .WithMessage($"{nameof(ExamSearchFilterDto.Count)} must be >= 1.");
+                .WithMessage("{PropertyName} must be >= {ComparisonValue}.");
             RuleFor(d => d.Offset)
                 .GreaterThanOrEqualTo(0)
-                .WithMessage($"{nameof(ExamSearchFilterDto.Offset)} must be >= 0.");
+                .WithMessage("{PropertyName} must be >= {ComparisonValue}.");
             RuleFor(d => d.MinDuration)
                 .LessThan(d => d.MaxDuration)
                 .When(d => d.MinDuration.HasValue && d.MaxDuration.HasValue)

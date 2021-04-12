@@ -22,7 +22,7 @@ namespace GradProjectServer.Validators.Exams
                     var subQuestion = await dbContext.SubQuestions.FindAsync(id).ConfigureAwait(false);
                     return subQuestion != null && subQuestion.Question.IsApproved;
                 })
-                .WithMessage(d => $"SubQuestion(Id: {d.QuestionId}) doens't exist or isn't approved yet.");
+                .WithMessage("SubQuestion(Id: {PropertyValue}) doesn't exist or isn't approved yet.");
         }
     }
 }

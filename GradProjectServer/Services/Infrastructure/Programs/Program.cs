@@ -6,10 +6,15 @@ namespace GradProjectServer.Services.Infrastructure
     public class Program
     {
         public int Id { get; set; }
+        public string FileName { get; set; }
         public ICollection<ProgramDependency> Dependencies { get; set; }
         public static void ConfigureEntity(EntityTypeBuilder<Program> b)
         {
             b.HasKey(p => p.Id);
+
+            b.Property(p => p.FileName)
+                .IsUnicode()
+                .IsRequired();
         }
         //init script
         //init code(creating db)

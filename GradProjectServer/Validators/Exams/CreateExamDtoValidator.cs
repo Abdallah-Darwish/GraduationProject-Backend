@@ -15,19 +15,18 @@ namespace GradProjectServer.Validators.Exams
 		public CreateExamDtoValidator(AppDbContext dbContext)
 		{
 			RuleFor(d => d.Name)
-				.MinimumLength(1)
-				.WithMessage("Exam name can't be empty.");
+				.NotEmpty();
 			RuleFor(d => d.Duration)
 				.InclusiveBetween(TimeSpan.FromSeconds(1), TimeSpan.FromHours(10))
-				.WithMessage("Exam duration must be in range [1 second, 10 hours].");
+				.WithMessage("{PropertyName} must be in range [1 second, 10 hours].");
 			RuleFor(d => d.Year)
 				.InclusiveBetween(1990, DateTime.Now.Year)
-				.WithMessage("Exam year must be in range [1990, Current Year].");
+				.WithMessage("{PropertyName} must be in range [1990, Current Year].");
 			RuleFor(d => d.SubQuestions)
 				.NotNull()
-				.WithMessage($"{nameof(CreateExamDto.SubQuestions)} can't be null.")
+				.WithMessage("{PropertyName} can't be null.")
 				.Must(questions => questions.Length >= 1)
-				.WithMessage($"{nameof(CreateExamDto.SubQuestions)} size must be >= 1.")
+				.WithMessage("{PropertyName} size must be >= 1.")
 				.InjectValidator()
 				.Must(questions =>
 				{
@@ -39,7 +38,7 @@ namespace GradProjectServer.Validators.Exams
 					.Count();
 					return questionsCoursesCount == 1;
 				})
-				.WithMessage($"Not all questions in \"{nameof(CreateExamDto.SubQuestions)}\" belong to the same course.");
+				.WithMessage("Not all questions in {PropertyName} belong to the same course.");
 			RuleFor(d => d.Type)
 				.IsInEnum();
 			RuleFor(d => d.Semester)

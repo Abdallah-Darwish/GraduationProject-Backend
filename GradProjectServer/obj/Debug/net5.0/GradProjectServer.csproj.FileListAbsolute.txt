@@ -42,3 +42,5 @@ C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradP
 C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\ref\GradProjectServer.dll
 C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradProjectServer.pdb
 C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradProjectServer.genruntimeconfig.cache
+C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradProjectServer.csprojAssemblyReference.cache
+C:\Users\abdal\source\repos\GradProject\GradProjectServer\bin\Debug\net5.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll

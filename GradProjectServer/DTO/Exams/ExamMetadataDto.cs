@@ -1,5 +1,6 @@
 ﻿using GradProjectServer.Common;
 using GradProjectServer.DTO.Courses;
+using GradProjectServer.DTO.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,7 @@ namespace GradProjectServer.DTO.Exams
         public string Name { get; set; }
         public TimeSpan Duration { get; set; }
         public CourseDto Course { get; set; }
+        public UserMetadataDto Volunteer { get; set; }
         //do we need tags here ?
     }
 }

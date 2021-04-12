@@ -12,12 +12,14 @@ namespace GradProjectServer.Validators.SubQuestions
     {
         public CreateSubQuestionDtoValidator(AppDbContext dbContext)
         {
+            RuleFor(d => d.QuestionId)
+                .MustAsync(async (id, _) => (await dbContext.Questions.FindAsync(id).ConfigureAwait(false)) != null)
+                .WithMessage("Question(Id: {PropertyValue}) doesn't exist.");
             RuleFor(d => d.Content)
-                .MinimumLength(1)
-                .WithMessage($"{nameof(CreateSubQuestionDto.Content)} can't be null or empty.");
+                .NotEmpty();
             RuleFor(d => d.Tags)
                 .Must(ids => ids!.Distinct().Count() == ids!.Length)
-                .WithMessage($"{nameof(CreateSubQuestionDto.Tags)} can't contain duplicates.")
+                .WithMessage("{PropertyName} can't contain duplicates.")
                 .When(d => (d.Tags?.Length ?? 0) > 0);
             RuleFor(d => d.Tags)
                 .Custom((ids, ctx) =>

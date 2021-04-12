@@ -17,5 +17,6 @@ namespace GradProjectServer.DTO.Questions
         public int[]? VolunteersIds { get; set; }
         public int Offset { get; set; }
         public int Count { get; set; }
+        public bool Metadata { get; set; }
     }
 }

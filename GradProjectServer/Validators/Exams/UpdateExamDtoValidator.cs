@@ -18,7 +18,7 @@ namespace GradProjectServer.Validators.Exams
             CascadeMode = CascadeMode.Stop;
             RuleFor(d => d.ExamId)
                 .MustAsync(async (id, _) => (await dbContext.Exams.FindAsync(id).ConfigureAwait(false)) != null)
-                .WithMessage(d => $"Exam(Id: {d.ExamId}) doesn't exist.")
+                .WithMessage("Exam(Id: {PropertyName}) doesn't exist.")
                 .DependentRules(() =>
                 {
                     RuleFor(d => d.ExamId)
@@ -46,22 +46,21 @@ namespace GradProjectServer.Validators.Exams
                 .WithMessage(d => $"Course(Id: {d.CourseId}) doesn't exist.")
                 .When(d => d.CourseId.HasValue);
             RuleFor(d => d.Name)
-                .MinimumLength(1)
-                .WithMessage("Exam name can't be empty.")
+                .NotEmpty()
                 .When(d => d.Name != null);
             RuleFor(d => d.Duration)
                 .InclusiveBetween(TimeSpan.FromSeconds(1), TimeSpan.FromHours(10))
-                .WithMessage("Exam duration must be in range [1 second, 10 hours].")
+                .WithMessage("{PropertyName} must be in range [1 second, 10 hours].")
                 .When(d => d.Duration.HasValue);
             RuleFor(d => d.Year)
                 .InclusiveBetween(1990, DateTime.Now.Year)
-                .WithMessage("Exam year must be in range [1990, Current Year].")
+                .WithMessage("{PropertyName} must be in range [1990, Current Year].")
                 .When(d => d.Year.HasValue);
             RuleFor(d => d.SubQuestionsToAdd)
                 .Must(questions => questions!.Length >= 1)
-                .WithMessage($"{nameof(UpdateExamDto.SubQuestionsToAdd)} size must be >= 1.")
+                .WithMessage("{PropertyName} size must be >= 1.")
                 .Must(questions => questions!.Select(q => q.QuestionId).Distinct().Count() == questions!.Length)
-                .WithMessage($"{nameof(UpdateExamDto.SubQuestionsToAdd)} can't contain duplicates.")
+                .WithMessage("{PropertyName} can't contain duplicates.")
                 .InjectValidator()
                 .Must(questions =>
                 {
@@ -73,7 +72,7 @@ namespace GradProjectServer.Validators.Exams
                     .Count();
                     return questionsCoursesCount == 1;
                 })
-                .WithMessage($"Not all questions in \"{nameof(UpdateExamDto.SubQuestionsToAdd)}\" belong to the same course.")
+                .WithMessage("Not all questions in {PropertyName} belong to the same course.")
                 .When(d => d.SubQuestionsToAdd != null);
             RuleFor(d => d.SubQuestionsToDelete)
                 .Must(questions => questions!.Length >= 1)
@@ -87,7 +86,7 @@ namespace GradProjectServer.Validators.Exams
                         .ConfigureAwait(false);
                     return !questions!.Except(exam.SubQuestions.Select(q => q.Id)).Any();
                 })
-                .WithMessage($"Some questions in \"{nameof(UpdateExamDto.SubQuestionsToDelete)}\" don't exist or belong to this exam.")
+                .WithMessage(d => $"Some questions in {{PropertyName}} don't exist or belong to Exam(Id: {d.ExamId}).")
                 .When(d => d.SubQuestionsToDelete != null);
             RuleFor(d => d.Type)
                 .IsInEnum()

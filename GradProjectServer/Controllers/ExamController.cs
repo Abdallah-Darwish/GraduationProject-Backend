@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 
 namespace GradProjectServer.Controllers
 {
+    //todo: add get all method to all controllers
     [ApiController]
     [Route("[controller]")]
     public class ExamController : ControllerBase
@@ -34,10 +35,11 @@ namespace GradProjectServer.Controllers
         ///     All exams.
         /// </summary>
         /// <param name="examsIds">Ids of the exams to get.</param>
+        [HttpGet]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<ExamMetadataDto[]>> GetMetadata([FromBody] int[] examsIds)
+        public IActionResult Get([FromBody] int[] examsIds, bool metadata = false)
         {
             var existingExams = _dbContext.Exams.Where(e => examsIds.Contains(e.Id));
             var nonExistingExams = examsIds.Except(existingExams.Select(e => e.Id)).ToArray();
@@ -64,8 +66,11 @@ namespace GradProjectServer.Controllers
                         });
                 }
             }
-            return Ok(await _mapper.ProjectTo<ExamMetadataDto>(existingExams).ToArrayAsync().ConfigureAwait(false));
-
+            if (metadata)
+            {
+                return Ok(_mapper.ProjectTo<ExamMetadataDto>(existingExams));
+            }
+            return Ok(_mapper.ProjectTo<ExamDto>(existingExams));
         }
         /// <summary>
         /// Result is orderd descending by the year 
@@ -74,7 +79,7 @@ namespace GradProjectServer.Controllers
         /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(typeof(ExamMetadataDto[]), StatusCodes.Status200OK)]
-        public async Task<ActionResult<ExamMetadataDto[]>> Search([FromBody] ExamSearchFilterDto filter)
+        public IActionResult Search([FromBody] ExamSearchFilterDto filter)
         {
             var exams = _dbContext.Exams.AsQueryable();
             var user = this.GetUser();
@@ -86,10 +91,6 @@ namespace GradProjectServer.Controllers
             if (filter.NameMask != null)
             {
                 exams = exams.Where(e => EF.Functions.Like(e.Name, filter.NameMask));
-            }
-            if ((filter.Ids?.Length ?? 0) > 0)
-            {
-                exams = exams.Where(e => filter.Ids!.Contains(e.Id));
             }
             if ((filter.Courses?.Length ?? 0) > 0)
             {
@@ -133,8 +134,11 @@ namespace GradProjectServer.Controllers
                 exams = exams.Where(e => filter.VolunteersIds!.Contains(e.VolunteerId));
             }
             var result = exams.OrderByDescending(e => e.Year).Skip(filter.Offset).Take(filter.Count);
-            ExamMetadataDto[] resultDto = await _mapper.ProjectTo<ExamMetadataDto>(result).ToArrayAsync().ConfigureAwait(false);
-            return resultDto;
+            if (filter.Metadata)
+            {
+                return Ok(_mapper.ProjectTo<ExamMetadataDto>(result));
+            }
+            return Ok(_mapper.ProjectTo<ExamDto>(result));
         }
         /// <summary>
         /// Deletes the specified exams.
@@ -151,6 +155,7 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         //todo: create not null attribute
         //todo: create min/max length attribute
+        //todo: create distinct attribute
         public async Task<IActionResult> Delete([FromBody] int[] examsIds)
         {
             var existingExams = _dbContext.Exams.Where(e => examsIds.Contains(e.Id));
@@ -197,7 +202,7 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<int>> Create([FromBody] CreateExamDto data)
+        public async Task<ActionResult<ExamMetadataDto>> Create([FromBody] CreateExamDto data)
         {
             var user = this.GetUser()!;
             var exam = new Exam
@@ -222,7 +227,7 @@ namespace GradProjectServer.Controllers
                 })
                 .ToArray();
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return Ok(exam.Id);
+            return CreatedAtAction(nameof(Get), new { examsIds = new int[] { exam.Id }, metadata = true }, _mapper.Map<ExamMetadataDto>(exam));
         }
         [HttpPatch]
         [LoggedInFilter]

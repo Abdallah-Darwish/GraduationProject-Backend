@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GradProjectServer.DTO.Dependencies
+namespace GradProjectServer.DTO.Programs
 {
     public class DependencyDto
     {
+        public int Id { get; set; }
+        public string Name { get; set; }
     }
 }

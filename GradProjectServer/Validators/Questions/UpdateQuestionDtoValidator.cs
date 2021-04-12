@@ -16,7 +16,7 @@ namespace GradProjectServer.Validators.Questions
         {
             RuleFor(d => d.QuestionId)
                 .MustAsync(async (id, _) => (await dbContext.Questions.FindAsync(id).ConfigureAwait(false)) != null)
-                .WithMessage(d => $"Question(Id: {d.QuestionId}) doesn't exist.")
+                .WithMessage(d => "Question(Id: {PropertyValue}) doesn't exist.")
                 .DependentRules(() =>
                 {
                     RuleFor(d => d.QuestionId)
@@ -39,35 +39,15 @@ namespace GradProjectServer.Validators.Questions
                         }
                     });
                     RuleFor(d => d.Content)
-                        .MinimumLength(1)
-                        .WithMessage($"{nameof(UpdateQuestionDto.Content)} can't be null or empty.")
+                        .NotEmpty()
                         .When(d => d.Content != null);
                     RuleFor(d => d.Title)
-                        .MinimumLength(1)
-                        .WithMessage($"{nameof(UpdateQuestionDto.Title)} can't be null or empty.")
+                        .NotEmpty()
                         .When(d => d.Title != null);
                     RuleFor(d => d.CourseId)
                         .MustAsync(async (id, _) => (await dbContext.Courses.FindAsync(id).ConfigureAwait(false)) != null)
-                        .WithMessage(d => $"Course(Id: {d.CourseId}) doesn't exist.")
+                        .WithMessage("Course(Id: {PropertyValue}) doesn't exist.")
                         .When(d => d.CourseId.HasValue);
-                    RuleFor(d => d.SubQuestionsToDelete)
-                        .Must(questions => questions!.Length >= 1)
-                        .WithMessage($"{nameof(UpdateQuestionDto.SubQuestionsToDelete)} size must be >= 1.")
-                        .Must(questions => questions!.Distinct().Count() == questions!.Length)
-                        .WithMessage($"{nameof(UpdateQuestionDto.SubQuestionsToDelete)} can't contain duplicates.")
-                        .MustAsync(async (d, questionsToDelete, _) =>
-                        {
-                            var question = await dbContext.Questions.FindAsync(d.QuestionId).ConfigureAwait(false);
-                            if (question == null) { return true; }
-                            var nonExistingQuestions = question.SubQuestions
-                            .Select(q => q.Id)
-                            .Except(questionsToDelete!)
-                            .ToArray();
-                            if (nonExistingQuestions.Length == 0) { return true; }
-                            return false;
-                        })
-                        .WithMessage(d => $"Some questions in {nameof(UpdateQuestionDto.SubQuestionsToDelete)} don't exist or don't belong to Question(Id: {d.QuestionId}).")
-                        .When(d => d.SubQuestionsToDelete != null);
                 });
         }
     }
