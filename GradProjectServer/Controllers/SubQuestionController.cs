@@ -59,27 +59,32 @@ namespace GradProjectServer.Controllers
             var result = new List<SubQuestion>();
             foreach (var q in existingSubQuestions)
             {
-                switch (q.Type)
+                result.Add(q.Type switch
                 {
-                    case SubQuestionType.MultipleChoice:
-                        result.Add(await _dbContext.MCQSubQuestions.FindAsync(q.Id).ConfigureAwait(false));
-                        break;
-                    case SubQuestionType.Blank:
-                        result.Add(await _dbContext.BlankSubQuestions.FindAsync(q.Id).ConfigureAwait(false));
-                        break;
-                    case SubQuestionType.Programming:
-                        result.Add(await _dbContext.ProgrammingSubQuestions.FindAsync(q.Id).ConfigureAwait(false));
-                        break;
-                    default:
-                        break;
-                }
+                    SubQuestionType.MultipleChoice =>
+                        await _dbContext.MCQSubQuestions.FindAsync(q.Id).ConfigureAwait(false),
+                    SubQuestionType.Blank =>
+                        await _dbContext.BlankSubQuestions.FindAsync(q.Id).ConfigureAwait(false),
+                    SubQuestionType.Programming =>
+                        await _dbContext.ProgrammingSubQuestions.FindAsync(q.Id).ConfigureAwait(false),
+                });
             }
             if (metadata)
             {
                 return Ok(_mapper.Map<List<SubQuestionMetadataDto>>(existingSubQuestions));
             }
-            return Ok(_mapper.Map<List<SubQuestionDto>>(existingSubQuestions));
+            var resultDtos = result.Select(q => {
+                SubQuestionDto dto = q.Type switch
+                {
 
+                    SubQuestionType.MultipleChoice => q.Question.VolunteerId == user?.Id ? _mapper.Map<OwnedMCQSubQuestionDto>(q) : _mapper.Map<MCQSubQuestionDto>(q),
+                    SubQuestionType.Blank => q.Question.VolunteerId == user?.Id ? _mapper.Map<OwnedBlankSubQuestionDto>(q) : _mapper.Map<SubQuestionDto>(q),
+                    SubQuestionType.Programming => q.Question.VolunteerId == user?.Id ? _mapper.Map<OwnedProgrammingSubQuestionDto>(q) : _mapper.Map<SubQuestionDto>(q),
+                };
+                return dto;
+            });
+
+            return Ok(resultDtos);
         }
         public async Task<IActionResult> Create([FromBody] CreateSubQuestionDto dto)
         {
