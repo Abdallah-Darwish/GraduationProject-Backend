@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 namespace GradProjectServer.DTO.SubQuestions
 {
-    public class OwnedMCQSubQuestionDto : MCQSubQuestionDto
+    public class OwnedMCQSubQuestionDto : SubQuestionDto
     {
+        public bool IsCheckBox { get; set; }
         public OwnedMCQSubQuestionChoiceDto[] Choices { get; set; }
     }
 }
