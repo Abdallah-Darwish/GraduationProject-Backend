@@ -19,13 +19,13 @@ namespace GradProjectServer.Services.Exams.Entities
         public ExamType Type { get; set; }
         public Semester Semester { get; set; }
         public string Name { get; set; }
-        public ICollection<ExamSubQuestion> SubQuestions { get; set; }
+        public ICollection<ExamQuestion> Questions { get; set; }
         public TimeSpan Duration { get; set; }
         public int CourseId { get; set; }
         public Course Course { get; set; }
         public int VolunteerId { get; set; }
         public User Volunteer { get; set; }
-        public IEnumerable<Tag> Tags => SubQuestions.SelectMany(e => e.SubQuestion.Tags.Select(t => t.Tag)).Distinct();
+        public IEnumerable<Tag> Tags => Questions.SelectMany(e => e.Question.SubQuestions.SelectMany(q => q.Tags.Select(t => t.Tag))).Distinct();
         //tags
         public static void ConfigureEntity(EntityTypeBuilder<Exam> b)
         {

@@ -208,7 +208,7 @@ namespace GradProjectServer.Controllers
             var user = this.GetUser()!;
             var exam = new Exam
             {
-                CourseId = (await _dbContext.SubQuestions.FindAsync(data.SubQuestions[0].QuestionId).ConfigureAwait(false)).Question.CourseId,
+                CourseId = data.CourseId,
                 Duration = data.Duration,
                 IsApproved = false,
                 Name = data.Name,
@@ -217,16 +217,6 @@ namespace GradProjectServer.Controllers
                 VolunteerId = user.Id,
                 Year = data.Year,
             };
-            //todo: TESSSSSSSSST
-            exam.SubQuestions = data.SubQuestions
-                .Select(q =>
-                new ExamSubQuestion
-                {
-                    Exam = exam,
-                    SubQuestionId = q.QuestionId,
-                    Weight = q.Weight
-                })
-                .ToArray();
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return CreatedAtAction(nameof(Get), new { examsIds = new int[] { exam.Id }, metadata = true }, _mapper.Map<ExamMetadataDto>(exam));
         }
@@ -249,24 +239,6 @@ namespace GradProjectServer.Controllers
             if (update.Year.HasValue) { exam.Year = update.Year.Value; }
             //todo: log if user is not admin and it has value
             if (user.IsAdmin && update.IsApproved.HasValue) { exam.IsApproved = update.IsApproved.Value; }
-            if ((update.SubQuestionsToAdd?.Length ?? 0) > 0)
-            {
-                var subQuestionsToAdd = update.SubQuestionsToAdd!
-                    .Select(q =>
-                    new ExamSubQuestion
-                    {
-                        ExamId = exam.Id,
-                        SubQuestionId = q.QuestionId,
-                        Weight = q.Weight
-                    });
-                _dbContext.ExamsSubQuestions.AddRange(subQuestionsToAdd);
-            }
-            if ((update.SubQuestionsToDelete?.Length ?? 0) > 0)
-            {
-                var subQuestionsToDelete = exam.SubQuestions
-                    .Where(q => update.SubQuestionsToDelete!.Contains(q.SubQuestionId));
-                _dbContext.ExamsSubQuestions.RemoveRange(subQuestionsToDelete);
-            }
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }

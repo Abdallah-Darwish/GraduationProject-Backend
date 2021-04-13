@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GradProjectServer.DTO.Exams
+namespace GradProjectServer.DTO.ExamSubQuestions
 {
     public class CreateExamSubQuestionDto
     {
-        public int QuestionId { get; set; }
+        public int ExamQuestionId { get; set; }
+        public int SubQuestionId { get; set; }
         public float Weight { get; set; }
     }
 }
