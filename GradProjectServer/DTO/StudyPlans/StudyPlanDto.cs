@@ -12,5 +12,6 @@ namespace GradProjectServer.DTO.StudyPlans
         public CourseDto[] CoursesData { get; set; }
         public StudyPlanCourseCategoryDto[] Categories { get; set; }
         public StudyPlanCourseDto[] Courses { get; set; }
+        public int MajorId { get; set; }
     }
 }

@@ -19,6 +19,5 @@ namespace GradProjectServer.DTO.Exams
         public TimeSpan Duration { get; set; }
         public CourseDto Course { get; set; }
         public UserMetadataDto Volunteer { get; set; }
-        //do we need tags here ?
     }
 }

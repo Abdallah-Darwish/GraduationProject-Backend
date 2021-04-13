@@ -14,7 +14,6 @@ namespace GradProjectServer.Mapping
         {
             CreateMap<Question, QuestionMetadataDto>();
             CreateMap<Question, QuestionDto>();
-            CreateMap<Question, QuestionDto>();
         }
     }
 }

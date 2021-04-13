@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using GradProjectServer.DTO.SubQuestions;
-using GradProjectServer.DTO.SubQuestions.Programming;
 using GradProjectServer.DTO.Tags;
 using GradProjectServer.Services.Exams.Entities;
 using System;
@@ -15,15 +14,18 @@ namespace GradProjectServer.Mapping.SubQuestions
         public SubQuestionProfile()
         {
             CreateMap<SubQuestion, SubQuestionMetadataDto>();
+            CreateMap<SubQuestion, SubQuestionDto>()
+                .IncludeAllDerived();
 
             CreateMap<BlankSubQuestion, OwnedBlankSubQuestionDto>();
 
             CreateMap<MCQSubQuestionChoice, OwnedMCQSubQuestionChoiceDto>();
+            CreateMap<MCQSubQuestionChoice, MCQSubQuestionChoiceDto>();
             CreateMap<MCQSubQuestion, MCQSubQuestionMetadataDto>();
             CreateMap<MCQSubQuestion, MCQSubQuestionDto>();
+            CreateMap<MCQSubQuestion, OwnedMCQSubQuestionDto>();
 
             CreateMap<ProgrammingSubQuestion, OwnedProgrammingSubQuestionDto>();
-
         }
     }
 }

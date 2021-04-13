@@ -6,6 +6,7 @@ namespace GradProjectServer.DTO.Exams
     //todo: fill me
     public class ExamDto : ExamMetadataDto
     {
-        public QuestionMetadataDto[] SubQuestions { get; set; }
+        public ExamQuestionDto[] Questions { get; set; }
+        //maybe we should add tags here !
     }
 }
