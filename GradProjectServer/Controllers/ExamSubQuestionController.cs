@@ -38,6 +38,24 @@ namespace GradProjectServer.Controllers
                             Data = new Dictionary<string, object> { ["NonExistingExamSubQuestions"] = nonExistingExamSubQuestions }
                         });
             }
+            var user = this.GetUser();
+            if (!(user?.IsAdmin ?? false))
+            {
+                int userId = user?.Id ?? -1;
+                var notOwnedExamSubQuestions = existingExamSubQuestions
+                    .Where(e => e.ExamQuestion.Exam.VolunteerId != userId && !e.ExamQuestion.Exam.IsApproved)
+                    .Select(q => q.Id)
+                    .ToArray();
+                if (notOwnedExamSubQuestions.Length > 0)
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden,
+                        new ErrorDTO
+                        {
+                            Description = "User doesn't own the following not approved exam sub questions.",
+                            Data = new Dictionary<string, object> { ["NotOwnedNotApprovedExamQuestions"] = notOwnedExamSubQuestions }
+                        });
+                }
+            }
             return Ok(_mapper.ProjectTo<ExamSubQuestionDto>(existingExamSubQuestions));
         }
         [HttpDelete]

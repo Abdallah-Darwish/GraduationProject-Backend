@@ -53,8 +53,8 @@ namespace GradProjectServer.Controllers
                             Data = new Dictionary<string, object> { ["NonExistingExams"] = nonExistingExams }
                         });
             }
-            var user = this.GetUser()!;
-            if (!user.IsAdmin)
+            var user = this.GetUser();
+            if (!(user?.IsAdmin ?? false))
             {
                 var notOwnedExams = existingExams.Where(e => e.VolunteerId != user.Id && !e.IsApproved).ToArray();
                 if (notOwnedExams.Length > 0)

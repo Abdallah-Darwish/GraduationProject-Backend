@@ -13,6 +13,7 @@ namespace GradProjectServer.Mapping
         public UserProfile()
         {
             CreateMap<User, UserMetadataDto>();
+            CreateMap<User, UserDto>();
         }
     }
 }

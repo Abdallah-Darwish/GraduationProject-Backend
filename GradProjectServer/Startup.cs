@@ -1,4 +1,5 @@
 using FluentValidation.AspNetCore;
+using GradProjectServer.DTO;
 using GradProjectServer.Services.EntityFramework;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -26,7 +27,12 @@ namespace GradProjectServer
         {
 
             services.AddControllers()
-                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>());
+                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>())
+                .AddNewtonsoftJson(op =>
+                {
+                    op.SerializerSettings.TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Objects;
+                    op.SerializerSettings.SerializationBinder = new KnownTypesBinder();
+                });
 
             services.AddSwaggerGen(c =>
             {
