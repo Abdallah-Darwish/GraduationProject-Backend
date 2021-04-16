@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace GradProjectServer.DTO.SubQuestions
 {
+    //todo: if mcq is checkbox validate only one choice have weight > 0
     public class CreateMCQSubQuestionChoiceDto
     {
         public string Content { get; set; }

@@ -26,7 +26,6 @@ namespace GradProjectServer.Services.Exams.Entities
         public int VolunteerId { get; set; }
         public User Volunteer { get; set; }
         public IEnumerable<Tag> Tags => Questions.SelectMany(e => e.Question.SubQuestions.SelectMany(q => q.Tags.Select(t => t.Tag))).Distinct();
-        //tags
         public static void ConfigureEntity(EntityTypeBuilder<Exam> b)
         {
             b.HasKey(e => e.Id);
@@ -59,8 +58,57 @@ namespace GradProjectServer.Services.Exams.Entities
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
-            b.HasCheckConstraint("CK_EXAM_YEAR", $@"{nameof(Exam.Year)} >= 1");
-            b.HasCheckConstraint("CK_EXAM_DURATION", $@"{nameof(Exam.Duration)} > 0");
+            b.HasCheckConstraint("CK_EXAM_YEAR", $@"{nameof(Year)} >= 1");
+            b.HasCheckConstraint("CK_EXAM_DURATION", $@"{nameof(Duration)} > 0");
+
+            b.HasData(Seed);
+        }
+        private static Exam[]? _seed = null;
+        public static Exam[] Seed
+        {
+            get
+            {
+                if(_seed != null) { return _seed; }
+
+                Random rand = new();
+                List<Exam> seed = new();
+                var coursesWithQuestions = SubQuestion.Seed
+                    .Where(sq => sq.Question.IsApproved)
+                    .GroupBy(q => q.Question.Course)
+                    .Select(g => (Course : g.Key, QuestionCount: g.Count()));
+                var examsTypes = Enum.GetValues<ExamType>();
+                var semesters = Enum.GetValues<Semester>();
+                var users = User.Seed;
+                
+                foreach(var (course, questionCount) in coursesWithQuestions)
+                {
+                    var examCount = Math.Min(Math.Max(1, rand.Next(questionCount / 2, questionCount + 1)), 50);
+                    for (int i = 0; i < examCount; i++)
+                    {
+                        var volunteer = rand.NextElement(users);
+                        var exam = new Exam
+                        {
+                            CourseId = course.Id,
+                            Course = course,
+                            IsApproved = rand.NextBool(),
+                            Name = $"Course {course.Id}, exam {i}. {rand.NextText(rand.Next(10))}",
+                            Type = rand.NextElement(examsTypes),
+                            VolunteerId = volunteer.Id,
+                            Volunteer = volunteer,
+                            Duration = TimeSpan.FromMinutes(rand.Next(10, 120)),
+                            Semester = rand.NextElement(semesters),
+                            Year = rand.Next(2015, 2021),
+                        };
+                        seed.Add(exam);
+                    }
+                }
+                for(int i = 1;i<=seed.Count;i++)
+                {
+                    seed[i - 1].Id = i;
+                }
+                _seed = seed.ToArray();
+                return _seed;
+            }
         }
     }
 }

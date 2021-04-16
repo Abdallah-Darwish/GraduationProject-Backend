@@ -2,6 +2,7 @@
 using GradProjectServer.Services.UserSystem;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -40,6 +41,40 @@ namespace GradProjectServer.Services.Exams.Entities
                 .WithMany(b => b.VolunteeredQuestions)
                 .HasForeignKey(b => b.VolunteerId)
                 .IsRequired();
+            b.HasData(Seed);
+        }
+        private static Question[]? _seed = null;
+        public static Question[] Seed
+        {
+            get
+            {
+                if (_seed != null) { return _seed; }
+                var rand = new Random();
+                var seed = new List<Question>();
+                var courses = Course.Seed;
+                var users = User.Seed;
+                var questionsCount = rand.Next(300, 500);
+                for (int i = 1; i <= questionsCount; i++)
+                {
+                    var user = rand.NextElement(users);
+                    var course = rand.NextElement(courses);
+
+                    var question = new Question
+                    {
+                        Id = i,
+                        Content = $"Question {i} content {rand.NextText(rand.Next(1, 300))}",
+                        Title = $"Question {i} Title {rand.NextText(rand.Next(1, 20))}",
+                        IsApproved = rand.NextBool(),
+                        CourseId = course.Id,
+                        Course = course,
+                        VolunteerId = user.Id,
+                        Volunteer = user,
+                    };
+                    seed.Add(question);
+                }
+                _seed = seed.ToArray();
+                return _seed;
+            }
         }
     }
 }

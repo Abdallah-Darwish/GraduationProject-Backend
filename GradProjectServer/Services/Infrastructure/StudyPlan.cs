@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
 using System.Collections.Generic;
 
 namespace GradProjectServer.Services.Infrastructure
@@ -21,7 +22,43 @@ namespace GradProjectServer.Services.Infrastructure
                  .WithMany(m => m.StudyPlans)
                  .HasForeignKey(p => p.MajorId)
                  .IsRequired();
+            b.HasIndex(p => new { p.MajorId, p.Year })
+                .IsUnique();
             b.HasCheckConstraint("CK_STUDYPLAN_YEAR", $@"{nameof(StudyPlan.Year)} > 0");
+
+            b.HasData(Seed);
+        }
+        private static StudyPlan[]? _seed = null;
+        public static StudyPlan[] Seed
+        {
+            get
+            {
+                if (_seed != null) { return _seed; }
+                var rand = new Random();
+                var seed = new List<StudyPlan>();
+                foreach (var major in Major.Seed)
+                {
+                    var y = rand.Next(2015, 2019);
+                    seed.Add(new StudyPlan
+                    {
+                        MajorId = major.Id,
+                        Major = major,
+                        Year = y,
+                    });
+                    seed.Add(new StudyPlan
+                    {
+                        MajorId = major.Id,
+                        Major = major,
+                        Year = y + 2,
+                    });
+                }
+                for (int i = 1; i <= seed.Count; i++)
+                {
+                    seed[i - 1].Id = i;
+                }
+                _seed = seed.ToArray();
+                return _seed;
+            }
         }
     }
 }

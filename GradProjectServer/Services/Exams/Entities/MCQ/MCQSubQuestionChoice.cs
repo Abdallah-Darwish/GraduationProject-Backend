@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
+using System.Collections.Generic;
 
 namespace GradProjectServer.Services.Exams.Entities
 {
     public class MCQSubQuestionChoice
     {
-        public byte Id { get; set; }
+        public int Id { get; set; }
         public int SubQuestionId { get; set; }
         public string Content { get; set; }
         /// <summary>
@@ -29,6 +31,54 @@ namespace GradProjectServer.Services.Exams.Entities
 
             b.HasCheckConstraint("CK_MCQSubQuestionChoice_WEIGHT", $@"{nameof(Weight)} >= -1 AND {nameof(Weight)} <= 1");
 
+        }
+        private static MCQSubQuestionChoice[]? _seed = null;
+        public static MCQSubQuestionChoice[] Seed
+        {
+            get
+            {
+                if (_seed != null) { return _seed; }
+                Random rand = new();
+                List<MCQSubQuestionChoice> seed = new();
+                List<MCQSubQuestionChoice> choices = new();
+                foreach (var mcq in MCQSubQuestion.Seed)
+                {
+                    choices.Clear();
+                    var choicesCount = rand.Next(2, 5);
+                    for (int i = 0; i < choicesCount; i++)
+                    {
+                        var choice = new MCQSubQuestionChoice
+                        {
+                            SubQuestionId = mcq.Id,
+                            SubQuestion = mcq,
+                            Content = $"Choice {i}, Subquestion {mcq.Id}, Question {mcq.QuestionId}"
+                        };
+                        choices.Add(choice);
+                    }
+                    if (mcq.IsCheckBox)
+                    {
+                        foreach (var choice in choices)
+                        {
+                            choice.Weight = (float)rand.NextDouble();
+                            if (rand.NextBool())
+                            {
+                                choice.Weight *= -1;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rand.NextElement(choices).Weight = 1;
+                    }
+                    seed.AddRange(choices);
+                }
+                for (int i = 1; i <= seed.Count; i++)
+                {
+                    seed[i - 1].Id = i;
+                }
+                _seed = seed.ToArray();
+                return _seed;
+            }
         }
     }
 }

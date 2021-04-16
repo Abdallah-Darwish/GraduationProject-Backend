@@ -31,6 +31,48 @@ namespace GradProjectServer.Services.Exams.Entities
                 .HasForeignKey(q => q.QuestionId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasData(Seed);
+        }
+
+        private static ExamQuestion[]? _seed = null;
+        public static ExamQuestion[] Seed
+        {
+            get
+            {
+                if(_seed != null) { return _seed; }
+
+                Random rand = new();
+                List<ExamQuestion> seed = new();
+                var questionsByCourse = Question.Seed
+                    .GroupBy(q => q.Course)
+                    .ToDictionary(g => g.Key, g => g.ToArray());
+                foreach (var exam in Exam.Seed)
+                {
+                    var questions = questionsByCourse[exam.Course];
+                    int questionsLastIndex = questions.Length - 1;
+                    var questionsCount = rand.Next(1, questions.Length);
+                    for (int i = 0; i < questionsCount; i++)
+                    {
+                        var question = rand.NextElementAndSwap(questions, questionsLastIndex--);
+                        var examQuestion = new ExamQuestion
+                        {
+                            ExamId = exam.Id,
+                            Exam = exam,
+                            Order = rand.Next(1, 100),
+                            QuestionId = question.Id,
+                            Question = question,
+                        };
+                        seed.Add(examQuestion);
+                    }
+                }
+                for (int i = 1; i <= seed.Count; i++)
+                {
+                    seed[i - 1].Id = i;
+                }
+                _seed = seed.ToArray();
+                return _seed;
+            }
         }
     }
 }

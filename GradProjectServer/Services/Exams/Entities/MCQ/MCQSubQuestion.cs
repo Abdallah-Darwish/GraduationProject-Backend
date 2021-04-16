@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
 using System.Collections.Generic;
 
 namespace GradProjectServer.Services.Exams.Entities
@@ -14,6 +15,35 @@ namespace GradProjectServer.Services.Exams.Entities
              .ToTable(nameof(MCQSubQuestion));
             b.Property(m => m.IsCheckBox)
                 .IsRequired();
+        }
+        private static MCQSubQuestion[]? _seed = null;
+        public static new MCQSubQuestion[] Seed
+        {
+            get
+            {
+                if (_seed != null) { return _seed; }
+
+                Random rand = new();
+                List<MCQSubQuestion> seed = new();
+                foreach (var question in Question.Seed)
+                {
+                    if (!rand.NextBool()) { continue; }
+                    for (int i = 0; i < rand.Next(1, 3); i++)
+                    {
+                        var sq = new MCQSubQuestion
+                        {
+                            QuestionId = question.Id,
+                            Question = question,
+                            IsCheckBox = rand.NextBool(),
+                            Type = Common.SubQuestionType.MultipleChoice
+                        };
+                        SeedSubQuestion(sq);
+                        seed.Add(sq);
+                    }
+                }
+                _seed = seed.ToArray();
+                return _seed;
+            }
         }
     }
 }

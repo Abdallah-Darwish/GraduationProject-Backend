@@ -138,6 +138,7 @@ namespace GradProjectServer.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete([FromBody] int[] subQuestionsIds)
         {
+            //todo: delete checkers
             var existingSubQuestions = _dbContext.SubQuestions.Where(e => subQuestionsIds.Contains(e.Id));
             var nonExistingSubQuestions = subQuestionsIds.Except(existingSubQuestions.Select(e => e.Id)).ToArray();
             if (nonExistingSubQuestions.Length > 0)

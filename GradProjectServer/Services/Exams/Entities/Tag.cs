@@ -15,5 +15,33 @@ namespace GradProjectServer.Services.Exams.Entities
                 .IsRequired()
                 .IsUnicode();
         }
+        private static Tag[]? _seed = null;
+        public static Tag[] Seed
+        {
+            get
+            {
+                if (_seed != null) { return _seed; }
+
+                _seed = new Tag[]
+                {
+                    new Tag { Name = "Loops" },
+                    new Tag { Name = "Limits" },
+                    new Tag { Name = "Arrays" },
+                    new Tag { Name = "Two Pointers" },
+                    new Tag { Name = "Matrices" },
+                    new Tag { Name = "Gaussian Elimination" },
+                    new Tag { Name = "Present Perfect" },
+                    new Tag { Name = "DFA" },
+                    new Tag { Name = "NFA" },
+                    new Tag { Name = "Regular Expressions" },
+                    new Tag { Name = "Trees" },
+                    new Tag { Name = "Binary Search" },
+                    new Tag { Name = "OOP" },
+                    new Tag { Name = "Pointers" },
+                };
+
+                return _seed;
+            }
+        }
     }
 }

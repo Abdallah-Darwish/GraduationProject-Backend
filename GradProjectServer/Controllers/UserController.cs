@@ -19,8 +19,8 @@ namespace GradProjectServer.Controllers
     public class UserController : ControllerBase
     {
         //todo: implement me
-        private static string HashPassword(string password) { return password; }
-        private static string GenerateToken(User user) { return $"{user.Id}:{DateTime.UtcNow.Ticks}"; }
+        public static string HashPassword(string password) { return password; }
+        public static string GenerateToken(User user) { return $"{user.Id}:{DateTime.UtcNow.Ticks}"; }
 
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;

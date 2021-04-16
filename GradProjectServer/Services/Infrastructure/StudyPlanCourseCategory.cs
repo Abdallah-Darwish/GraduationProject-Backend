@@ -20,18 +20,52 @@ namespace GradProjectServer.Services.Infrastructure
         {
             b.HasKey(c => c.Id);
             b.Property(c => c.AllowedCreditHours)
-                 .IsRequired();
+                .IsRequired();
             b.HasOne(c => c.StudyPlan)
-                 .WithMany(p => p.Categories)
-                 .HasForeignKey(c => c.StudyPlanId)
-                 .IsRequired()
-                 .OnDelete(DeleteBehavior.Cascade);
+                .WithMany(p => p.Categories)
+                .HasForeignKey(c => c.StudyPlanId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
             b.HasOne(c => c.Category)
-                 .WithMany()
-                 .HasForeignKey(c => c.StudyPlanId)
-                 .IsRequired()
-                 .OnDelete(DeleteBehavior.Cascade);
+                .WithMany()
+                .HasForeignKey(c => c.StudyPlanId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
             b.HasCheckConstraint("CK_STUDYPLANCOURSECATEGORY_ALLOWEDCREDITHOURS", $@"{nameof(AllowedCreditHours)} > 0");
+            b.HasIndex(c => new { c.StudyPlanId, c.CategoryId })
+                .IsUnique();
+
+            b.HasData(Seed);
+        }
+        private static StudyPlanCourseCategory[]? _seed = null;
+        public static StudyPlanCourseCategory[] Seed
+        {
+            get
+            {
+                if (_seed != null) { return _seed; }
+                var rand = new Random();
+                var seed = new List<StudyPlanCourseCategory>();
+                foreach (var sp in StudyPlan.Seed)
+                {
+                    foreach (var cat in CourseCategory.Seed)
+                    {
+                        seed.Add(new StudyPlanCourseCategory
+                        {
+                            AllowedCreditHours = rand.Next(3, 51),
+                            CategoryId = cat.Id,
+                            StudyPlanId = sp.Id,
+                            Category = cat,
+                            StudyPlan = sp
+                        });
+                    }
+                }
+                for (int i = 1; i <= seed.Count; i++)
+                {
+                    seed[i - 1].Id = i;
+                }
+                _seed = seed.ToArray();
+                return _seed;
+            }
         }
     }
 }
