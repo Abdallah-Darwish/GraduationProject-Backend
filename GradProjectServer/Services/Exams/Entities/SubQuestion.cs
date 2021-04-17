@@ -30,15 +30,15 @@ namespace GradProjectServer.Services.Exams.Entities
         private static int _seedId = 1;
         private static readonly Random _seedRand = new();
         /// <summary>
-        /// Fills <see cref="SubQuestion.Id"/> and <see cref="SubQuestion.Content"/>.
-        /// <see cref="SubQuestion.QuestionId"/> and <see cref="SubQuestion.Question"/> must be already initialized.
+        /// Fills <see cref="Id"/> and <see cref="Content"/>.
+        /// <see cref="QuestionId"/> must be already initialized.
         /// </summary>
         /// <param name="subQuestion"></param>
         protected static void SeedSubQuestion(SubQuestion subQuestion)
         {
             _seed.Add(subQuestion);
             subQuestion.Id = _seedId++;
-            subQuestion.Content = $"Question {subQuestion.Question.Id}, SubQuestion {subQuestion.Id}. {_seedRand.NextText(_seedRand.Next(40, 200))} .";
+            subQuestion.Content = $"Question {subQuestion.QuestionId}, SubQuestion {subQuestion.Id}. {_seedRand.NextText(_seedRand.Next(40, 200))} .";
         }
         private static readonly List<SubQuestion> _seed = new();
 

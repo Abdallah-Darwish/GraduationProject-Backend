@@ -14,8 +14,6 @@ namespace GradProjectServer.Services.Infrastructure
             b.Property(c => c.Name)
                  .IsUnicode()
                  .IsRequired();
-
-            b.HasData(Seed);
         }
         private static CourseCategory[]? _seed = null;
         public static CourseCategory[] Seed

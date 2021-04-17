@@ -28,7 +28,6 @@ namespace GradProjectServer.Services.Infrastructure
                 .OnDelete(DeleteBehavior.Cascade);
             b.HasIndex(c => new { c.CourseId, c.CategoryId })
                 .IsUnique();
-            b.HasData(Seed);
         }
         private static StudyPlanCourse[]? _seed = null;
         public static StudyPlanCourse[] Seed
@@ -46,9 +45,7 @@ namespace GradProjectServer.Services.Infrastructure
                         seed.Add(new StudyPlanCourse
                         {
                             CourseId = course.Id,
-                            Course = course,
                             CategoryId = cat.Id,
-                            Category = cat
                         });
                     }
                 }

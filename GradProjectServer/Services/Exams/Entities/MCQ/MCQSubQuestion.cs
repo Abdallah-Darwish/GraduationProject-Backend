@@ -33,7 +33,6 @@ namespace GradProjectServer.Services.Exams.Entities
                         var sq = new MCQSubQuestion
                         {
                             QuestionId = question.Id,
-                            Question = question,
                             IsCheckBox = rand.NextBool(),
                             Type = Common.SubQuestionType.MultipleChoice
                         };

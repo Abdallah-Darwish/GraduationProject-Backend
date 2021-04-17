@@ -21,7 +21,7 @@ namespace GradProjectServer
         public static T NextElementAndSwap<T>(this Random rand, IList<T> lst, int newIndex)
         {
             if (newIndex >= lst.Count) { throw new ArgumentOutOfRangeException(nameof(newIndex)); }
-            var elementIndex = rand.Next(lst.Count);
+            var elementIndex = rand.Next(newIndex + 1);
             var element = lst[elementIndex];
             lst[elementIndex] = lst[newIndex];
             lst[newIndex] = element;

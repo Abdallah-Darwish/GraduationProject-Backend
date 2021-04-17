@@ -122,7 +122,7 @@ namespace GradProjectServer.Controllers
             return CreatedAtAction(nameof(Get), new { examSubQuestionsIds = new int[] { examSubQuestion.Id } }, _mapper.Map<ExamSubQuestionDto>(examSubQuestion));
         }
         [LoggedInFilter]
-        [HttpPatch("Updated")]
+        [HttpPatch("Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] UpdateExamSubQuestionDto update)
         {

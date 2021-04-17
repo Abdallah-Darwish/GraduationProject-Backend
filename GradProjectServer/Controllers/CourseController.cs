@@ -25,12 +25,12 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
-
-        [HttpGet("GetAll")]
+        //todo: add order by to all get all methods
+        [HttpPost("GetAll")]
         [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
         {
-            return Ok(_dbContext.Courses.Skip(info.Offset).Take(info.Count).Select(c => c.Id));
+            return Ok(_dbContext.Courses.OrderBy(c => c.Name).Skip(info.Offset).Take(info.Count).Select(c => c.Id));
         }
 
         [HttpPost("Get")]

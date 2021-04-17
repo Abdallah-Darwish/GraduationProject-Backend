@@ -10,6 +10,7 @@ namespace GradProjectServer.Services.Exams.Entities
     {
         public int Id { get; set; }
         public int SubQuestionId { get; set; }
+        //todo: weight here and in SubQuestion doesn't make sense
         public float Weight { get; set; }
         public int ExamQuestionId { get; set; }
         public int Order { get; set; }
@@ -33,8 +34,8 @@ namespace GradProjectServer.Services.Exams.Entities
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
-            b.HasCheckConstraint("CK_EXAMSUBQUESTION_WEIGHT", $@"{nameof(Weight)} > 0");
-            b.HasCheckConstraint("CK_EXAMSUBQUESTION_ORDER", $@"{nameof(Order)} >= 0");
+            b.HasCheckConstraint("CK_EXAMSUBQUESTION_WEIGHT", $"\"{ nameof(Weight)}\" > 0");
+            b.HasCheckConstraint("CK_EXAMSUBQUESTION_ORDER", $"\"{nameof(Order)}\" >= 0");
         }
         private static ExamSubQuestion[]? _seed = null;
         public static ExamSubQuestion[] Seed
@@ -43,13 +44,13 @@ namespace GradProjectServer.Services.Exams.Entities
             {
                 if (_seed != null) { return _seed; }
                 var subQuestionsByQuestion = SubQuestion.Seed
-                    .GroupBy(sq => sq.Question)
+                    .GroupBy(sq => sq.QuestionId)
                     .ToDictionary(g => g.Key, g => g.ToArray());
                 Random rand = new();
                 List<ExamSubQuestion> seed = new();
                 foreach (var examQuestion in ExamQuestion.Seed)
                 {
-                    var subQuestions = subQuestionsByQuestion[examQuestion.Question];
+                    var subQuestions = subQuestionsByQuestion[examQuestion.QuestionId];
                     var lastSubQuestionIdx = subQuestions.Length - 1;
                     var examSubQuestionsCount = rand.Next(1, subQuestions.Length);
                     for (int i = 0; i < examSubQuestionsCount; i++)
@@ -58,11 +59,9 @@ namespace GradProjectServer.Services.Exams.Entities
                         var examSubQuestion = new ExamSubQuestion
                         {
                             ExamQuestionId = examQuestion.Id,
-                            ExamQuestion = examQuestion,
                             Order = rand.Next(1, 100),
                             SubQuestionId = subQuestion.Id,
-                            SubQuestion = subQuestion,
-                            Weight = (float)rand.NextDouble() * (rand.NextBool() ? 1.0f : -1.0f)
+                            Weight = rand.Next(1, 5)
                         };
                         seed.Add(examSubQuestion);
                     }

@@ -39,7 +39,10 @@ namespace GradProjectServer.Services.Exams.Entities
                     new Tag { Name = "OOP" },
                     new Tag { Name = "Pointers" },
                 };
-
+                for (int i = 1; i <= _seed.Length; i++)
+                {
+                    _seed[i - 1].Id = i;
+                }
                 return _seed;
             }
         }

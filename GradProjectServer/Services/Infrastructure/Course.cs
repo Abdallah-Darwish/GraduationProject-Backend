@@ -19,9 +19,7 @@ namespace GradProjectServer.Services.Infrastructure
                 .IsUnicode();
             b.Property(c => c.CreditHours)
                 .IsRequired();
-            b.HasCheckConstraint("CK_COURSE_CREDITHOURS", $@"{nameof(CreditHours)} >= 0");
-
-            b.HasData(Seed);
+            b.HasCheckConstraint("CK_COURSE_CREDITHOURS", $"\"{nameof(CreditHours)}\" >= 0");
         }
         private static Course[]? _seed = null;
         public static Course[] Seed

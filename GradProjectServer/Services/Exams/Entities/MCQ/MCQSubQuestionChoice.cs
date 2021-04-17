@@ -29,7 +29,7 @@ namespace GradProjectServer.Services.Exams.Entities
                 .WithMany(q => q.Choices)
                 .HasForeignKey(m => m.SubQuestionId);
 
-            b.HasCheckConstraint("CK_MCQSubQuestionChoice_WEIGHT", $@"{nameof(Weight)} >= -1 AND {nameof(Weight)} <= 1");
+            b.HasCheckConstraint("CK_MCQSubQuestionChoice_WEIGHT", $"\"{nameof(Weight)}\" >= -1 AND \"{nameof(Weight)}\" <= 1");
 
         }
         private static MCQSubQuestionChoice[]? _seed = null;
@@ -50,7 +50,6 @@ namespace GradProjectServer.Services.Exams.Entities
                         var choice = new MCQSubQuestionChoice
                         {
                             SubQuestionId = mcq.Id,
-                            SubQuestion = mcq,
                             Content = $"Choice {i}, Subquestion {mcq.Id}, Question {mcq.QuestionId}"
                         };
                         choices.Add(choice);

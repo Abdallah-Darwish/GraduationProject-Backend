@@ -31,8 +31,6 @@ namespace GradProjectServer.Services.Infrastructure
                .HasForeignKey(p => p.PrerequisiteId)
                .IsRequired()
                .OnDelete(DeleteBehavior.Cascade);
-
-            b.HasData(Seed);
         }
         private static StudyPlanCoursePrerequisite[]? _seed = null;
         public static StudyPlanCoursePrerequisite[] Seed
@@ -58,9 +56,7 @@ namespace GradProjectServer.Services.Infrastructure
                             seed.Add(new StudyPlanCoursePrerequisite
                             {
                                 CourseId = course.Id,
-                                Course = course,
                                 PrerequisiteId = preq.Id,
-                                Prerequisite = preq
                             });
                         }
                         graph.Add(course);

@@ -15,8 +15,6 @@ namespace GradProjectServer.Services.Infrastructure
             b.Property(p => p.FileName)
                 .IsUnicode()
                 .IsRequired();
-
-            b.HasData(Seed);
         }
         //todo: create zip files for programs
         public static Program AllCorrectProgram { get; private set; }
@@ -42,8 +40,13 @@ namespace GradProjectServer.Services.Infrastructure
                     },
                     AllIncorrectProgram = new Program
                     {
-                        Id = 1,
+                        Id = 2,
                         FileName = "AllIncorrect.zip"
+                    },
+                    AnswerComparerProgram = new Program
+                    {
+                        Id = 3,
+                        FileName = "AnswerComparer.zip"
                     },
                 };
 

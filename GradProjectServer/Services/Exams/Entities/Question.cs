@@ -33,6 +33,8 @@ namespace GradProjectServer.Services.Exams.Entities
             b.Property(q => q.IsApproved)
                 .HasDefaultValue(false)
                 .IsRequired();
+            b.Ignore(q => q.Tags);
+
             b.HasOne(q => q.Course)
                 .WithMany()
                 .HasForeignKey(q => q.CourseId)
@@ -41,7 +43,6 @@ namespace GradProjectServer.Services.Exams.Entities
                 .WithMany(b => b.VolunteeredQuestions)
                 .HasForeignKey(b => b.VolunteerId)
                 .IsRequired();
-            b.HasData(Seed);
         }
         private static Question[]? _seed = null;
         public static Question[] Seed
@@ -66,9 +67,7 @@ namespace GradProjectServer.Services.Exams.Entities
                         Title = $"Question {i} Title {rand.NextText(rand.Next(1, 20))}",
                         IsApproved = rand.NextBool(),
                         CourseId = course.Id,
-                        Course = course,
                         VolunteerId = user.Id,
-                        Volunteer = user,
                     };
                     seed.Add(question);
                 }

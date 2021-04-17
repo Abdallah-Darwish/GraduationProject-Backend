@@ -36,43 +36,50 @@ namespace GradProjectServer.Services.EntityFramework
         public DbSet<StudyPlan> StudyPlans { get; set; }
         public DbSet<StudyPlanCourse> StudyPlansCourses { get; set; }
         public DbSet<StudyPlanCoursePrerequisite> StudyPlansCoursesPrerequisites { get; set; }
+        public DbSet<StudyPlanCourseCategory> StudyPlansCoursesCategories { get; set; }
         public DbSet<Dependency> Dependencies { get; set; }
         public DbSet<ProgramDependency> ProgramsDependencies { get; set; }
         public DbSet<User> Users { get; set; }
+        
+        private static MethodInfo? FindEntityConfigurationMethod(Type t)
+        {
+            var typeMethods = t.GetMethods(BindingFlags.Static | BindingFlags.Public);
+            foreach (var m in typeMethods)
+            {
+                if (m.Name != EntityConfigurationMethodName) { continue; }
+                if (m.ReturnType != typeof(void)) { continue; }
+                if (m.IsGenericMethod) { continue; }
+                if (!m.IsStatic) { continue; }
+                if (!m.IsPublic) { continue; }
+                var parameters = m.GetParameters();
+                if (parameters.Length != 1) { continue; }
+                if (!parameters[0].ParameterType.IsGenericType) { continue; }
+                var typeBuilder = typeof(EntityTypeBuilder<>).MakeGenericType(t);
+                if (parameters[0].ParameterType != typeBuilder) { continue; }
+                return m;
+            }
+            return null;
+        }
+        public static bool IsEntity(Type t) => FindEntityConfigurationMethod(t) != null;
+        public static Type[] GetAllEntitiesInAssembly(Assembly asm)
+        {
+            var types = asm.GetExportedTypes();
+            return types.Where(IsEntity).ToArray();
+        }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            static MethodInfo? FindEntityConfigurationMethod(Type t)
-            {
-                var typeMethods = t.GetMethods(BindingFlags.Static | BindingFlags.Public);
-                foreach (var m in typeMethods)
-                {
-                    if (m.Name != EntityConfigurationMethodName) { continue; }
-                    if (m.ReturnType != typeof(void)) { continue; }
-                    if (m.IsGenericMethod) { continue; }
-                    var parameters = m.GetParameters();
-                    if (parameters.Length != 1) { continue; }
-                    if (!parameters[0].ParameterType.IsGenericType) { continue; }
-                    var typeBuilder = typeof(EntityTypeBuilder<>).MakeGenericType(t);
-                    if (parameters[0].ParameterType != typeBuilder) { continue; }
-                    return m;
-                }
-                return null;
-            }
-
-            var asm = Assembly.GetExecutingAssembly();
-            var types = asm.GetExportedTypes();
 
             var modelBuilderEntityMethod = modelBuilder
                 .GetType()
                 .GetMethods(BindingFlags.Instance | BindingFlags.Public)
                 .First(m => m.IsGenericMethod && m.Name == nameof(ModelBuilder.Entity));
-            foreach (var type in types)
-            {
-                var configMethod = FindEntityConfigurationMethod(type);
-                if (configMethod is null) { continue; }
 
-                //var modelBuilderEntityParameters = new object[1] { modelBuilderEntityMethod.MakeGenericMethod(type) };
+            var entitiesTypes = GetAllEntitiesInAssembly(Assembly.GetExecutingAssembly());
+            foreach (var type in entitiesTypes)
+            {
+                var configMethod = FindEntityConfigurationMethod(type)!;
+
                 object entityTypeBuilder = modelBuilderEntityMethod.MakeGenericMethod(type).Invoke(modelBuilder, null)!;
                 configMethod.Invoke(null, new object[] { entityTypeBuilder });
             }

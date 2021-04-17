@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GradProjectServer.Services.Exams.Entities
 {
@@ -34,22 +35,22 @@ namespace GradProjectServer.Services.Exams.Entities
 
                 Random rand = new();
                 List<SubQuestionTag> seed = new();
-                var tags = Tag.Seed;
+                var tags = Tag.Seed.ToArray();
                 var maxTagsCount = Math.Min(5, tags.Length);
-
+                int lastTagIndex;
                 foreach (var subQuestion in SubQuestion.Seed)
                 {
                     var tagCount = rand.Next(maxTagsCount);
+                    lastTagIndex = tags.Length - 1;
                     for (int i = 0; i < tagCount; i++)
                     {
-                        var tag = rand.NextElement(tags);
+                        var tag = rand.NextElementAndSwap(tags, lastTagIndex--);
                         var subQuestionTag = new SubQuestionTag
                         {
                             SubQuestionId = subQuestion.Id,
-                            SubQuestion = subQuestion,
                             TagId = tag.Id,
-                            Tag = tag,
                         };
+                        
                         seed.Add(subQuestionTag);
                     }
                 }

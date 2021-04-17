@@ -21,10 +21,9 @@ namespace GradProjectServer.Services.Exams.Entities
             b.Property(q => q.Answer)
                 .IsUnicode();
             b.HasOne(q => q.Checker)
-                .WithOne()
-                .HasForeignKey<BlankSubQuestion>(q => q.CheckerId)
+                .WithMany()
+                .HasForeignKey(q => q.CheckerId)
                 .OnDelete(DeleteBehavior.Cascade);
-            b.HasData(Seed);
         }
 
         private static BlankSubQuestion[]? _seed = null;
@@ -46,7 +45,6 @@ namespace GradProjectServer.Services.Exams.Entities
                         var blank = new BlankSubQuestion
                         {
                             QuestionId = question.Id,
-                            Question = question,
                             Type = Common.SubQuestionType.Blank,
                         };
                         SeedSubQuestion(blank);
@@ -59,24 +57,24 @@ namespace GradProjectServer.Services.Exams.Entities
                             //answer and checker
                             case 2:
                                 blank.Answer = $"{blank.Id}b";
-                                blank.Checker = Program.AnswerComparerProgram;
+                                blank.CheckerId = Program.AnswerComparerProgram.Id;
                                 break;
                             //no answer and all correct
                             case 3:
-                                blank.Checker = Program.AllCorrectProgram;
+                                blank.CheckerId = Program.AllCorrectProgram.Id;
                                 break;
                             //no answer and all incorrect
                             case 4:
-                                blank.Checker = Program.AllIncorrectProgram;
+                                blank.CheckerId = Program.AllIncorrectProgram.Id;
                                 break;
                             default:
                                 break;
                         }
-                        blank.CheckerId = blank.Checker?.Id;
                         if (blank.Answer != null)
                         {
                             blank.Content = $"Answer: \"{blank.Answer}\".{Environment.NewLine}{blank.Content}";
                         }
+                        seed.Add(blank);
                     }
                 }
                 _seed = seed.ToArray();

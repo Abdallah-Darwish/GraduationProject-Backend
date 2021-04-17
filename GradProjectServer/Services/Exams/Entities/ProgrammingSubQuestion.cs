@@ -12,12 +12,13 @@ namespace GradProjectServer.Services.Exams.Entities
         public Program Checker { get; set; }
         public static void ConfigureEntity(EntityTypeBuilder<ProgrammingSubQuestion> b)
         {
+            b.HasBaseType<SubQuestion>()
+                .ToTable(nameof(ProgrammingSubQuestion));
             b.HasOne(q => q.Checker)
-                .WithOne()
-                .HasForeignKey<ProgrammingSubQuestion>(q => q.CheckerId)
+                .WithMany()
+                .HasForeignKey(q => q.CheckerId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
-            b.HasData(Seed);
         }
 
         private static ProgrammingSubQuestion[]? _seed = null;
@@ -39,21 +40,19 @@ namespace GradProjectServer.Services.Exams.Entities
                         var pro = new ProgrammingSubQuestion
                         {
                             QuestionId = question.Id,
-                            Question = question,
                             Type = Common.SubQuestionType.Programming,
                         };
                         SeedSubQuestion(pro);
                         if (rand.NextBool())
                         {
-                            pro.Checker = Program.AllCorrectProgram;
-                            pro.Content = $"All correct.{Environment.NewLine}{pro.Content}";
+                            pro.CheckerId = Program.AllCorrectProgram.Id;
+                            pro.Content += $"All correct.{Environment.NewLine}{pro.Content}";
                         }
                         else
                         {
-                            pro.Checker = Program.AllCorrectProgram;
+                            pro.CheckerId = Program.AllIncorrectProgram.Id;
                             pro.Content = $"All incorrect.{Environment.NewLine}{pro.Content}";
                         }
-                        pro.CheckerId = pro.Checker.Id;
                         seed.Add(pro);
                     }
                 }

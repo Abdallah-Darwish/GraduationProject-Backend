@@ -24,9 +24,7 @@ namespace GradProjectServer.Services.Infrastructure
                  .IsRequired();
             b.HasIndex(p => new { p.MajorId, p.Year })
                 .IsUnique();
-            b.HasCheckConstraint("CK_STUDYPLAN_YEAR", $@"{nameof(StudyPlan.Year)} > 0");
-
-            b.HasData(Seed);
+            b.HasCheckConstraint("CK_STUDYPLAN_YEAR", $"\"{nameof(Year)}\" > 0");
         }
         private static StudyPlan[]? _seed = null;
         public static StudyPlan[] Seed
@@ -42,13 +40,11 @@ namespace GradProjectServer.Services.Infrastructure
                     seed.Add(new StudyPlan
                     {
                         MajorId = major.Id,
-                        Major = major,
                         Year = y,
                     });
                     seed.Add(new StudyPlan
                     {
                         MajorId = major.Id,
-                        Major = major,
                         Year = y + 2,
                     });
                 }

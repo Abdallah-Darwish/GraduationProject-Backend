@@ -31,8 +31,6 @@ namespace GradProjectServer.Services.Exams.Entities
                 .HasForeignKey(q => q.QuestionId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
-
-            b.HasData(Seed);
         }
 
         private static ExamQuestion[]? _seed = null;
@@ -58,10 +56,8 @@ namespace GradProjectServer.Services.Exams.Entities
                         var examQuestion = new ExamQuestion
                         {
                             ExamId = exam.Id,
-                            Exam = exam,
                             Order = rand.Next(1, 100),
                             QuestionId = question.Id,
-                            Question = question,
                         };
                         seed.Add(examQuestion);
                     }

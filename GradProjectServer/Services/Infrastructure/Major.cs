@@ -14,8 +14,6 @@ namespace GradProjectServer.Services.Infrastructure
             b.Property(m => m.Name)
                 .IsUnicode()
                 .IsRequired();
-
-            b.HasData(Seed);
         }
         private static Major[]? _seed = null;
         public static Major[] Seed

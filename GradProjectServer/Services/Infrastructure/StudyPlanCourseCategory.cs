@@ -31,11 +31,9 @@ namespace GradProjectServer.Services.Infrastructure
                 .HasForeignKey(c => c.StudyPlanId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
-            b.HasCheckConstraint("CK_STUDYPLANCOURSECATEGORY_ALLOWEDCREDITHOURS", $@"{nameof(AllowedCreditHours)} > 0");
+            b.HasCheckConstraint("CK_STUDYPLANCOURSECATEGORY_ALLOWEDCREDITHOURS", $"\"{nameof(AllowedCreditHours)}\" > 0");
             b.HasIndex(c => new { c.StudyPlanId, c.CategoryId })
                 .IsUnique();
-
-            b.HasData(Seed);
         }
         private static StudyPlanCourseCategory[]? _seed = null;
         public static StudyPlanCourseCategory[] Seed
@@ -54,8 +52,6 @@ namespace GradProjectServer.Services.Infrastructure
                             AllowedCreditHours = rand.Next(3, 51),
                             CategoryId = cat.Id,
                             StudyPlanId = sp.Id,
-                            Category = cat,
-                            StudyPlan = sp
                         });
                     }
                 }

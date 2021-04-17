@@ -28,6 +28,7 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
+        //todo: fix get all methods to account for access rights
         [HttpPost("GetAll")]
         [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
@@ -63,7 +64,8 @@ namespace GradProjectServer.Controllers
             var user = this.GetUser();
             if (!(user?.IsAdmin ?? false))
             {
-                var notOwnedExams = existingExams.Where(e => e.VolunteerId != user.Id && !e.IsApproved).ToArray();
+                var userId = user?.Id ?? -1;
+                var notOwnedExams = existingExams.Where(e => e.VolunteerId != userId && !e.IsApproved).ToArray();
                 if (notOwnedExams.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,
@@ -159,9 +161,9 @@ namespace GradProjectServer.Controllers
         /// <param name="examsIds">Ids of the exams to delete</param>
         [LoggedInFilter]
         [HttpDelete("Delete")]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         //todo: create not null attribute
         //todo: create min/max length attribute
         //todo: create distinct attribute
@@ -228,7 +230,7 @@ namespace GradProjectServer.Controllers
             return CreatedAtAction(nameof(Get), new { examsIds = new int[] { exam.Id }, metadata = true }, _mapper.Map<ExamMetadataDto>(exam));
         }
         [LoggedInFilter]
-        [HttpPatch("Updated")]
+        [HttpPatch("Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] UpdateExamDto update)
         {

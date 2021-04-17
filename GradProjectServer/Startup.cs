@@ -29,7 +29,7 @@ namespace GradProjectServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.AddScoped<DbSeeder>();
             services.AddControllers()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>())
                 .AddNewtonsoftJson(op =>
@@ -64,8 +64,8 @@ namespace GradProjectServer
 
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
-            services.AddEntityFrameworkNpgsql();
-            var connString = Configuration.GetConnectionString("DefaultConnection");
+            //services.AddEntityFrameworkNpgsql();
+            var connString = Configuration.GetConnectionString("Default");
             services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connString),
                 contextLifetime: ServiceLifetime.Scoped,
                 optionsLifetime: ServiceLifetime.Singleton);
@@ -73,13 +73,15 @@ namespace GradProjectServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DbSeeder seeder)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "GradProjectServer v1"));
+                //seeder.RecreateDb().Wait();
+                //seeder.Seed().Wait();
             }
 
             app.UseHttpsRedirection();
