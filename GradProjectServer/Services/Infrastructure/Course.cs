@@ -26,7 +26,7 @@ namespace GradProjectServer.Services.Infrastructure
         {
             get
             {
-                if(_seed != null) { return _seed; }
+                if (_seed != null) { return _seed; }
                 _seed = new Course[]
                 {
                     new Course

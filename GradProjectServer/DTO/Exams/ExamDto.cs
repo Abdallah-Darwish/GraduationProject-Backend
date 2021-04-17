@@ -1,7 +1,4 @@
-﻿using GradProjectServer.DTO.Courses;
-using GradProjectServer.DTO.ExamQuestions;
-using GradProjectServer.DTO.Questions;
-using GradProjectServer.DTO.SubQuestions;
+﻿using GradProjectServer.DTO.ExamQuestions;
 
 namespace GradProjectServer.DTO.Exams
 {

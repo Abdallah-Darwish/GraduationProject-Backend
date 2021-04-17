@@ -1,10 +1,6 @@
 ﻿using AutoMapper;
 using GradProjectServer.DTO.Programs;
 using GradProjectServer.Services.Infrastructure;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradProjectServer.Mapping
 {

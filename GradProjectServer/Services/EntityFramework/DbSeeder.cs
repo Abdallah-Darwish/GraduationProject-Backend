@@ -5,10 +5,6 @@ using GradProjectServer.Services.Infrastructure;
 using GradProjectServer.Services.UserSystem;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace GradProjectServer.Services.EntityFramework
@@ -98,7 +94,7 @@ namespace GradProjectServer.Services.EntityFramework
             await _dbContext.SubQuestionsTags.AddRangeAsync(SubQuestionTag.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
-            
+
             await _dbContext.Exams.AddRangeAsync(Exam.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
@@ -108,7 +104,7 @@ namespace GradProjectServer.Services.EntityFramework
             await _dbContext.ExamsSubQuestions.AddRangeAsync(ExamSubQuestion.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
-            
+
         }
     }
 }

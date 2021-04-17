@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -36,7 +34,7 @@ namespace GradProjectServer.Services.UserSystem
                 };
                 return;
             }
-            if(!user.IsAdmin)
+            if (!user.IsAdmin)
             {
                 context.Result = new ContentResult
                 {

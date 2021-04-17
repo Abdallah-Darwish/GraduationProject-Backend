@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GradProjectServer.Services.Infrastructure
 {
@@ -20,7 +18,7 @@ namespace GradProjectServer.Services.Infrastructure
         {
             get
             {
-                if(_seed != null) { return _seed; }
+                if (_seed != null) { return _seed; }
                 _seed = new CourseCategory[]
                 {
                     new CourseCategory

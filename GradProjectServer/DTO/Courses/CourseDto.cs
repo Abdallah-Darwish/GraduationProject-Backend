@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GradProjectServer.DTO.Courses
+﻿namespace GradProjectServer.DTO.Courses
 {
     public class CourseDto
     {

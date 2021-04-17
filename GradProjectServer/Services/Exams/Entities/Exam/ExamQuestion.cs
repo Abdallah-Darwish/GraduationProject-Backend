@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradProjectServer.Services.Exams.Entities
 {
@@ -15,7 +14,7 @@ namespace GradProjectServer.Services.Exams.Entities
         public int ExamId { get; set; }
         public ICollection<ExamSubQuestion> ExamSubQuestions { get; set; }
         public Exam Exam { get; set; }
-        public Question Question  { get;set;}
+        public Question Question { get; set; }
         public static void ConfigureEntity(EntityTypeBuilder<ExamQuestion> b)
         {
             b.HasKey(q => q.Id);
@@ -38,7 +37,7 @@ namespace GradProjectServer.Services.Exams.Entities
         {
             get
             {
-                if(_seed != null) { return _seed; }
+                if (_seed != null) { return _seed; }
 
                 Random rand = new();
                 List<ExamQuestion> seed = new();

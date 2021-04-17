@@ -1,10 +1,6 @@
 ﻿using FluentValidation;
 using GradProjectServer.DTO.Courses;
 using GradProjectServer.Services.EntityFramework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradProjectServer.Validators.Courses
 {

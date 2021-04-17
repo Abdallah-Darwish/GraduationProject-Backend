@@ -40,7 +40,7 @@ namespace GradProjectServer.Services.EntityFramework
         public DbSet<Dependency> Dependencies { get; set; }
         public DbSet<ProgramDependency> ProgramsDependencies { get; set; }
         public DbSet<User> Users { get; set; }
-        
+
         private static MethodInfo? FindEntityConfigurationMethod(Type t)
         {
             var typeMethods = t.GetMethods(BindingFlags.Static | BindingFlags.Public);

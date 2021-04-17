@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using GradProjectServer.Common;
 using GradProjectServer.DTO;
 using GradProjectServer.DTO.Exams;
 using GradProjectServer.Services.EntityFramework;

@@ -50,7 +50,7 @@ namespace GradProjectServer.Services.Exams.Entities
                             SubQuestionId = subQuestion.Id,
                             TagId = tag.Id,
                         };
-                        
+
                         seed.Add(subQuestionTag);
                     }
                 }

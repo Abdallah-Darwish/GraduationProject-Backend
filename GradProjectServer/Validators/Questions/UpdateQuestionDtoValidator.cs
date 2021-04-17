@@ -3,10 +3,6 @@ using GradProjectServer.DTO.Questions;
 using GradProjectServer.Services.EntityFramework;
 using GradProjectServer.Services.UserSystem;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradProjectServer.Validators.Questions
 {

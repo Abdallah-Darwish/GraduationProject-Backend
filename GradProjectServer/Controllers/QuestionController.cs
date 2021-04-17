@@ -1,17 +1,12 @@
 ﻿using AutoMapper;
 using GradProjectServer.DTO;
-using GradProjectServer.DTO.Programs;
 using GradProjectServer.DTO.Questions;
-using GradProjectServer.DTO.SubQuestions;
 using GradProjectServer.Services.EntityFramework;
 using GradProjectServer.Services.Exams.Entities;
-using GradProjectServer.Services.Infrastructure;
-using GradProjectServer.Services.Infrastructure.Programs;
 using GradProjectServer.Services.UserSystem;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;

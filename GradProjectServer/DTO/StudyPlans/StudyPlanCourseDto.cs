@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GradProjectServer.DTO.StudyPlans
+﻿namespace GradProjectServer.DTO.StudyPlans
 {
     /// <summary>
     /// Its meant to embedded inside <see cref="StudyPlanDto"/>

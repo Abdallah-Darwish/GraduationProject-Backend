@@ -66,7 +66,7 @@ namespace GradProjectServer.Services.Exams.Entities
                         seed.Add(examSubQuestion);
                     }
                 }
-                for(int i = 1;i<=seed.Count;i++)
+                for (int i = 1; i <= seed.Count; i++)
                 {
                     seed[i - 1].Id = i;
                 }

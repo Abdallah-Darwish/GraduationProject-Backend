@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GradProjectServer.DTO.Users
+﻿namespace GradProjectServer.DTO.Users
 {
     //todo: validate email
     //todo: validate email is not used before

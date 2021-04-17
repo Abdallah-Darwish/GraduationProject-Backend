@@ -4,9 +4,6 @@ using GradProjectServer.Services.EntityFramework;
 using GradProjectServer.Services.UserSystem;
 using Microsoft.AspNetCore.Http;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradProjectServer.Validators.Exams
 {
@@ -22,13 +19,13 @@ namespace GradProjectServer.Validators.Exams
                 .DependentRules(() =>
                 {
                     RuleFor(d => d.ExamId)
-                    .CustomAsync(async (id,ctx, _) =>
+                    .CustomAsync(async (id, ctx, _) =>
                     {
                         var exam = await dbContext.Exams.FindAsync(id).ConfigureAwait(false);
                         var user = httpContext.HttpContext!.GetUser()!;
                         if (!user.IsAdmin)
                         {
-                            if(exam.VolunteerId != user.Id)
+                            if (exam.VolunteerId != user.Id)
                             {
                                 ctx.AddFailure(nameof(UpdateExamDto.ExamId), "The user doesn't own the exam.");
                                 return;

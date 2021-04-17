@@ -2,11 +2,8 @@
 using GradProjectServer.DTO.Programs;
 using GradProjectServer.Services.EntityFramework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.IO.Compression;
 using System.IO;
+using System.IO.Compression;
 
 namespace GradProjectServer.Validators.Programs
 {
@@ -37,7 +34,7 @@ namespace GradProjectServer.Validators.Programs
                 .Custom((base64, ctx) =>
                 {
                     var errors = ValidateChecker(base64);
-                    if((errors?.Length ?? 0) == 0) { return; }
+                    if ((errors?.Length ?? 0) == 0) { return; }
                     foreach (var e in errors!)
                     {
                         ctx.AddFailure(e);

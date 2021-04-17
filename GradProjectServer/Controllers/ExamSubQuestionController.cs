@@ -82,8 +82,8 @@ namespace GradProjectServer.Controllers
                         new ErrorDTO
                         {
                             Description = "The following exam sub questions don't exist.",
-                            Data = new Dictionary<string, object> 
-                            { 
+                            Data = new Dictionary<string, object>
+                            {
                                 ["NonExistingExamSubQuestions"] = nonExistingExamSubQuestions
                             }
                         });
@@ -96,7 +96,7 @@ namespace GradProjectServer.Controllers
                         new ErrorDTO
                         {
                             Description = "The following exam sub questions are already approved so they can't be updated.",
-                            Data = new Dictionary<string, object> 
+                            Data = new Dictionary<string, object>
                             {
                                 ["ApprovedExamSubQuestions"] = approvedExamQuestionsIds
                             }

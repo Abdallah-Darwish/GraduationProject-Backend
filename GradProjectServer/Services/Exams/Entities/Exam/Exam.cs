@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace GradProjectServer.Services.Exams.Entities
 {
-  
+
     public class Exam
     {
         public int Id { get; set; }
@@ -67,7 +67,7 @@ namespace GradProjectServer.Services.Exams.Entities
         {
             get
             {
-                if(_seed != null) { return _seed; }
+                if (_seed != null) { return _seed; }
 
                 Random rand = new();
                 List<Exam> seed = new();
@@ -75,12 +75,12 @@ namespace GradProjectServer.Services.Exams.Entities
                 var coursesWithQuestions = SubQuestion.Seed
                     .Where(sq => questions[sq.QuestionId].IsApproved)
                     .GroupBy(q => questions[q.QuestionId].CourseId)
-                    .Select(g => (CourseId : g.Key, QuestionCount: g.Count()));
+                    .Select(g => (CourseId: g.Key, QuestionCount: g.Count()));
                 var examsTypes = Enum.GetValues<ExamType>();
                 var semesters = Enum.GetValues<Semester>();
                 var users = User.Seed;
-                
-                foreach(var (courseId, questionCount) in coursesWithQuestions)
+
+                foreach (var (courseId, questionCount) in coursesWithQuestions)
                 {
                     var examCount = Math.Min(Math.Max(1, rand.Next(questionCount / 2, questionCount + 1)), 50);
                     for (int i = 0; i < examCount; i++)
@@ -100,7 +100,7 @@ namespace GradProjectServer.Services.Exams.Entities
                         seed.Add(exam);
                     }
                 }
-                for(int i = 1;i<=seed.Count;i++)
+                for (int i = 1; i <= seed.Count; i++)
                 {
                     seed[i - 1].Id = i;
                 }

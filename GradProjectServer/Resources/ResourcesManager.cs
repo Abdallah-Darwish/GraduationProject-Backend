@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
+﻿using System.IO;
 using System.Threading.Tasks;
 
 namespace GradProjectServer.Resources
@@ -10,7 +6,7 @@ namespace GradProjectServer.Resources
     public static class ResourcesManager
     {
         private static readonly string AssemblyName = "GradProjectServer.Resources.";
-        
+
         public static Stream GetStream(string name)
         {
             var assembly = typeof(ResourcesManager).Assembly;

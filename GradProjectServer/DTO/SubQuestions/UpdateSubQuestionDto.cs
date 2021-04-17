@@ -1,5 +1,4 @@
-﻿using GradProjectServer.Common;
-namespace GradProjectServer.DTO.SubQuestions
+﻿namespace GradProjectServer.DTO.SubQuestions
 {
     public class UpdateSubQuestionDto
     {

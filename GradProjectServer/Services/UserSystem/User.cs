@@ -5,8 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradProjectServer.Services.UserSystem
 {
@@ -50,7 +48,7 @@ namespace GradProjectServer.Services.UserSystem
         {
             get
             {
-                if(_seed != null) { return _seed; }
+                if (_seed != null) { return _seed; }
                 var rand = new Random();
                 var studyPlans = StudyPlan.Seed;
                 var firstNames = new string[] { "Abdallah", "Hashim", "Shatha", "Jannah", "Malik", "Basel", "Al-Bara", "Mohammad", "Aya", "Issra", "Huda", "Tuqa", "Deema" };

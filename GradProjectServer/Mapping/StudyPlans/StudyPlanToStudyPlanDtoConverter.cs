@@ -3,10 +3,8 @@ using GradProjectServer.DTO.Courses;
 using GradProjectServer.DTO.StudyPlanCourseCategories;
 using GradProjectServer.DTO.StudyPlans;
 using GradProjectServer.Services.Infrastructure;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradProjectServer.Mapping.StudyPlans
 {

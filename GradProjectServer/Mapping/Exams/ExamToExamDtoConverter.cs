@@ -6,10 +6,7 @@ using GradProjectServer.DTO.ExamSubQuestions;
 using GradProjectServer.DTO.SubQuestions;
 using GradProjectServer.DTO.Users;
 using GradProjectServer.Services.Exams.Entities;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradProjectServer.Mapping.Exams
 {
