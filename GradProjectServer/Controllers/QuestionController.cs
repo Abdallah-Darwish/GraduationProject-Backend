@@ -30,7 +30,18 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
-        [HttpGet]
+        [HttpPost("GetAll")]
+        [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
+        {
+            return Ok(_dbContext.Questions.Skip(info.Offset).Take(info.Count).Select(q => q.Id));
+        }
+
+        [HttpPost("Get")]
+        [ProducesResponseType(typeof(IEnumerable<QuestionDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<QuestionMetadataDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public IActionResult Get([FromBody] int[] questionsIds, [FromQuery] bool metadata = false)
         {
             var existingQuestions = _dbContext.Questions.Where(e => questionsIds.Contains(e.Id));
@@ -64,8 +75,12 @@ namespace GradProjectServer.Controllers
             }
             return Ok(_mapper.ProjectTo<QuestionDto>(existingQuestions));
         }
-        [HttpDelete]
+
         [LoggedInFilter]
+        [HttpDelete("Delete")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Delete([FromBody] int[] questionsIds)
         {
             var existingQuestions = _dbContext.Questions.Where(e => questionsIds.Contains(e.Id));
@@ -98,8 +113,9 @@ namespace GradProjectServer.Controllers
             return Ok();
         }
         [LoggedInFilter]
-        [HttpPost]
-        public async Task<IActionResult> Create(CreateQuestionDto info)
+        [HttpPost("Create")]
+        [ProducesResponseType(typeof(QuestionMetadataDto), StatusCodes.Status201Created)]
+        public async Task<ActionResult<QuestionMetadataDto>> Create(CreateQuestionDto info)
         {
             var user = this.GetUser()!;
             var question = new Question
@@ -118,7 +134,9 @@ namespace GradProjectServer.Controllers
         /// <summary>
         /// result is ordered by the title.
         /// </summary>
-        [HttpPost]
+        [HttpPost("Search")]
+        [ProducesResponseType(typeof(IEnumerable<QuestionMetadataDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<QuestionDto>), StatusCodes.Status200OK)]
         public IActionResult Search(QuestionSearchFilterDto filter)
         {
             var questions = _dbContext.Questions.AsQueryable();
@@ -161,7 +179,8 @@ namespace GradProjectServer.Controllers
             return Ok(_mapper.ProjectTo<QuestionDto>(result));
         }
         [LoggedInFilter]
-        [HttpPatch]
+        [HttpPatch("Update")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] UpdateQuestionDto update)
         {
             var question = await _dbContext.Questions

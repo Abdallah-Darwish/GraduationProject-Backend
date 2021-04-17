@@ -25,8 +25,16 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
-        [HttpGet]
-        public ActionResult<IEnumerable<TagDto>> Get(int[] tagsIds)
+        [HttpPost("GetAll")]
+        [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
+        {
+            return Ok(_dbContext.Tags.Skip(info.Offset).Take(info.Count).Select(t => t.Id));
+        }
+        [HttpPost("Get")]
+        [ProducesResponseType(typeof(IEnumerable<TagDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        public ActionResult<IEnumerable<TagDto>> Get([FromBody] int[] tagsIds)
         {
             var existingTags = _dbContext.Tags.Where(c => tagsIds.Contains(c.Id));
             var nonExistingTags = tagsIds.Except(existingTags.Select(c => c.Id)).ToArray();
@@ -41,9 +49,10 @@ namespace GradProjectServer.Controllers
             }
             return Ok(_mapper.ProjectTo<TagDto>(existingTags));
         }
-        [HttpPost]
         [AdminFilter]
-        public async Task<ActionResult<TagDto>> Create(CreateTagDto info)
+        [HttpPost("Create")]
+        [ProducesResponseType(typeof(TagDto), StatusCodes.Status201Created)]
+        public async Task<ActionResult<TagDto>> Create([FromBody] CreateTagDto info)
         {
             var newTag = new Tag
             {
@@ -53,9 +62,10 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return CreatedAtAction(nameof(Get), new { tagsIds = new int[] { newTag.Id } }, newTag);
         }
-        [HttpPatch]
         [AdminFilter]
-        public async Task<IActionResult> Update(UpdateTagDto update)
+        [HttpPatch("Update")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> Update([FromBody] UpdateTagDto update)
         {
             var tag = await _dbContext.Tags.FindAsync(update.Id).ConfigureAwait(false);
             if (!string.IsNullOrWhiteSpace(update.Name))
@@ -65,9 +75,10 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
-        [HttpDelete]
         [AdminFilter]
-        public async Task<IActionResult> Delete(int[] tagsIds)
+        [HttpDelete("Delete")]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete([FromBody] int[] tagsIds)
         {
             var existingTags = _dbContext.Tags.Where(c => tagsIds.Contains(c.Id));
             var nonExistingTags = tagsIds.Except(existingTags.Select(c => c.Id)).ToArray();
@@ -84,8 +95,9 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
-        [HttpGet]
-        public ActionResult<TagDto[]> Search(TagSearchFilterDto filter)
+        [HttpPost("Search")]
+        [ProducesResponseType(typeof(IEnumerable<TagDto>), StatusCodes.Status200OK)]
+        public ActionResult<TagDto[]> Search([FromBody] TagSearchFilterDto filter)
         {
             var tags = _dbContext.Tags.AsQueryable();
             if (filter.NameMask != null)
@@ -93,7 +105,7 @@ namespace GradProjectServer.Controllers
                 tags = tags.Where(t => EF.Functions.Like(t.Name, filter.NameMask));
             }
             var result = tags.OrderBy(t => t.Name).Skip(filter.Offset).Take(filter.Count);
-            return Ok( _mapper.ProjectTo<TagDto>(tags));
+            return Ok(_mapper.ProjectTo<TagDto>(tags));
         }
     }
 }

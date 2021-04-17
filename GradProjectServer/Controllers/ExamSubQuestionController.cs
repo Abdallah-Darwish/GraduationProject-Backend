@@ -24,8 +24,17 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
-        [HttpGet]
-        public IActionResult Get([FromBody] int[] examSubQuestionsIds)
+        [HttpPost("GetAll")]
+        [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
+        {
+            return Ok(_dbContext.ExamsSubQuestions.Skip(info.Offset).Take(info.Count).Select(sq => sq.Id));
+        }
+        [HttpPost("Get")]
+        [ProducesResponseType(typeof(IEnumerable<ExamSubQuestionDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
+        public ActionResult<IEnumerable<ExamSubQuestionDto>> Get([FromBody] int[] examSubQuestionsIds)
         {
             var existingExamSubQuestions = _dbContext.ExamsSubQuestions.Where(c => examSubQuestionsIds.Contains(c.Id));
             var nonExistingExamSubQuestions = examSubQuestionsIds.Except(existingExamSubQuestions.Select(c => c.Id)).ToArray();
@@ -58,8 +67,11 @@ namespace GradProjectServer.Controllers
             }
             return Ok(_mapper.ProjectTo<ExamSubQuestionDto>(existingExamSubQuestions));
         }
-        [HttpDelete]
         [LoggedInFilter]
+        [HttpDelete("Delete")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Delete([FromBody] int[] examSubQuestionsIds)
         {
             var existingExamSubQuestions = _dbContext.ExamsSubQuestions.Where(c => examSubQuestionsIds.Contains(c.Id));
@@ -70,7 +82,10 @@ namespace GradProjectServer.Controllers
                         new ErrorDTO
                         {
                             Description = "The following exam sub questions don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingExamSubQuestions"] = nonExistingExamSubQuestions }
+                            Data = new Dictionary<string, object> 
+                            { 
+                                ["NonExistingExamSubQuestions"] = nonExistingExamSubQuestions
+                            }
                         });
             }
             var user = this.GetUser()!;
@@ -81,15 +96,19 @@ namespace GradProjectServer.Controllers
                         new ErrorDTO
                         {
                             Description = "The following exam sub questions are already approved so they can't be updated.",
-                            Data = new Dictionary<string, object> { ["ApprovedExamSubQuestions"] = approvedExamQuestionsIds }
+                            Data = new Dictionary<string, object> 
+                            {
+                                ["ApprovedExamSubQuestions"] = approvedExamQuestionsIds
+                            }
                         });
             }
             _dbContext.ExamsSubQuestions.RemoveRange(existingExamSubQuestions);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
-        [HttpPost]
         [LoggedInFilter]
+        [HttpPost("Create")]
+        [ProducesResponseType(typeof(ExamSubQuestionDto), StatusCodes.Status201Created)]
         public async Task<IActionResult> Create([FromBody] CreateExamSubQuestionDto dto)
         {
             var examSubQuestion = new ExamSubQuestion
@@ -102,8 +121,9 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return CreatedAtAction(nameof(Get), new { examSubQuestionsIds = new int[] { examSubQuestion.Id } }, _mapper.Map<ExamSubQuestionDto>(examSubQuestion));
         }
-        [HttpPatch]
         [LoggedInFilter]
+        [HttpPatch("Updated")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] UpdateExamSubQuestionDto update)
         {
             var examSubQuestion = await _dbContext.ExamsSubQuestions.FindAsync(update.Id).ConfigureAwait(false);

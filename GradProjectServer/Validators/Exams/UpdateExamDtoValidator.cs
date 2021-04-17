@@ -56,38 +56,6 @@ namespace GradProjectServer.Validators.Exams
                 .InclusiveBetween(1990, DateTime.Now.Year)
                 .WithMessage("{PropertyName} must be in range [1990, Current Year].")
                 .When(d => d.Year.HasValue);
-            RuleFor(d => d.SubQuestionsToAdd)
-                .Must(questions => questions!.Length >= 1)
-                .WithMessage("{PropertyName} size must be >= 1.")
-                .Must(questions => questions!.Select(q => q.QuestionId).Distinct().Count() == questions!.Length)
-                .WithMessage("{PropertyName} can't contain duplicates.")
-                .InjectValidator()
-                .Must(questions =>
-                {
-                    var questionsIds = questions!.Select(q => q.QuestionId).ToArray();
-                    var questionsCoursesCount = dbContext.Questions
-                    .Where(q => questionsIds.Contains(q.Id))
-                    .Select(q => q.CourseId)
-                    .Distinct()
-                    .Count();
-                    return questionsCoursesCount == 1;
-                })
-                .WithMessage("Not all questions in {PropertyName} belong to the same course.")
-                .When(d => d.SubQuestionsToAdd != null);
-            RuleFor(d => d.SubQuestionsToDelete)
-                .Must(questions => questions!.Length >= 1)
-                .WithMessage($"{nameof(UpdateExamDto.SubQuestionsToDelete)} size must be >= 1.")
-                .Must(questions => questions!.Distinct().Count() == questions!.Length)
-                .WithMessage($"{nameof(UpdateExamDto.SubQuestionsToDelete)} can't contain duplicates.")
-                .MustAsync(async (d, questions, _) =>
-                {
-                    var exam = await dbContext.Exams
-                        .FindAsync(d.ExamId)
-                        .ConfigureAwait(false);
-                    return !questions!.Except(exam.SubQuestions.Select(q => q.Id)).Any();
-                })
-                .WithMessage(d => $"Some questions in {{PropertyName}} don't exist or belong to Exam(Id: {d.ExamId}).")
-                .When(d => d.SubQuestionsToDelete != null);
             RuleFor(d => d.Type)
                 .IsInEnum()
                 .When(d => d.Type.HasValue);

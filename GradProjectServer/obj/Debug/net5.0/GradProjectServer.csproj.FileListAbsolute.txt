@@ -44,3 +44,7 @@ C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradP
 C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradProjectServer.genruntimeconfig.cache
 C:\Users\abdal\source\repos\GradProject\GradProjectServer\obj\Debug\net5.0\GradProjectServer.csprojAssemblyReference.cache
 C:\Users\abdal\source\repos\GradProject\GradProjectServer\bin\Debug\net5.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+C:\Users\abdal\source\repos\GradProject\GradProjectServer\bin\Debug\net5.0\Microsoft.AspNetCore.JsonPatch.dll
+C:\Users\abdal\source\repos\GradProject\GradProjectServer\bin\Debug\net5.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
+C:\Users\abdal\source\repos\GradProject\GradProjectServer\bin\Debug\net5.0\Newtonsoft.Json.dll
+C:\Users\abdal\source\repos\GradProject\GradProjectServer\bin\Debug\net5.0\Newtonsoft.Json.Bson.dll

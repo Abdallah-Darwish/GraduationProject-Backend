@@ -29,6 +29,17 @@ namespace GradProjectServer.Controllers
             _mapper = mapper;
             _programService = programService;
         }
+        [HttpPost("GetAll")]
+        [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
+        {
+            return Ok(_dbContext.SubQuestions.Skip(info.Offset).Take(info.Count).Select(sq => sq.Id));
+        }
+        [HttpPost("Get")]
+        [ProducesResponseType(typeof(IEnumerable<SubQuestionDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<SubQuestionMetadataDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Get([FromBody] int[] subQuestionsIds, bool metadata = false)
         {
             var existingSubQuestions = _dbContext.SubQuestions.Where(e => subQuestionsIds.Contains(e.Id));
@@ -73,10 +84,10 @@ namespace GradProjectServer.Controllers
             {
                 return Ok(_mapper.Map<List<SubQuestionMetadataDto>>(existingSubQuestions));
             }
-            var resultDtos = result.Select(q => {
+            var resultDtos = result.Select(q =>
+            {
                 SubQuestionDto dto = q.Type switch
                 {
-
                     SubQuestionType.MultipleChoice => q.Question.VolunteerId == user?.Id ? _mapper.Map<OwnedMCQSubQuestionDto>(q) : _mapper.Map<MCQSubQuestionDto>(q),
                     SubQuestionType.Blank => q.Question.VolunteerId == user?.Id ? _mapper.Map<OwnedBlankSubQuestionDto>(q) : _mapper.Map<SubQuestionDto>(q),
                     SubQuestionType.Programming => q.Question.VolunteerId == user?.Id ? _mapper.Map<OwnedProgrammingSubQuestionDto>(q) : _mapper.Map<SubQuestionDto>(q),
@@ -86,7 +97,10 @@ namespace GradProjectServer.Controllers
 
             return Ok(resultDtos);
         }
-        public async Task<IActionResult> Create([FromBody] CreateSubQuestionDto dto)
+        [HttpPost("Create")]
+        [LoggedInFilter]
+        [ProducesResponseType(typeof(SubQuestionMetadataDto), StatusCodes.Status201Created)]
+        public async Task<ActionResult<SubQuestionMetadataDto>> Create([FromBody] CreateSubQuestionDto dto)
         {
             SubQuestion subQuestion;
             switch (dto)
@@ -132,10 +146,13 @@ namespace GradProjectServer.Controllers
             subQuestion.Tags = dto.Tags?.Select(t => new SubQuestionTag { TagId = t, SubQuestion = subQuestion }).ToArray() ?? Array.Empty<SubQuestionTag>();
             subQuestion.QuestionId = dto.QuestionId;
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return CreatedAtAction(nameof(Get), new { subQuestionsIds = new int[] { subQuestion.Id }, metadata = false }, subQuestion);
+            return CreatedAtAction(nameof(Get), new { subQuestionsIds = new int[] { subQuestion.Id }, metadata = true }, _mapper.Map<SubQuestionMetadataDto>(subQuestion));
         }
         [LoggedInFilter]
-        [HttpDelete]
+        [HttpDelete("Delete")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Delete([FromBody] int[] subQuestionsIds)
         {
             //todo: delete checkers
@@ -168,8 +185,9 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
-        [HttpPatch]
         [LoggedInFilter]
+        [HttpPatch("Update")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] UpdateSubQuestionDto update)
         {
             SubQuestion baseSubQuestion;
@@ -259,7 +277,7 @@ namespace GradProjectServer.Controllers
             if ((update.TagsToAdd?.Length ?? 0) > 0)
             {
                 await _dbContext.SubQuestionsTags
-                    .AddRangeAsync(update.TagsToAdd!.Select(t => new SubQuestionTag { SubQustionId = baseSubQuestion.Id, TagId = t })).ConfigureAwait(false);
+                    .AddRangeAsync(update.TagsToAdd!.Select(t => new SubQuestionTag { SubQuestionId = baseSubQuestion.Id, TagId = t })).ConfigureAwait(false);
             }
             if ((update.TagsToDelete?.Length ?? 0) > 0)
             {

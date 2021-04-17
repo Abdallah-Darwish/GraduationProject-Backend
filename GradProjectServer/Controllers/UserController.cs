@@ -31,7 +31,17 @@ namespace GradProjectServer.Controllers
             _mapper = mapper;
             _profilePictureRepo = profilePictureRepo;
         }
-        [HttpGet]
+        [HttpPost("GetAll")]
+        [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
+        {
+            return Ok(_dbContext.Users.Skip(info.Offset).Take(info.Count).Select(u => u.Id));
+        }
+        [HttpPost("Get")]
+        [ProducesResponseType(typeof(IEnumerable<UserMetadataDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<UserDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public IActionResult Get([FromBody] int[] usersIds, bool metadata = false)
         {
             var existingUsers = _dbContext.Users.Where(e => usersIds.Contains(e.Id));
@@ -67,9 +77,10 @@ namespace GradProjectServer.Controllers
             }
             return Ok(_mapper.ProjectTo<UserDto>(existingUsers));
         }
-        [HttpPost]
         [NotLoggedInFilter]
-        public async Task<IActionResult> Create([FromBody] SignUpDto dto)
+        [HttpPost("Create")]
+        [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)]
+        public async Task<ActionResult<UserDto>> Create([FromBody] SignUpDto dto)
         {
             var user = new User
             {
@@ -88,8 +99,9 @@ namespace GradProjectServer.Controllers
             }
             return CreatedAtAction(nameof(Get), new { usersIds = new int[] { user.Id }, metadata = false }, _mapper.Map<UserDto>(user));
         }
-        [HttpPatch]
         [LoggedInFilter]
+        [HttpPatch("Update")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] UpdateUserDto update)
         {
             var user = await _dbContext.Users.FindAsync(update.Id).ConfigureAwait(false);
@@ -112,8 +124,11 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
-        [HttpPost]
         [NotLoggedInFilter]
+        [HttpPost("Login")]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+
         public async Task<IActionResult> Login([FromBody] LoginDto info)
         {
             var user = _dbContext.Users.FirstOrDefault(u => u.Email.ToLowerInvariant() == info.Email.ToLowerInvariant());
@@ -134,6 +149,17 @@ namespace GradProjectServer.Controllers
             Response.Cookies.Append("Token", user.Token, cookieOptions);
             return Ok(_mapper.Map<UserDto>(user));
         }
+        [LoggedInFilter]
+        [HttpPost("Logout")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> Logout()
+        {
+            var user = await _dbContext.Users.FindAsync(this.GetUser()!.Id).ConfigureAwait(false);
+            user.Token = null;
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+            return Ok();
+        }
+        [NonAction]
         public void GetProfilePicture(int userId) { }
     }
 }

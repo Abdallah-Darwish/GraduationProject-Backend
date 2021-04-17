@@ -16,6 +16,7 @@ namespace GradProjectServer
             for (char i = 'A'; i <= 'Z'; i++) { pool.Add(i); }
             for (char i = '0'; i <= '9'; i++) { pool.Add(i); }
             pool.AddRange(".,!");
+            RandomTextPool = pool.ToArray();
         }
         public static T NextElementAndSwap<T>(this Random rand, IList<T> lst, int newIndex)
         {

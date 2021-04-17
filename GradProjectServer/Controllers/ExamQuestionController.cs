@@ -25,8 +25,18 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
-        [HttpGet]
-        public IActionResult Get([FromBody] int[] examQuestionsIds)
+        [HttpPost("GetAll")]
+        [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
+        {
+            return Ok(_dbContext.ExamsQuestions.Skip(info.Offset).Take(info.Count).Select(q => q.Id));
+        }
+
+        [HttpPost("Get")]
+        [ProducesResponseType(typeof(IEnumerable<ExamQuestion>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
+        public ActionResult<IEnumerable<ExamQuestion>> Get([FromBody] int[] examQuestionsIds)
         {
             var existingExamQuestions = _dbContext.ExamsQuestions.Where(c => examQuestionsIds.Contains(c.Id));
             var nonExistingExamQuestions = examQuestionsIds.Except(existingExamQuestions.Select(c => c.Id)).ToArray();
@@ -40,7 +50,7 @@ namespace GradProjectServer.Controllers
                         });
             }
             var user = this.GetUser();
-            if(!(user?.IsAdmin ?? false))
+            if (!(user?.IsAdmin ?? false))
             {
                 int userId = user?.Id ?? -1;
                 var notOwnedExamQuestions = existingExamQuestions
@@ -59,8 +69,12 @@ namespace GradProjectServer.Controllers
             }
             return Ok(_mapper.ProjectTo<ExamQuestionDto>(existingExamQuestions));
         }
-        [HttpDelete]
+
         [LoggedInFilter]
+        [HttpDelete("Delete")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Delete([FromBody] int[] examQuestionsIds)
         {
             var existingExamQuestions = _dbContext.ExamsQuestions.Where(c => examQuestionsIds.Contains(c.Id));
@@ -89,8 +103,10 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
-        [HttpPost]
+
         [LoggedInFilter]
+        [HttpPost("Create")]
+        [ProducesResponseType(typeof(ExamSubQuestion), StatusCodes.Status201Created)]
         public async Task<IActionResult> Create([FromBody] CreateExamQuestionDto dto)
         {
             var examQuestion = new ExamQuestion
@@ -103,12 +119,14 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return CreatedAtAction(nameof(Get), new { examQuestionsIds = new int[] { examQuestion.Id } }, _mapper.Map<ExamQuestionDto>(examQuestion));
         }
-        [HttpPatch]
+
         [LoggedInFilter]
+        [HttpPatch("Updated")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] UpdateExamQuestionDto update)
         {
             var examQuestion = await _dbContext.ExamsQuestions.FindAsync(update.Id).ConfigureAwait(false);
-            if(update.Order.HasValue)
+            if (update.Order.HasValue)
             {
                 examQuestion.Order = update.Order.Value;
             }

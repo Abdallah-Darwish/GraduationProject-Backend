@@ -25,8 +25,18 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
-        [HttpGet]
-        public ActionResult<CourseDto[]> Get([FromBody] int[] coursesIds)
+
+        [HttpGet("GetAll")]
+        [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
+        {
+            return Ok(_dbContext.Courses.Skip(info.Offset).Take(info.Count).Select(c => c.Id));
+        }
+
+        [HttpPost("Get")]
+        [ProducesResponseType(typeof(IEnumerable<CourseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        public ActionResult<IEnumerable<CourseDto>> Get([FromBody] int[] coursesIds)
         {
             var existingCourses = _dbContext.Courses.Where(c => coursesIds.Contains(c.Id));
             var nonExistingCourses = coursesIds.Except(existingCourses.Select(c => c.Id)).ToArray();
@@ -41,9 +51,10 @@ namespace GradProjectServer.Controllers
             }
             return Ok(_mapper.ProjectTo<CourseDto>(existingCourses));
         }
-        [HttpPost]
         [AdminFilter]
-        public async Task<ActionResult<CourseDto>> Create(CreateCourseDto info)
+        [HttpPost("Create")]
+        [ProducesResponseType(typeof(CourseDto), StatusCodes.Status201Created)]
+        public async Task<ActionResult<CourseDto>> Create([FromBody] CreateCourseDto info)
         {
             var newCourse = new Course
             {
@@ -54,9 +65,11 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return CreatedAtAction(nameof(Get), new { coursesIds = new int[] { newCourse.Id } }, newCourse);
         }
-        [HttpDelete]
         [AdminFilter]
-        public async Task<IActionResult> Delete(int[] coursesIds)
+        [HttpDelete("Delete")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete([FromBody] int[] coursesIds)
         {
             var existingCourses = _dbContext.Courses.Where(c => coursesIds.Contains(c.Id));
             var nonExistingCourses = coursesIds.Except(existingCourses.Select(c => c.Id)).ToArray();
@@ -73,12 +86,13 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
-        [HttpPatch]
         [AdminFilter]
-        public async Task<IActionResult> Update(UpdateCourseDto update)
+        [HttpPatch("Update")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> Update([FromBody] UpdateCourseDto update)
         {
             var course = await _dbContext.Courses.FindAsync(update.Id).ConfigureAwait(false);
-            if(!string.IsNullOrWhiteSpace(update.Name))
+            if (!string.IsNullOrWhiteSpace(update.Name))
             {
                 course.Name = update.Name;
             }
@@ -90,8 +104,9 @@ namespace GradProjectServer.Controllers
             return Ok();
         }
 
-        [HttpGet]
-        public IActionResult Search([FromBody] CourseSearchFilterDto filter)
+        [HttpPost("Search")]
+        [ProducesResponseType(typeof(IEnumerable<CourseDto>), StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<CourseDto>> Search([FromBody] CourseSearchFilterDto filter)
         {
             var courses = _dbContext.Courses.AsQueryable();
 

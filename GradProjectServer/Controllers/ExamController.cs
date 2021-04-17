@@ -28,6 +28,12 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
+        [HttpPost("GetAll")]
+        [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
+        {
+            return Ok(_dbContext.Exams.Skip(info.Offset).Take(info.Count).Select(e => e.Id));
+        }
         /// <summary>
         /// A user can get:
         ///     1- All approved exams.
@@ -36,10 +42,11 @@ namespace GradProjectServer.Controllers
         ///     All exams.
         /// </summary>
         /// <param name="examsIds">Ids of the exams to get.</param>
-        [HttpGet]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpPost("Get")]
+        [ProducesResponseType(typeof(ActionResult<IEnumerable<ExamMetadataDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ActionResult<IEnumerable<ExamDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public IActionResult Get([FromBody] int[] examsIds, bool metadata = false)
         {
             var existingExams = _dbContext.Exams.Where(e => examsIds.Contains(e.Id));
@@ -78,8 +85,9 @@ namespace GradProjectServer.Controllers
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
-        [HttpGet]
-        [ProducesResponseType(typeof(ExamMetadataDto[]), StatusCodes.Status200OK)]
+        [HttpPost("Search")]
+        [ProducesResponseType(typeof(IEnumerable<ExamDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<ExamMetadataDto>), StatusCodes.Status200OK)]
         public IActionResult Search([FromBody] ExamSearchFilterDto filter)
         {
             var exams = _dbContext.Exams.AsQueryable();
@@ -149,8 +157,8 @@ namespace GradProjectServer.Controllers
         ///     All exams.
         /// </summary>
         /// <param name="examsIds">Ids of the exams to delete</param>
-        [HttpDelete]
         [LoggedInFilter]
+        [HttpDelete("Delete")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -198,11 +206,10 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
-        [HttpPost]
+
         [LoggedInFilter]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpPost("Create")]
+        [ProducesResponseType(typeof(ExamMetadataDto), StatusCodes.Status201Created)]
         public async Task<ActionResult<ExamMetadataDto>> Create([FromBody] CreateExamDto data)
         {
             var user = this.GetUser()!;
@@ -220,11 +227,9 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return CreatedAtAction(nameof(Get), new { examsIds = new int[] { exam.Id }, metadata = true }, _mapper.Map<ExamMetadataDto>(exam));
         }
-        [HttpPatch]
         [LoggedInFilter]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpPatch("Updated")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Update([FromBody] UpdateExamDto update)
         {
             var exam = await _dbContext.Exams.FindAsync(update.ExamId).ConfigureAwait(false);

@@ -3,12 +3,16 @@ using GradProjectServer.DTO;
 using GradProjectServer.Services.EntityFramework;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System;
+using System.Linq;
 using System.Reflection;
 
 namespace GradProjectServer
@@ -32,6 +36,25 @@ namespace GradProjectServer
                 {
                     op.SerializerSettings.TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Objects;
                     op.SerializerSettings.SerializationBinder = new KnownTypesBinder();
+                }).ConfigureApiBehaviorOptions(op => {
+                    op.InvalidModelStateResponseFactory = ctx =>
+                    {
+                        var errors = ctx.ModelState
+                        .Where(e => e.Value.Errors.Count > 0)
+                        .ToDictionary(e => e.Key, e => (object)e.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+
+                        var error = new ErrorDTO
+                        {
+                            Description = "Invalid model with the following validation errors.",
+                            Data = errors
+                        };
+                        ObjectResult result = new(error)
+                        {
+                            StatusCode = StatusCodes.Status422UnprocessableEntity,
+                            DeclaredType = typeof(ErrorDTO),
+                        };
+                        return result;
+                    };
                 });
 
             services.AddSwaggerGen(c =>
@@ -43,7 +66,9 @@ namespace GradProjectServer
 
             services.AddEntityFrameworkNpgsql();
             var connString = Configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connString));
+            services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connString),
+                contextLifetime: ServiceLifetime.Scoped,
+                optionsLifetime: ServiceLifetime.Singleton);
             services.AddDbContextFactory<AppDbContext>(opt => opt.UseNpgsql(connString));
         }
 

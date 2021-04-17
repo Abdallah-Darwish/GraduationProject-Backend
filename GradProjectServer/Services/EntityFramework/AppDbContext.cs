@@ -11,6 +11,10 @@ namespace GradProjectServer.Services.EntityFramework
 {
     public class AppDbContext : DbContext
     {
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        {
+
+        }
         public const string EntityConfigurationMethodName = "ConfigureEntity";
         public DbSet<Exam> Exams { get; set; }
         public DbSet<ExamAttempt> ExamsAttempts { get; set; }
@@ -37,6 +41,7 @@ namespace GradProjectServer.Services.EntityFramework
         public DbSet<User> Users { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
             static MethodInfo? FindEntityConfigurationMethod(Type t)
             {
                 var typeMethods = t.GetMethods(BindingFlags.Static | BindingFlags.Public);
@@ -67,8 +72,8 @@ namespace GradProjectServer.Services.EntityFramework
                 var configMethod = FindEntityConfigurationMethod(type);
                 if (configMethod is null) { continue; }
 
-                var modelBuilderEntityParameters = new object[1] { modelBuilderEntityMethod.MakeGenericMethod(type) };
-                object entityTypeBuilder = modelBuilderEntityMethod.MakeGenericMethod(type).Invoke(modelBuilder, modelBuilderEntityParameters)!;
+                //var modelBuilderEntityParameters = new object[1] { modelBuilderEntityMethod.MakeGenericMethod(type) };
+                object entityTypeBuilder = modelBuilderEntityMethod.MakeGenericMethod(type).Invoke(modelBuilder, null)!;
                 configMethod.Invoke(null, new object[] { entityTypeBuilder });
             }
         }

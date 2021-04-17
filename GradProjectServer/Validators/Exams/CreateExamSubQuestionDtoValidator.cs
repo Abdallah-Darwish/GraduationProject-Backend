@@ -6,6 +6,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using FluentValidation.Validators;
 using GradProjectServer.DTO.Exams;
+using GradProjectServer.DTO.ExamSubQuestions;
 using GradProjectServer.Services.EntityFramework;
 
 namespace GradProjectServer.Validators.Exams
@@ -16,7 +17,7 @@ namespace GradProjectServer.Validators.Exams
         {
             RuleFor(d => d.Weight)
                 .GreaterThan(0.0f);
-            RuleFor(d => d.QuestionId)
+            RuleFor(d => d.SubQuestionId)
                 .MustAsync(async (id, _) =>
                 {
                     var subQuestion = await dbContext.SubQuestions.FindAsync(id).ConfigureAwait(false);
