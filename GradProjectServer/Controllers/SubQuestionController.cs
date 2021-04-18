@@ -29,12 +29,44 @@ namespace GradProjectServer.Controllers
             _mapper = mapper;
             _programService = programService;
         }
+        /// <summary>Result is ordered by id.</summary>
+        /// <remarks>
+        /// A user has access to:
+        ///     1- All approved sub questions.
+        ///     2- HIS not approved sub questions.
+        /// An admin has access to:
+        ///     All sub questions.
+        /// </remarks>
         [HttpPost("GetAll")]
         [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
         {
-            return Ok(_dbContext.SubQuestions.Skip(info.Offset).Take(info.Count).Select(sq => sq.Id));
+            var subQuestions = _dbContext.SubQuestions.AsQueryable();
+            var user = this.GetUser();
+            if(!(user?.IsAdmin ?? false))
+            {
+                var userId = user?.Id ?? -1;
+                subQuestions = subQuestions.Where(sq => sq.Question.IsApproved || sq.Question.VolunteerId == userId);
+            }
+            return Ok(subQuestions.Skip(info.Offset).Take(info.Count).Select(sq => sq.Id));
         }
+        /// <param name="subQuestionsIds">Ids of the sub questions to get.</param>
+        /// <param name="metadata">Whether to return SubQuestionMetadataDto or SubQuestionDto.</param>
+        /// <remarks>
+        /// A user can get:
+        ///     1- All approved sub questions.
+        ///     2- HIS not approved sub questions.
+        /// An admin can get:
+        ///     All sub questions.
+        ///     
+        /// The returned objects will be actually of type:
+        ///     1- MCQSubQuestionDto or OwnedMCQSubQuestion
+        ///     2- OwnedBlankSubQuestion
+        ///     3- OwnedProgrammingQuestionDto
+        ///     4- SubQuestionDto
+        /// </remarks>
+        /// <response code="404">Ids of the non existing sub questions.</response>
+        /// <response code="403">Ids of sub questions the user has no access rights to.</response>
         [HttpPost("Get")]
         [ProducesResponseType(typeof(IEnumerable<SubQuestionDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(IEnumerable<SubQuestionMetadataDto>), StatusCodes.Status200OK)]
@@ -50,7 +82,10 @@ namespace GradProjectServer.Controllers
                         new ErrorDTO
                         {
                             Description = "The following questions don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingQuestions"] = nonExistingSubQuestions }
+                            Data = new Dictionary<string, object> 
+                            {
+                                ["NonExistingQuestions"] = nonExistingSubQuestions
+                            }
                         });
             }
             var user = this.GetUser();
@@ -97,6 +132,9 @@ namespace GradProjectServer.Controllers
 
             return Ok(resultDtos);
         }
+        /// <summary>Creates a new sub question.</summary>
+        /// <response code="201">Metadata of the newly created sub question.</response>
+
         [HttpPost("Create")]
         [LoggedInFilter]
         [ProducesResponseType(typeof(SubQuestionMetadataDto), StatusCodes.Status201Created)]
@@ -148,6 +186,17 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return CreatedAtAction(nameof(Get), new { subQuestionsIds = new int[] { subQuestion.Id }, metadata = true }, _mapper.Map<SubQuestionMetadataDto>(subQuestion));
         }
+
+        /// <summary>Deletes the specified sub questions.</summary>
+        /// <param name="subQuestionsIds">Ids of the sub questions to delete.</param>
+        /// <remarks>
+        /// A user can delete:
+        ///     HIS NOT approved sub questions.
+        /// An admin can delete:
+        ///     All sub questions.
+        /// </remarks>
+        /// <response code="404">Ids of the non existing sub questions.</response>
+        /// <response code="403">Ids of the sub questions user can't modify.</response>
         [LoggedInFilter]
         [HttpDelete("Delete")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -185,6 +234,11 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
+
+        /// <summary>
+        /// Updates a sub question.
+        /// </summary>
+        /// <param name="update">The update to apply, null fields mean no update to this property.</param>
         [LoggedInFilter]
         [HttpPatch("Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]

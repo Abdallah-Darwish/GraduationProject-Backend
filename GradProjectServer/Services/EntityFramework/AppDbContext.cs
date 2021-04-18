@@ -18,7 +18,7 @@ namespace GradProjectServer.Services.EntityFramework
         public const string EntityConfigurationMethodName = "ConfigureEntity";
         public DbSet<Exam> Exams { get; set; }
         public DbSet<ExamAttempt> ExamsAttempts { get; set; }
-        public DbSet<ExamSubQuestion> ExamsSubQuestions { get; set; }
+        public DbSet<ExamSubQuestion> ExamSubQuestions { get; set; }
         public DbSet<ExamQuestion> ExamsQuestions { get; set; }
         public DbSet<SubQuestionAnswer> SubQuestionsAnswers { get; set; }
         public DbSet<MCQSubQuestion> MCQSubQuestions { get; set; }

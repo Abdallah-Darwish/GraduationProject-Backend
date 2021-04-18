@@ -18,6 +18,7 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class UserController : ControllerBase
     {
+        public static readonly string LoginCookieName = "marje3";
         //todo: implement me
         public static string HashPassword(string password) { return password; }
         public static string GenerateToken(User user) { return $"{user.Id}:{DateTime.UtcNow.Ticks}"; }
@@ -31,12 +32,30 @@ namespace GradProjectServer.Controllers
             _mapper = mapper;
             _profilePictureRepo = profilePictureRepo;
         }
+        /// <summary>
+        /// Ids of users ordered by email.
+        /// </summary>
+        /// <remarks>
+        /// Admin only.
+        /// </remarks>
+        [AdminFilter]
         [HttpPost("GetAll")]
         [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
         {
             return Ok(_dbContext.Users.Skip(info.Offset).Take(info.Count).Select(u => u.Id));
         }
+        /// <param name="usersIds">Ids of the users to get.</param>
+        /// <param name="metadata">Whether to return UserMetadataDto or UserDto.</param>
+        /// <remarks>
+        /// A user can get:
+        ///     1- UserDto of HIMSELF only.
+        ///     2- UserMetadataDto of all users.
+        /// An admin can get:
+        ///     All users.
+        /// </remarks>
+        /// <response code="404">Ids of the non existing users.</response>
+        /// <response code="403">Ids of user the user has no access rights to.</response>
         [HttpPost("Get")]
         [ProducesResponseType(typeof(IEnumerable<UserMetadataDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(IEnumerable<UserDto>), StatusCodes.Status200OK)]
@@ -77,6 +96,8 @@ namespace GradProjectServer.Controllers
             }
             return Ok(_mapper.ProjectTo<UserDto>(existingUsers));
         }
+        /// <summary>Creates/Signsup a new user.</summary>
+        /// <response code="201">Metadata of the newly user exam.</response>
         [NotLoggedInFilter]
         [HttpPost("Create")]
         [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)]
@@ -99,13 +120,23 @@ namespace GradProjectServer.Controllers
             }
             return CreatedAtAction(nameof(Get), new { usersIds = new int[] { user.Id }, metadata = false }, _mapper.Map<UserDto>(user));
         }
+        /// <summary>
+        /// Updates a user.
+        /// </summary>
+        /// <remarks>
+        /// A user can update only himself.
+        /// An admin can update any user.
+        /// IsAdmin will be considered only if the caller is an admin.
+        /// </remarks>
+        /// <param name="update">The update to apply, null fields mean no update to this property.</param>
         [LoggedInFilter]
         [HttpPatch("Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] UpdateUserDto update)
         {
             var user = await _dbContext.Users.FindAsync(update.Id).ConfigureAwait(false);
-            if (update.IsAdmin.HasValue)
+            var loggedInUser = this.GetUser()!;
+            if (loggedInUser.IsAdmin && update.IsAdmin.HasValue)
             {
                 user.IsAdmin = update.IsAdmin.Value;
             }
@@ -124,6 +155,13 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
+        /// <summary>
+        /// Generates login cookie for a user to be used in subsequent requests.
+        /// </summary>
+        /// <remarks>
+        /// A user can't be logged in before calling this method.
+        /// </remarks>
+        /// <response code="401">Invalid login credentials.</response>
         [NotLoggedInFilter]
         [HttpPost("Login")]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -146,9 +184,12 @@ namespace GradProjectServer.Controllers
                 HttpOnly = false,
                 Secure = false,
             };
-            Response.Cookies.Append("Token", user.Token, cookieOptions);
+            Response.Cookies.Append(LoginCookieName, user.Token, cookieOptions);
             return Ok(_mapper.Map<UserDto>(user));
         }
+        /// <summary>
+        /// Logs out the current user and removes his cookie.
+        /// </summary>
         [LoggedInFilter]
         [HttpPost("Logout")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -157,9 +198,12 @@ namespace GradProjectServer.Controllers
             var user = await _dbContext.Users.FindAsync(this.GetUser()!.Id).ConfigureAwait(false);
             user.Token = null;
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+            Response.Cookies.Delete(LoginCookieName);
             return Ok();
         }
         [NonAction]
         public void GetProfilePicture(int userId) { }
+        [NonAction]
+        public void GetLoggedIn() { }
     }
 }

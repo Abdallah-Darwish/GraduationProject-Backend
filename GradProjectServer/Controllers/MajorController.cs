@@ -25,12 +25,16 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
+        /// <reamarks>Result is ordered by name.</reamarks>
         [HttpPost("GetAll")]
         [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
         {
-            return Ok(_dbContext.Majors.Skip(info.Offset).Take(info.Count).Select(m => m.Id));
+            return Ok(_dbContext.Majors.OrderBy(m => m.Name).Skip(info.Offset).Take(info.Count).Select(m => m.Id));
         }
+        /// <param name="majorsIds">Ids of the majors to get.</param>
+        /// <param name="metadata">Whether to return MajorMetadataDto or MajorDto.</param>
+        /// <response code="404">Ids of the non existing majors.</response>
         [HttpPost("Get")]
         [ProducesResponseType(typeof(IEnumerable<MajorMetadataDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(IEnumerable<MajorDto>), StatusCodes.Status200OK)]
@@ -54,6 +58,15 @@ namespace GradProjectServer.Controllers
             }
             return Ok(_mapper.ProjectTo<MajorDto>(existingMajors));
         }
+
+        /// <summary>
+        /// Deletes the specified majors.
+        /// </summary>
+        /// <remarks>
+        /// Admin only.
+        /// </remarks>
+        /// <param name="majorsIds">Ids of the majors to delete.</param>
+        /// <response code="404">Ids of the non existing majors.</response>
         [AdminFilter]
         [HttpDelete("Delete")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -75,12 +88,19 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
+
+        /// <summary>
+        /// Creates a new major.
+        /// </summary>
+        /// <remarks>
+        /// Admin only.
+        /// </remarks>
+        /// <reponse code="201">Metadata of the newly created major.</reponse>
         [AdminFilter]
         [HttpPost("Create")]
         [ProducesResponseType(typeof(MajorMetadataDto), StatusCodes.Status200OK)]
         public async Task<ActionResult<MajorMetadataDto>> Create(CreateMajorDto info)
         {
-
             var newMajor = new Major
             {
                 Name = info.Name,
@@ -89,6 +109,13 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return CreatedAtAction(nameof(Get), new { majorsIds = new int[] { newMajor.Id }, metadata = true }, _mapper.Map<MajorMetadataDto>(newMajor));
         }
+        /// <summary>
+        /// Updates a major.
+        /// </summary>
+        /// <remarks>
+        /// Admin only.
+        /// </remarks>
+        /// <param name="update">The update to apply, null fields mean no update to this property.</param>
         [AdminFilter]
         [HttpPatch("Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -102,6 +129,10 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
+        /// <summary>
+        /// Returns majors that satisfy the filters ordered by name.
+        /// </summary>
+        /// <param name="filter">The filters to apply, null property means it won't be applied.</param>
         [HttpPost("Search")]
         [ProducesResponseType(typeof(IEnumerable<MajorDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(IEnumerable<MajorMetadataDto>), StatusCodes.Status200OK)]
@@ -113,7 +144,10 @@ namespace GradProjectServer.Controllers
                 majors = majors.Where(m => EF.Functions.Like(m.Name, filter.NameMask));
             }
             majors = majors.OrderBy(m => m.Name).Skip(filter.Offset).Take(filter.Count);
-            //todo: add metadata
+            if(filter.Metadata)
+            {
+                return Ok(_mapper.ProjectTo<MajorMetadataDto>(majors));
+            }
             return Ok(_mapper.ProjectTo<MajorDto>(majors));
         }
     }

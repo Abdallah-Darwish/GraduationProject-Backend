@@ -25,14 +25,17 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
-        //todo: add order by to all get all methods
+        /// <summary>
+        /// Ids of all courses in data base ordered by course name.
+        /// </summary>
         [HttpPost("GetAll")]
         [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
         {
             return Ok(_dbContext.Courses.OrderBy(c => c.Name).Skip(info.Offset).Take(info.Count).Select(c => c.Id));
         }
-
+        /// <param name="coursesIds">Ids of the courses to get.</param>
+        /// <response code="404">Ids of the non existing courses.</response>
         [HttpPost("Get")]
         [ProducesResponseType(typeof(IEnumerable<CourseDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
@@ -51,6 +54,13 @@ namespace GradProjectServer.Controllers
             }
             return Ok(_mapper.ProjectTo<CourseDto>(existingCourses));
         }
+        /// <summary>
+        /// Creates a new course.
+        /// </summary>
+        /// <remarks>
+        /// Admin only.
+        /// </remarks>
+        /// <reponse code="201">The newly created course.</reponse>
         [AdminFilter]
         [HttpPost("Create")]
         [ProducesResponseType(typeof(CourseDto), StatusCodes.Status201Created)]
@@ -65,6 +75,14 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return CreatedAtAction(nameof(Get), new { coursesIds = new int[] { newCourse.Id } }, newCourse);
         }
+        /// <summary>
+        /// Deletes the specified courses.
+        /// </summary>
+        /// <remarks>
+        /// Admin only.
+        /// </remarks>
+        /// <param name="coursesIds">Ids of the courses to delete.</param>
+        /// <response code="404">Ids of the non existing courses.</response>
         [AdminFilter]
         [HttpDelete("Delete")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -86,6 +104,13 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
+        /// <summary>
+        /// Updates a course.
+        /// </summary>
+        /// <remarks>
+        /// Admin only.
+        /// </remarks>
+        /// <param name="update">The update to apply, null fields mean no update to this property.</param>
         [AdminFilter]
         [HttpPatch("Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -103,7 +128,10 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
-
+        /// <summary>
+        /// Returns Courses that satisfy the filters ordered by name.
+        /// </summary>
+        /// <param name="filter">The filters to apply, null property means it won't be applied.</param>
         [HttpPost("Search")]
         [ProducesResponseType(typeof(IEnumerable<CourseDto>), StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<CourseDto>> Search([FromBody] CourseSearchFilterDto filter)

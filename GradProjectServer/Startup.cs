@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -27,7 +29,9 @@ namespace GradProjectServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //todo: please see https://github.com/micro-elements/MicroElements.Swashbuckle.FluentValidation
             services.AddScoped<DbSeeder>();
+            services.AddHttpContextAccessor();
             services.AddControllers()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>())
                 .AddNewtonsoftJson(op =>
@@ -59,11 +63,13 @@ namespace GradProjectServer
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "GradProjectServer", Version = "v1" });
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
 
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
-            //services.AddEntityFrameworkNpgsql();
             var connString = Configuration.GetConnectionString("Default");
             services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connString),
                 contextLifetime: ServiceLifetime.Scoped,
@@ -72,15 +78,13 @@ namespace GradProjectServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DbSeeder seeder)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "GradProjectServer v1"));
-                //seeder.RecreateDb().Wait();
-                //seeder.Seed().Wait();
             }
 
             app.UseHttpsRedirection();

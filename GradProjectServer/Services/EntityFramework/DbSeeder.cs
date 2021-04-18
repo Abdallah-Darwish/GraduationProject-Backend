@@ -101,7 +101,7 @@ namespace GradProjectServer.Services.EntityFramework
             await _dbContext.ExamsQuestions.AddRangeAsync(ExamQuestion.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
-            await _dbContext.ExamsSubQuestions.AddRangeAsync(ExamSubQuestion.Seed).ConfigureAwait(false);
+            await _dbContext.ExamSubQuestions.AddRangeAsync(ExamSubQuestion.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
 

@@ -25,13 +25,39 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
+        /// <summary>Result is ordered by title ascending.</summary>
+        /// <remarks>
+        /// A user has access to:
+        ///     1- All approved questions.
+        ///     2- HIS not approved questions.
+        /// An admin has access to:
+        ///     All questions.
+        /// </remarks>
         [HttpPost("GetAll")]
         [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
         {
-            return Ok(_dbContext.Questions.Skip(info.Offset).Take(info.Count).Select(q => q.Id));
+            var questions = _dbContext.Questions.AsQueryable();
+            var user = this.GetUser();
+            if(!(user?.IsAdmin ?? false))
+            {
+                var userId = user?.Id ?? -1;
+                questions = questions.Where(q => q.IsApproved || q.VolunteerId == userId);
+            }
+            questions = questions.OrderBy(q => q.Title);
+            return Ok(questions.Skip(info.Offset).Take(info.Count).Select(q => q.Id));
         }
-
+        /// <param name="questionsIds">Ids of the questions to get.</param>
+        /// <param name="metadata">Whether to return QuestionMetadataDto or QuestionDto.</param>
+        /// <remarks>
+        /// A user can get:
+        ///     1- All approved questions.
+        ///     2- HIS not approved questions.
+        /// An admin can get:
+        ///     All questions.
+        /// </remarks>
+        /// <response code="404">Ids of the non existing questions.</response>
+        /// <response code="403">Ids of questions the user has no access rights to.</response>
         [HttpPost("Get")]
         [ProducesResponseType(typeof(IEnumerable<QuestionDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(IEnumerable<QuestionMetadataDto>), StatusCodes.Status200OK)]
@@ -47,7 +73,10 @@ namespace GradProjectServer.Controllers
                         new ErrorDTO
                         {
                             Description = "The following questions don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingQuestions"] = nonExistingQuestions }
+                            Data = new Dictionary<string, object> 
+                            { 
+                                ["NonExistingQuestions"] = nonExistingQuestions 
+                            }
                         });
             }
             var user = this.GetUser();
@@ -70,6 +99,16 @@ namespace GradProjectServer.Controllers
             }
             return Ok(_mapper.ProjectTo<QuestionDto>(existingQuestions));
         }
+        /// <summary>Deletes the specified questions.</summary>
+        /// <param name="questionsIds">Ids of the questions to delete.</param>
+        /// <remarks>
+        /// A user can delete:
+        ///     HIS NOT approved questions.
+        /// An admin can delete:
+        ///     All questions.
+        /// </remarks>
+        /// <response code="404">Ids of the non existing questions.</response>
+        /// <response code="403">Ids of the questions user can't modify.</response>
 
         [LoggedInFilter]
         [HttpDelete("Delete")]
@@ -107,6 +146,8 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
+        /// <summary>Creates a new question.</summary>
+        /// <response code="201">Metadata of the newly created question.</response>
         [LoggedInFilter]
         [HttpPost("Create")]
         [ProducesResponseType(typeof(QuestionMetadataDto), StatusCodes.Status201Created)]
@@ -127,8 +168,9 @@ namespace GradProjectServer.Controllers
             return CreatedAtAction(nameof(Get), new { questionsIds = new int[] { question.Id }, metadata = true }, _mapper.Map<QuestionMetadataDto>(question));
         }
         /// <summary>
-        /// result is ordered by the title.
+        /// Returns questions that satisfy the filters ordered by title.
         /// </summary>
+        /// <param name="filter">The filters to apply, null property means it won't be applied.</param>
         [HttpPost("Search")]
         [ProducesResponseType(typeof(IEnumerable<QuestionMetadataDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(IEnumerable<QuestionDto>), StatusCodes.Status200OK)]
@@ -173,6 +215,10 @@ namespace GradProjectServer.Controllers
             }
             return Ok(_mapper.ProjectTo<QuestionDto>(result));
         }
+        /// <summary>
+        /// Updates a question.
+        /// </summary>
+        /// <param name="update">The update to apply, null fields mean no update to this property.</param>
         [LoggedInFilter]
         [HttpPatch("Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]

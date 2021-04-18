@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 
 namespace GradProjectServer.Controllers
 {
-    //todo: add get all method to all controllers
     //todo: maybe we should move all of the logic into seperate controllers and add custom middlewares that would translate custom exceptions into status codes
     [ApiController]
     [Route("[controller]")]
@@ -27,21 +26,40 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
-        //todo: fix get all methods to account for access rights
+        /// <summary>Result is ordered by year descending then name ascending.</summary>
+        /// <remarks>
+        /// A user has access to:
+        ///     1- All approved exams.
+        ///     2- HIS not approved exams.
+        /// An admin has access to:
+        ///     All exams.
+        /// </remarks>
         [HttpPost("GetAll")]
         [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
         {
-            return Ok(_dbContext.Exams.Skip(info.Offset).Take(info.Count).Select(e => e.Id));
+            var user = this.GetUser();
+            var exams = _dbContext.Exams.AsQueryable();
+            if (!(user?.IsAdmin ?? false))
+            {
+                var userId = user?.Id ?? -1;
+                exams = exams.Where(e => e.VolunteerId == userId || e.IsApproved);
+            }
+            exams = exams.OrderByDescending(e => e.Year).ThenBy(e => e.Name);
+            return Ok(exams.Skip(info.Offset).Take(info.Count).Select(e => e.Id));
         }
-        /// <summary>
+
+        /// <param name="examsIds">Ids of the exams to get.</param>
+        /// <param name="metadata">Whether to return ExamMetadataDto or ExamDto.</param>
+        /// <remarks>
         /// A user can get:
         ///     1- All approved exams.
         ///     2- HIS not approved exams.
         /// An admin can get:
         ///     All exams.
-        /// </summary>
-        /// <param name="examsIds">Ids of the exams to get.</param>
+        /// </remarks>
+        /// <response code="404">Ids of the non existing exams.</response>
+        /// <response code="403">Ids of exams the user has no access rights to.</response>
         [HttpPost("Get")]
         [ProducesResponseType(typeof(ActionResult<IEnumerable<ExamMetadataDto>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ActionResult<IEnumerable<ExamDto>>), StatusCodes.Status200OK)]
@@ -82,10 +100,9 @@ namespace GradProjectServer.Controllers
             return Ok(_mapper.ProjectTo<ExamDto>(existingExams));
         }
         /// <summary>
-        /// Result is orderd descending by the year 
+        /// Returns exams that satisfy the filters ordered by year descending then by Name ascending.
         /// </summary>
-        /// <param name="filter"></param>
-        /// <returns></returns>
+        /// <param name="filter">The filters to apply, null property means it won't be applied.</param>
         [HttpPost("Search")]
         [ProducesResponseType(typeof(IEnumerable<ExamDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(IEnumerable<ExamMetadataDto>), StatusCodes.Status200OK)]
@@ -143,21 +160,24 @@ namespace GradProjectServer.Controllers
             {
                 exams = exams.Where(e => filter.VolunteersIds!.Contains(e.VolunteerId));
             }
-            var result = exams.OrderByDescending(e => e.Year).Skip(filter.Offset).Take(filter.Count);
+            exams = exams.OrderByDescending(e => e.Year).ThenBy(e => e.Name);
+            var result = exams.Skip(filter.Offset).Take(filter.Count);
             if (filter.Metadata)
             {
                 return Ok(_mapper.ProjectTo<ExamMetadataDto>(result));
             }
             return Ok(_mapper.ProjectTo<ExamDto>(result));
         }
-        /// <summary>
-        /// Deletes the specified exams.
+        /// <summary>Deletes the specified exams.</summary>
+        /// <param name="examsIds">Ids of the exams to delete.</param>
+        /// <remarks>
         /// A user can delete:
-        ///     HIS not approved exams.
+        ///     HIS NOT approved exams.
         /// An admin can delete:
         ///     All exams.
-        /// </summary>
-        /// <param name="examsIds">Ids of the exams to delete</param>
+        /// </remarks>
+        /// <response code="404">Ids of the non existing exams.</response>
+        /// <response code="403">Ids of the exams user can't modify.</response>
         [LoggedInFilter]
         [HttpDelete("Delete")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -207,7 +227,8 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
-
+        /// <summary>Creates a new exam.</summary>
+        /// <response code="201">Metadata of the newly created exam.</response>
         [LoggedInFilter]
         [HttpPost("Create")]
         [ProducesResponseType(typeof(ExamMetadataDto), StatusCodes.Status201Created)]
@@ -228,6 +249,10 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return CreatedAtAction(nameof(Get), new { examsIds = new int[] { exam.Id }, metadata = true }, _mapper.Map<ExamMetadataDto>(exam));
         }
+        /// <summary>
+        /// Updates an exam.
+        /// </summary>
+        /// <param name="update">The update to apply, null fields mean no update to this property.</param>
         [LoggedInFilter]
         [HttpPatch("Update")]
         [ProducesResponseType(StatusCodes.Status200OK)]

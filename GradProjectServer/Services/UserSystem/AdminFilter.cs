@@ -1,4 +1,5 @@
-﻿using GradProjectServer.Db;
+﻿using GradProjectServer.Controllers;
+using GradProjectServer.Db;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -11,25 +12,25 @@ namespace GradProjectServer.Services.UserSystem
     {
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            if (!context.HttpContext.Request.Headers.TryGetValue("MAH-TOKEN", out var token))
+            if (!context.HttpContext.Request.Cookies.TryGetValue(UserController.LoginCookieName, out var cookie))
             {
                 context.Result = new ContentResult
                 {
-                    StatusCode = StatusCodes.Status403Forbidden,
-                    Content = "NO_TOKEN",
+                    StatusCode = StatusCodes.Status401Unauthorized,
+                    Content = "NO COOKIE",
                     ContentType = "text/plain"
                 };
                 return;
             }
             using var ctx = DbContextFac.Factory.CreateDbContext();
 
-            var user = ctx.Users.FirstOrDefault(u => u.Token == token);
+            var user = ctx.Users.FirstOrDefault(u => u.Token == cookie);
             if (user == null)
             {
                 context.Result = new ContentResult
                 {
-                    StatusCode = StatusCodes.Status403Forbidden,
-                    Content = "INVALID_TOKEN",
+                    StatusCode = StatusCodes.Status401Unauthorized,
+                    Content = "INVALID COOKIE",
                     ContentType = "text/plain"
                 };
                 return;
