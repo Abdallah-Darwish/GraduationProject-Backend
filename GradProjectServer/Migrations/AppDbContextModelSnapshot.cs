@@ -137,7 +137,7 @@ namespace GradProjectServer.Migrations
 
                     b.HasIndex("SubQuestionId");
 
-                    b.ToTable("ExamsSubQuestions");
+                    b.ToTable("ExamSubQuestions");
 
                     b.HasCheckConstraint("CK_EXAMSUBQUESTION_WEIGHT", "\"Weight\" > 0");
 

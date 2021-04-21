@@ -10,6 +10,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Init.sh" />
 	  <None Remove="Resources\DbInitScript.sql" />
 	</ItemGroup>
 

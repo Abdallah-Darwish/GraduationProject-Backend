@@ -15,6 +15,7 @@ namespace GradProjectServer
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                });
+                })
+                .UseEnvironment("Development");
     }
 }

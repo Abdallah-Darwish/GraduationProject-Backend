@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using System;
 
 namespace GradProjectServer.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class InitCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -400,7 +400,7 @@ namespace GradProjectServer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ExamsSubQuestions",
+                name: "ExamSubQuestions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -412,17 +412,17 @@ namespace GradProjectServer.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ExamsSubQuestions", x => x.Id);
+                    table.PrimaryKey("PK_ExamSubQuestions", x => x.Id);
                     table.CheckConstraint("CK_EXAMSUBQUESTION_WEIGHT", "\"Weight\" > 0");
                     table.CheckConstraint("CK_EXAMSUBQUESTION_ORDER", "\"Order\" >= 0");
                     table.ForeignKey(
-                        name: "FK_ExamsSubQuestions_ExamsQuestions_ExamQuestionId",
+                        name: "FK_ExamSubQuestions_ExamsQuestions_ExamQuestionId",
                         column: x => x.ExamQuestionId,
                         principalTable: "ExamsQuestions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ExamsSubQuestions_SubQuestions_SubQuestionId",
+                        name: "FK_ExamSubQuestions_SubQuestions_SubQuestionId",
                         column: x => x.SubQuestionId,
                         principalTable: "SubQuestions",
                         principalColumn: "Id",
@@ -515,9 +515,9 @@ namespace GradProjectServer.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_SubQuestionsAnswers_ExamsSubQuestions_SubQuestionId",
+                        name: "FK_SubQuestionsAnswers_ExamSubQuestions_SubQuestionId",
                         column: x => x.SubQuestionId,
-                        principalTable: "ExamsSubQuestions",
+                        principalTable: "ExamSubQuestions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -574,13 +574,13 @@ namespace GradProjectServer.Migrations
                 column: "QuestionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ExamsSubQuestions_ExamQuestionId",
-                table: "ExamsSubQuestions",
+                name: "IX_ExamSubQuestions_ExamQuestionId",
+                table: "ExamSubQuestions",
                 column: "ExamQuestionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ExamsSubQuestions_SubQuestionId",
-                table: "ExamsSubQuestions",
+                name: "IX_ExamSubQuestions_SubQuestionId",
+                table: "ExamSubQuestions",
                 column: "SubQuestionId");
 
             migrationBuilder.CreateIndex(
@@ -701,7 +701,7 @@ namespace GradProjectServer.Migrations
                 name: "ExamsAttempts");
 
             migrationBuilder.DropTable(
-                name: "ExamsSubQuestions");
+                name: "ExamSubQuestions");
 
             migrationBuilder.DropTable(
                 name: "Tags");

@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GradProjectServer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20210417231031_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20210419190311_InitCreate")]
+    partial class InitCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -139,7 +139,7 @@ namespace GradProjectServer.Migrations
 
                     b.HasIndex("SubQuestionId");
 
-                    b.ToTable("ExamsSubQuestions");
+                    b.ToTable("ExamSubQuestions");
 
                     b.HasCheckConstraint("CK_EXAMSUBQUESTION_WEIGHT", "\"Weight\" > 0");
 

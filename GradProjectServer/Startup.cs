@@ -30,7 +30,7 @@ namespace GradProjectServer
         public void ConfigureServices(IServiceCollection services)
         {
             //todo: please see https://github.com/micro-elements/MicroElements.Swashbuckle.FluentValidation
-            services.AddScoped<DbSeeder>();
+            services.AddScoped<DbManager>();
             services.AddHttpContextAccessor();
             services.AddControllers()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>())
@@ -78,8 +78,9 @@ namespace GradProjectServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DbManager dbManager)
         {
+            dbManager.EnsureDb().Wait();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -87,7 +88,7 @@ namespace GradProjectServer
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "GradProjectServer v1"));
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 

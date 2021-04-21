@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 namespace GradProjectServer.Services.EntityFramework
 {
     //works only with postgres
-    public class DbSeeder
+    public class DbManager
     {
         private readonly AppDbContext _dbContext;
         private readonly IConfiguration _config;
-        public DbSeeder(AppDbContext dbContext, IConfiguration config)
+        public DbManager(AppDbContext dbContext, IConfiguration config)
         {
             _dbContext = dbContext;
             _config = config;
@@ -42,6 +42,19 @@ namespace GradProjectServer.Services.EntityFramework
             {
                 await dbCon.OpenAsync().ConfigureAwait(false);
                 await initCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
+            }
+        }
+        public async Task EnsureDb()
+        {
+            var dbConString = _config.GetConnectionString("Default");
+            try
+            {
+                using var dbCon = new NpgsqlConnection(dbConString);
+                await dbCon.OpenAsync().ConfigureAwait(false);
+            }
+            catch
+            {
+                await RecreateDb().ConfigureAwait(false);
             }
         }
         public async Task Seed()
