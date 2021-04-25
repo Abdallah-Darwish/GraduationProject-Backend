@@ -1,5 +1,4 @@
-﻿#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
-FROM ubuntu AS base
+﻿FROM ubuntu AS base
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Amman
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -50,7 +49,8 @@ FROM base as final
 WORKDIR /app
 COPY --from=publish /app/publish/ .
 EXPOSE 80
-EXPOSE 443
-EXPOSE 5432
+#EXPOSE 443
+#EXPOSE 5432
 COPY init.sh /app
+RUN chmod +x "/app/init.sh"
 ENTRYPOINT [ "/app/init.sh" ]
