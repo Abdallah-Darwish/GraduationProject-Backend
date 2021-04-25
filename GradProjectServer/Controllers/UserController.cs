@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using GradProjectServer.DTO;
 using GradProjectServer.DTO.Users;
 using GradProjectServer.Services.EntityFramework;
@@ -18,20 +17,17 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class UserController : ControllerBase
     {
-        public static readonly string LoginCookieName = "marje3";
-        //todo: implement me
-        public static string HashPassword(string password) { return password; }
-        public static string GenerateToken(User user) { return $"{user.Id}:{DateTime.UtcNow.Ticks}"; }
-
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
-        private readonly IUserProfilePictureRepository _profilePictureRepo;
-        public UserController(AppDbContext dbContext, IMapper mapper, IUserProfilePictureRepository profilePictureRepo)
+        private readonly UserManager _userManager;
+
+        public UserController(AppDbContext dbContext, IMapper mapper, UserManager userManager)
         {
             _dbContext = dbContext;
             _mapper = mapper;
-            _profilePictureRepo = profilePictureRepo;
+            _userManager = userManager;
         }
+
         /// <summary>
         /// Ids of users ordered by email.
         /// </summary>
@@ -45,6 +41,7 @@ namespace GradProjectServer.Controllers
         {
             return Ok(_dbContext.Users.Skip(info.Offset).Take(info.Count).Select(u => u.Id));
         }
+
         /// <param name="usersIds">Ids of the users to get.</param>
         /// <param name="metadata">Whether to return UserMetadataDto or UserDto.</param>
         /// <remarks>
@@ -68,12 +65,13 @@ namespace GradProjectServer.Controllers
             if (nonExistingUsers.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following users don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingUsers"] = nonExistingUsers }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following users don't exist.",
+                        Data = new Dictionary<string, object> {["NonExistingUsers"] = nonExistingUsers}
+                    });
             }
+
             var user = this.GetUser();
             if (!(user?.IsAdmin ?? false) && !metadata)
             {
@@ -86,16 +84,19 @@ namespace GradProjectServer.Controllers
                         new ErrorDTO
                         {
                             Description = "User can't get the following users.",
-                            Data = new Dictionary<string, object> { ["NotAllowedToGetUsers"] = notAllowedToGetUsers }
+                            Data = new Dictionary<string, object> {["NotAllowedToGetUsers"] = notAllowedToGetUsers}
                         });
                 }
             }
+
             if (metadata)
             {
                 return Ok(_mapper.ProjectTo<UserMetadataDto>(existingUsers));
             }
+
             return Ok(_mapper.ProjectTo<UserDto>(existingUsers));
         }
+
         /// <summary>Creates/Signsup a new user.</summary>
         /// <response code="201">Metadata of the newly user exam.</response>
         [NotLoggedInFilter]
@@ -103,23 +104,18 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)]
         public async Task<ActionResult<UserDto>> Create([FromBody] SignUpDto dto)
         {
-            var user = new User
-            {
-                Email = dto.Email,
-                IsAdmin = false,
-                Name = dto.Name,
-                PasswordHash = HashPassword(dto.Password),
-                Token = null,
-                StudyPlanId = dto.StudyPlanId
-            };
-            await _dbContext.Users.AddAsync(user).ConfigureAwait(false);
-            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+            var user = await _userManager.SignUp(dto.Email, dto.Password, dto.Name, dto.StudyPlanId)
+                .ConfigureAwait(false);
+
             if (dto.ProfilePictureJpgBase64 != null)
             {
-                await _profilePictureRepo.Save(user.Id, dto.ProfilePictureJpgBase64);
+                await _userManager.UpdateImage(user.Id, dto.ProfilePictureJpgBase64);
             }
-            return CreatedAtAction(nameof(Get), new { usersIds = new int[] { user.Id }, metadata = false }, _mapper.Map<UserDto>(user));
+            
+            return CreatedAtAction(nameof(Get), new {usersIds = new int[] {user.Id}, metadata = false},
+                _mapper.Map<UserDto>(user));
         }
+
         /// <summary>
         /// Updates a user.
         /// </summary>
@@ -136,57 +132,40 @@ namespace GradProjectServer.Controllers
         {
             var user = await _dbContext.Users.FindAsync(update.Id).ConfigureAwait(false);
             var loggedInUser = this.GetUser()!;
-            if (loggedInUser.IsAdmin && update.IsAdmin.HasValue)
-            {
-                user.IsAdmin = update.IsAdmin.Value;
-            }
-            if (update.Password != null)
-            {
-                user.PasswordHash = HashPassword(update.Password);
-            }
-            if (update.StudyPlanId.HasValue)
-            {
-                user.StudyPlanId = update.StudyPlanId.Value;
-            }
+            await _userManager.UpdateUser(user.Id, update.Password, update.Name,
+                loggedInUser.IsAdmin && update.IsAdmin.HasValue ? update.IsAdmin.Value : (bool?) null,
+                update.StudyPlanId).ConfigureAwait(false);
             if (update.ProfilePictureJpgBase64 != null)
             {
-                await _profilePictureRepo.Save(user.Id, update.ProfilePictureJpgBase64);
+                await _userManager.UpdateImage(user.Id, update.ProfilePictureJpgBase64);
             }
-            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+
             return Ok();
         }
+
         /// <summary>
         /// Generates login cookie for a user to be used in subsequent requests.
         /// </summary>
         /// <remarks>
         /// A user can't be logged in before calling this method.
         /// </remarks>
+        /// <response code="200">Successful login, will return the token and Create a set session cookie.</response>
         /// <response code="401">Invalid login credentials.</response>
         [NotLoggedInFilter]
         [HttpPost("Login")]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
-
-        public async Task<IActionResult> Login([FromBody] LoginDto info)
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        public async Task<ActionResult<string>> Login([FromBody] LoginDto info)
         {
-            var user = _dbContext.Users.FirstOrDefault(u => u.Email.ToLowerInvariant() == info.Email.ToLowerInvariant());
-            if (user == null || user.PasswordHash != HashPassword(info.Password))
+            var user = await _userManager.Login(info.Email, info.Password, Response.Cookies).ConfigureAwait(false);
+            if (user == null)
             {
                 return Unauthorized("Invalid login credentials.");
             }
-            user.Token = GenerateToken(user);
-            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            var cookieOptions = new CookieOptions()
-            {
-                Path = "/",
-                Expires = DateTimeOffset.UtcNow.AddHours(24),
-                IsEssential = true,
-                HttpOnly = false,
-                Secure = false,
-            };
-            Response.Cookies.Append(LoginCookieName, user.Token, cookieOptions);
-            return Ok(_mapper.Map<UserDto>(user));
+
+            return Ok(user.Token);
         }
+
         /// <summary>
         /// Logs out the current user and removes his cookie.
         /// </summary>
@@ -195,15 +174,48 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Logout()
         {
-            var user = await _dbContext.Users.FindAsync(this.GetUser()!.Id).ConfigureAwait(false);
-            user.Token = null;
-            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            Response.Cookies.Delete(LoginCookieName);
+            var user = this.GetUser()!;
+            await _userManager.Logout(user, Response.Cookies).ConfigureAwait(false);
             return Ok();
         }
-        [NonAction]
-        public void GetProfilePicture(int userId) { }
-        [NonAction]
-        public void GetLoggedIn() { }
+
+        /// <summary>
+        /// Gets the user profile picture as stream of bytes with header Content-Type: application/octet-stream.
+        /// </summary>
+        /// <param name="userId">Id of the user to get his profile picture.</param>
+        /// <response code="404">If there is no user with this id.</response>
+        /// <response code="204">If the user doesn't have a profile picture.</response>
+        [HttpGet("GetProfilePicture")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetProfilePicture([FromQuery] int userId)
+        {
+            if ((await _dbContext.Users.FindAsync(userId).ConfigureAwait(false)) == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound,
+                    new ErrorDTO
+                    {
+                        Description = "There is no user with the following Id.",
+                        Data = new Dictionary<string, object> {["UserId"] = userId}
+                    });
+            }
+
+            var userImage = await _userManager.GetImage(userId).ConfigureAwait(false);
+            if (userImage == null)
+            {
+                return NoContent();
+            }
+
+            return File(userImage, "application/octet-stream");
+        }
+        [LoggedInFilter]
+        [HttpGet("GetLoggedIn")]
+        [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+        public ActionResult<UserDto> GetLoggedIn()
+        {
+            var user = this.GetUser()!;
+            return Ok(_mapper.Map<UserDto>(user));
+        }
     }
 }

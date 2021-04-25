@@ -14,6 +14,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using GradProjectServer.Services.UserSystem;
 
 namespace GradProjectServer
 {
@@ -31,6 +32,7 @@ namespace GradProjectServer
         {
             //todo: please see https://github.com/micro-elements/MicroElements.Swashbuckle.FluentValidation
             services.AddScoped<DbManager>();
+            services.AddScoped<UserManager>();
             services.AddHttpContextAccessor();
             services.AddControllers()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>())
@@ -75,12 +77,15 @@ namespace GradProjectServer
                 contextLifetime: ServiceLifetime.Scoped,
                 optionsLifetime: ServiceLifetime.Singleton);
             services.AddDbContextFactory<AppDbContext>(opt => opt.UseNpgsql(connString));
+            
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DbManager dbManager)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DbManager dbManager, IServiceProvider serviceProvider)
         {
             dbManager.EnsureDb().Wait();
+            UserManager.InitInstance(serviceProvider);
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

@@ -10,33 +10,21 @@ namespace GradProjectServer.Services.UserSystem
 {
     public class LoggedInFilterAttribute : ActionFilterAttribute
     {
-        public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        public override void OnActionExecuting(ActionExecutingContext context)
         {
-            if (!context.HttpContext.Request.Cookies.TryGetValue(UserController.LoginCookieName, out var cookie))
-            {
-                context.Result = new ContentResult
-                {
-                    StatusCode = StatusCodes.Status401Unauthorized,
-                    Content = "NO COOKIE",
-                    ContentType = "text/plain"
-                };
-                return;
-            }
-            using var ctx = DbContextFac.Factory.CreateDbContext();
-
-            var user = ctx.Users.FirstOrDefault(u => u.Token == cookie);
+            var user = UserManager.Instance.IdentifyUser(context.HttpContext.Request);
             if (user == null)
             {
                 context.Result = new ContentResult
                 {
                     StatusCode = StatusCodes.Status401Unauthorized,
-                    Content = "INVALID COOKIE",
+                    Content = "NON-EXISTENT/INVALID COOKIE/TOKEN",
                     ContentType = "text/plain"
                 };
                 return;
             }
             context.HttpContext.Features.Set(user);
-            await next();
+            base.OnActionExecuting(context);
         }
     }
 }

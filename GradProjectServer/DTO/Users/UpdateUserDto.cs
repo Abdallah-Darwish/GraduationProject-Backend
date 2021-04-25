@@ -8,5 +8,6 @@
         public string? Password { get; set; }
         public string? ProfilePictureJpgBase64 { get; set; }
         public int? StudyPlanId { get; set; }
+        public string? Name { get; set; }
     }
 }

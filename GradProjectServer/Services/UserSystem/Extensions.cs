@@ -6,6 +6,6 @@ namespace GradProjectServer.Services.UserSystem
     public static class Extensions
     {
         public static User? GetUser(this ControllerBase controller) => GetUser(controller.HttpContext);
-        public static User? GetUser(this HttpContext context) => context.Items[1234] as User;
+        public static User? GetUser(this HttpContext context) => context.Features.Get<User>();
     }
 }

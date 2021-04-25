@@ -48,7 +48,7 @@ RUN dotnet publish "/src/GradProjectServer.csproj" -c Release -o /app/publish
 FROM base as final
 WORKDIR /app
 COPY --from=publish /app/publish/ .
-EXPOSE 80
+EXPOSE 1234
 #EXPOSE 443
 #EXPOSE 5432
 COPY init.sh /app

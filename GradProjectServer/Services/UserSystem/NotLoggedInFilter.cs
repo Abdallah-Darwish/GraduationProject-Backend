@@ -8,19 +8,21 @@ namespace GradProjectServer.Services.UserSystem
 {
     public class NotLoggedInFilterAttribute : ActionFilterAttribute
     {
-        public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        public override void OnActionExecuting(ActionExecutingContext context)
         {
-            if (!context.HttpContext.Request.Cookies.TryGetValue(UserController.LoginCookieName, out var _))
+            var user = UserManager.Instance.IdentifyUser(context.HttpContext.Request);
+           
+            if (user != null)
             {
                 context.Result = new ContentResult
                 {
                     StatusCode = StatusCodes.Status403Forbidden,
-                    Content = "CAN'T HAVE A COOKIE",
+                    Content = "CAN'T BE LOGGED IN",
                     ContentType = "text/plain"
                 };
                 return;
             }
-            await next();
+            base.OnActionExecuting(context);
         }
     }
 }

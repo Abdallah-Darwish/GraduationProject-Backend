@@ -55,7 +55,7 @@ namespace GradProjectServer.Services.UserSystem
                 var lastNames = new string[] { "Darwish", "Al-Mansour", "Shreim", "Barqawi", "Arabiat", "Azaizeh", "Zeer", "Faroun", "Abu-Rumman", "Allan", "Odeh" };
                 var seed = new List<User>();
                 int id = 1;
-                for (int i = 'a'; i <= 'z'; i++)
+                for (char i = 'a'; i <= 'z'; i++)
                 {
                     var sp = rand.NextElement(studyPlans);
                     var user = new User
@@ -65,7 +65,7 @@ namespace GradProjectServer.Services.UserSystem
                         IsAdmin = true,
                         Name = $"{rand.NextElement(firstNames)} {rand.NextElement(lastNames)}",
                         StudyPlanId = sp.Id,
-                        PasswordHash = UserController.HashPassword($"{i}123456789{i}"),
+                        PasswordHash = UserManager.HashPassword($"{i}123456789{i}"),
                         Token = null
                     };
                     seed.Add(user);
