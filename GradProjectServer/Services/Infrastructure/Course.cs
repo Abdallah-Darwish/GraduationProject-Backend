@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Collections.Generic;
+using GradProjectServer.Services.Resources;
 
 namespace GradProjectServer.Services.Infrastructure
 {
@@ -11,6 +12,7 @@ namespace GradProjectServer.Services.Infrastructure
         public string Name { get; set; }
         public int CreditHours { get; set; }
         public ICollection<Exam> Exams { get; set; }
+        public  ICollection<Resource> Resources { get; set; }
         public static void ConfigureEntity(EntityTypeBuilder<Course> b)
         {
             b.HasKey(c => c.Id);

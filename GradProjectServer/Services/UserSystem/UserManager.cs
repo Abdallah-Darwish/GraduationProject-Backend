@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 using GradProjectServer.Services.EntityFramework;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,15 +16,23 @@ namespace GradProjectServer.Services.UserSystem
         public static readonly string LoginCookieName = "marje3";
         public static readonly string LoginHeaderName = "Authorization";
         private string GenerateToken(User user) => $"{user.Id}:{DateTime.UtcNow.Ticks}";
+        public static string ProfilePicturesDirectory { get; private set; }
 
         /// <summary>
         /// To be used by filters only.
         /// </summary>
         public static UserManager Instance { get; private set; }
 
-        public static void InitInstance(IServiceProvider sp)
+        public static void Init(IServiceProvider sp)
         {
             var fac = sp.GetRequiredService<IDbContextFactory<AppDbContext>>();
+            ProfilePicturesDirectory = Path.Combine(sp.GetRequiredService<IWebHostEnvironment>().ContentRootPath,
+                "ProfilePictures");
+            if (!Directory.Exists(ProfilePicturesDirectory))
+            {
+                Directory.CreateDirectory(ProfilePicturesDirectory);
+            }
+
             Instance = new UserManager(fac.CreateDbContext());
         }
 
@@ -63,27 +72,55 @@ namespace GradProjectServer.Services.UserSystem
             return ValidateImage(stream);
         }
 
-        public Task UpdateImage(int userId, Stream? imageStream)
-        {
-            throw new NotImplementedException();
-        }
+        private static string GetProfilePicturePath(int userId) =>
+            Path.Combine(ProfilePicturesDirectory, $"{userId}.jpg");
 
-        public async Task UpdateImage(int userId, string? base64ImageBytes)
+        public void UpdateImage(int userId, Stream? imageStream)
         {
-            if (string.IsNullOrEmpty(base64ImageBytes))
+            var picPath = GetProfilePicturePath(userId);
+            if (imageStream == null || imageStream.Position == imageStream.Length)
             {
+                if (File.Exists(picPath))
+                {
+                    File.Delete(picPath);
+                }
+
                 return;
             }
 
-            await using var stream = new MemoryStream();
-            stream.Write(Convert.FromBase64String(base64ImageBytes));
-            stream.Position = 0;
-            await UpdateImage(userId, stream).ConfigureAwait(false);
+            using var fileStream =
+                new FileStream(picPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+            using var pic = SKImage.FromEncodedData(imageStream);
+            using var encodedPic = pic.Encode(SKEncodedImageFormat.Jpeg, 100);
+            encodedPic.SaveTo(fileStream);
+            fileStream.SetLength(imageStream.Position);
+            fileStream.Flush();
         }
 
-        public Task<Stream?> GetImage(int userId)
+        public void UpdateImage(int userId, string? base64ImageBytes)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(base64ImageBytes))
+            {
+                base64ImageBytes = "";
+            }
+
+            SKImage x;
+
+            using var stream = new MemoryStream();
+            stream.Write(Convert.FromBase64String(base64ImageBytes));
+            stream.Position = 0;
+            UpdateImage(userId, stream);
+        }
+
+        public Stream? GetImage(int userId)
+        {
+            var picPath = GetProfilePicturePath(userId);
+            if (!File.Exists(picPath))
+            {
+                return null;
+            }
+
+            return new FileStream(picPath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
         }
 
         public async Task<User?> Login(string email, string password, IResponseCookies cookies)
@@ -181,7 +218,7 @@ namespace GradProjectServer.Services.UserSystem
                 return null;
             }
 
-            if (cookie!=null && header!= null)
+            if (cookie != null && header != null)
             {
                 if (cookie[0] != header[0])
                 {

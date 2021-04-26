@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Linq;
 using System.Reflection;
+using GradProjectServer.Services.Resources;
 
 namespace GradProjectServer.Services.EntityFramework
 {
@@ -40,6 +41,7 @@ namespace GradProjectServer.Services.EntityFramework
         public DbSet<Dependency> Dependencies { get; set; }
         public DbSet<ProgramDependency> ProgramsDependencies { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Resource> Resources { get; set; }
 
         private static MethodInfo? FindEntityConfigurationMethod(Type t)
         {

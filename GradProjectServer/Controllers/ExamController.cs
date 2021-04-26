@@ -21,13 +21,15 @@ namespace GradProjectServer.Controllers
     {
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
+
         public ExamController(AppDbContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
             _mapper = mapper;
         }
-        /// <summary>Result is ordered by year descending then name ascending.</summary>
+
         /// <remarks>
+        /// Result is ordered by year descending then name ascending.
         /// A user has access to:
         ///     1- All approved exams.
         ///     2- HIS not approved exams.
@@ -45,6 +47,7 @@ namespace GradProjectServer.Controllers
                 var userId = user?.Id ?? -1;
                 exams = exams.Where(e => e.VolunteerId == userId || e.IsApproved);
             }
+
             exams = exams.OrderByDescending(e => e.Year).ThenBy(e => e.Name);
             return Ok(exams.Skip(info.Offset).Take(info.Count).Select(e => e.Id));
         }
@@ -72,12 +75,13 @@ namespace GradProjectServer.Controllers
             if (nonExistingExams.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following exams don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingExams"] = nonExistingExams }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following exams don't exist.",
+                        Data = new Dictionary<string, object> {["NonExistingExams"] = nonExistingExams}
+                    });
             }
+
             var user = this.GetUser();
             if (!(user?.IsAdmin ?? false))
             {
@@ -89,16 +93,19 @@ namespace GradProjectServer.Controllers
                         new ErrorDTO
                         {
                             Description = "User doesn't own the following not approved exams.",
-                            Data = new Dictionary<string, object> { ["NotOwnedNotApprovedExams"] = notOwnedExams }
+                            Data = new Dictionary<string, object> {["NotOwnedNotApprovedExams"] = notOwnedExams}
                         });
                 }
             }
+
             if (metadata)
             {
                 return Ok(_mapper.ProjectTo<ExamMetadataDto>(existingExams));
             }
+
             return Ok(_mapper.ProjectTo<ExamDto>(existingExams));
         }
+
         /// <summary>
         /// Returns exams that satisfy the filters ordered by year descending then by Name ascending.
         /// </summary>
@@ -110,64 +117,83 @@ namespace GradProjectServer.Controllers
         {
             var exams = _dbContext.Exams.AsQueryable();
             var user = this.GetUser();
-            if (user == null) { filter.VolunteersIds = null; }
-            else if (!user.IsAdmin && (filter.VolunteersIds?.Length ?? 0) > 0)
+            if (user == null)
             {
-                filter.VolunteersIds = new int[] { user.Id };
+                filter.VolunteersIds = null;
             }
+
+            if (!(user?.IsAdmin ?? false))
+            {
+                var userId = user?.Id ?? -1;
+                exams = exams.Where(e => e.IsApproved || e.VolunteerId == userId);
+            }
+
             if (filter.NameMask != null)
             {
                 exams = exams.Where(e => EF.Functions.Like(e.Name, filter.NameMask));
             }
+
             if ((filter.Courses?.Length ?? 0) > 0)
             {
                 exams = exams.Where(e => filter.Courses!.Contains(e.CourseId));
             }
+
             if (filter.MinDuration != null)
             {
                 exams = exams.Where(e => e.Duration >= filter.MinDuration);
             }
+
             if (filter.MaxDuration != null)
             {
                 exams = exams.Where(e => e.Duration <= filter.MaxDuration);
             }
+
             if (filter.MinYear != null)
             {
                 exams = exams.Where(e => e.Year >= filter.MinYear);
             }
+
             if (filter.MaxYear != null)
             {
                 exams = exams.Where(e => e.Year <= filter.MaxYear);
             }
+
             if ((filter.Semesters?.Length ?? 0) > 0)
             {
                 exams = exams.Where(e => filter.Semesters!.Contains(e.Semester));
             }
+
             if ((filter.Types?.Length ?? 0) > 0)
             {
                 exams = exams.Where(e => filter.Types!.Contains(e.Type));
             }
+
             if ((filter.Tags?.Length ?? 0) > 0)
             {
                 //probably very bad and I have to write the sql manually
                 exams = exams.Where(e => !filter.Tags!.Except(e.Tags.Select(e => e.Id)).Any());
             }
+
             if (filter.IsApproved.HasValue)
             {
                 exams = exams.Where(e => e.IsApproved == filter.IsApproved.Value);
             }
+
             if ((filter.VolunteersIds?.Length ?? 0) > 0)
             {
                 exams = exams.Where(e => filter.VolunteersIds!.Contains(e.VolunteerId));
             }
+
             exams = exams.OrderByDescending(e => e.Year).ThenBy(e => e.Name);
             var result = exams.Skip(filter.Offset).Take(filter.Count);
             if (filter.Metadata)
             {
                 return Ok(_mapper.ProjectTo<ExamMetadataDto>(result));
             }
+
             return Ok(_mapper.ProjectTo<ExamDto>(result));
         }
+
         /// <summary>Deletes the specified exams.</summary>
         /// <param name="examsIds">Ids of the exams to delete.</param>
         /// <remarks>
@@ -193,40 +219,50 @@ namespace GradProjectServer.Controllers
             if (nonExistingExams.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following exams don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingExams"] = nonExistingExams }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following exams don't exist.",
+                        Data = new Dictionary<string, object> {["NonExistingExams"] = nonExistingExams}
+                    });
             }
+
             var user = this.GetUser()!;
             if (!user.IsAdmin)
             {
-                var notOwnedExams = existingExams.Where(e => e.VolunteerId != user.Id).ToArray();
+                var notOwnedExams = existingExams
+                    .Where(e => e.VolunteerId != user.Id)
+                    .Select(e => e.Id)
+                    .ToArray();
                 if (notOwnedExams.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,
                         new ErrorDTO
                         {
                             Description = "User doesn't own the following exams so he can't modify them.",
-                            Data = new Dictionary<string, object> { ["NotOwnedExams"] = notOwnedExams }
+                            Data = new Dictionary<string, object> {["NotOwnedExams"] = notOwnedExams}
                         });
                 }
-                var approvedExams = existingExams.Where(e => e.IsApproved).ToArray();
+
+                var approvedExams = existingExams
+                    .Where(e => e.IsApproved)
+                    .Select(e => e.Id)
+                    .ToArray();
                 if (approvedExams.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,
-                       new ErrorDTO
-                       {
-                           Description = "The following exams are already approved so the user can't modify them.",
-                           Data = new Dictionary<string, object> { ["ApprovedExams"] = approvedExams }
-                       });
+                        new ErrorDTO
+                        {
+                            Description = "The following exams are already approved so the user can't modify them.",
+                            Data = new Dictionary<string, object> {["ApprovedExams"] = approvedExams}
+                        });
                 }
             }
-            await _dbContext.Database.ExecuteSqlRawAsync($@"DELETE FROM {nameof(Exam)} WHERE Id IN @examsIds", examsIds).ConfigureAwait(false);
+
+            _dbContext.Exams.RemoveRange(existingExams);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
+
         /// <summary>Creates a new exam.</summary>
         /// <response code="201">Metadata of the newly created exam.</response>
         [LoggedInFilter]
@@ -247,8 +283,10 @@ namespace GradProjectServer.Controllers
                 Year = data.Year,
             };
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return CreatedAtAction(nameof(Get), new { examsIds = new int[] { exam.Id }, metadata = true }, _mapper.Map<ExamMetadataDto>(exam));
+            return CreatedAtAction(nameof(Get), new {examsIds = new int[] {exam.Id}, metadata = true},
+                _mapper.Map<ExamMetadataDto>(exam));
         }
+
         /// <summary>
         /// Updates an exam.
         /// </summary>
@@ -262,14 +300,42 @@ namespace GradProjectServer.Controllers
             var user = this.GetUser()!;
 
 
-            if (update.CourseId.HasValue) { exam.CourseId = update.CourseId.Value; }
-            if (update.Duration.HasValue) { exam.Duration = update.Duration.Value; }
-            if (!string.IsNullOrWhiteSpace(update.Name)) { exam.Name = update.Name; }
-            if (update.Semester.HasValue) { exam.Semester = update.Semester.Value; }
-            if (update.Type.HasValue) { exam.Type = update.Type.Value; }
-            if (update.Year.HasValue) { exam.Year = update.Year.Value; }
+            if (update.CourseId.HasValue)
+            {
+                exam.CourseId = update.CourseId.Value;
+            }
+
+            if (update.Duration.HasValue)
+            {
+                exam.Duration = update.Duration.Value;
+            }
+
+            if (!string.IsNullOrWhiteSpace(update.Name))
+            {
+                exam.Name = update.Name;
+            }
+
+            if (update.Semester.HasValue)
+            {
+                exam.Semester = update.Semester.Value;
+            }
+
+            if (update.Type.HasValue)
+            {
+                exam.Type = update.Type.Value;
+            }
+
+            if (update.Year.HasValue)
+            {
+                exam.Year = update.Year.Value;
+            }
+
             //todo: log if user is not admin and it has value
-            if (user.IsAdmin && update.IsApproved.HasValue) { exam.IsApproved = update.IsApproved.Value; }
+            if (user.IsAdmin && update.IsApproved.HasValue)
+            {
+                exam.IsApproved = update.IsApproved.Value;
+            }
+
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }

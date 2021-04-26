@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Collections.Generic;
+using GradProjectServer.Services.Resources;
 
 namespace GradProjectServer.Services.UserSystem
 {
@@ -21,6 +22,7 @@ namespace GradProjectServer.Services.UserSystem
         public StudyPlan StudyPlan { get; set; }
         public ICollection<Exam> VolunteeredExams { get; set; }
         public ICollection<Question> VolunteeredQuestions { get; set; }
+        public ICollection<Resource> VolunteeredResources { get; set; }
         public static void ConfigureEntity(EntityTypeBuilder<User> b)
         {
             b.HasKey(u => u.Id);

@@ -131,7 +131,10 @@ namespace GradProjectServer.Controllers
             var user = this.GetUser()!;
             if (!user.IsAdmin)
             {
-                var approvedOrNotOwnedQuestions = existingQuestions.Where(e => e.VolunteerId != user.Id || e.IsApproved).ToArray();
+                var approvedOrNotOwnedQuestions = existingQuestions
+                    .Where(e => e.VolunteerId != user.Id || e.IsApproved)
+                    .Select(q => q.Id)
+                    .ToArray();
                 if (approvedOrNotOwnedQuestions.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,
@@ -179,9 +182,11 @@ namespace GradProjectServer.Controllers
             var questions = _dbContext.Questions.AsQueryable();
             var user = this.GetUser();
             if (user == null) { filter.VolunteersIds = null; }
-            else if (!user.IsAdmin && (filter.VolunteersIds?.Length ?? 0) > 0)
+
+            if (!(user?.IsAdmin ?? false))
             {
-                filter.VolunteersIds = new int[] { user.Id };
+                var userId = user?.Id ?? -1;
+                questions = questions.Where(q => q.IsApproved || q.VolunteerId == userId);
             }
             if (filter.TitleMask != null)
             {

@@ -45,8 +45,9 @@ namespace GradProjectServer
                     op.InvalidModelStateResponseFactory = ctx =>
                     {
                         var errors = ctx.ModelState
-                        .Where(e => e.Value.Errors.Count > 0)
-                        .ToDictionary(e => e.Key, e => (object)e.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+                            .Where(e => e.Value.Errors.Count > 0)
+                            .ToDictionary(e => e.Key,
+                                e => (object) e.Value.Errors.Select(e => e.ErrorMessage).ToArray());
 
                         var error = new ErrorDTO
                         {
@@ -64,7 +65,7 @@ namespace GradProjectServer
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "GradProjectServer", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo {Title = "GradProjectServer", Version = "v1"});
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
@@ -77,15 +78,14 @@ namespace GradProjectServer
                 contextLifetime: ServiceLifetime.Scoped,
                 optionsLifetime: ServiceLifetime.Singleton);
             services.AddDbContextFactory<AppDbContext>(opt => opt.UseNpgsql(connString));
-            
-            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DbManager dbManager, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DbManager dbManager,
+            IServiceProvider serviceProvider)
         {
             dbManager.EnsureDb().Wait();
-            UserManager.InitInstance(serviceProvider);
+            UserManager.Init(serviceProvider);
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -99,10 +99,7 @@ namespace GradProjectServer
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }
 }

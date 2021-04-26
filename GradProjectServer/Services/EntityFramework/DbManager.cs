@@ -49,7 +49,7 @@ namespace GradProjectServer.Services.EntityFramework
             var dbConString = _config.GetConnectionString("Default");
             try
             {
-                using var dbCon = new NpgsqlConnection(dbConString);
+                await using var dbCon = new NpgsqlConnection(dbConString);
                 await dbCon.OpenAsync().ConfigureAwait(false);
             }
             catch

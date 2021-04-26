@@ -5,8 +5,6 @@ using GradProjectServer.Services.EntityFramework;
 using GradProjectServer.Services.UserSystem;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -109,7 +107,7 @@ namespace GradProjectServer.Controllers
 
             if (dto.ProfilePictureJpgBase64 != null)
             {
-                await _userManager.UpdateImage(user.Id, dto.ProfilePictureJpgBase64);
+                _userManager.UpdateImage(user.Id, dto.ProfilePictureJpgBase64);
             }
             
             return CreatedAtAction(nameof(Get), new {usersIds = new int[] {user.Id}, metadata = false},
@@ -137,7 +135,7 @@ namespace GradProjectServer.Controllers
                 update.StudyPlanId).ConfigureAwait(false);
             if (update.ProfilePictureJpgBase64 != null)
             {
-                await _userManager.UpdateImage(user.Id, update.ProfilePictureJpgBase64);
+                _userManager.UpdateImage(user.Id, update.ProfilePictureJpgBase64);
             }
 
             return Ok();
@@ -155,7 +153,7 @@ namespace GradProjectServer.Controllers
         [HttpPost("Login")]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        public async Task<ActionResult<string>> Login([FromBody] LoginDto info)
+        public async Task<ActionResult<LoginResultDto>> Login([FromBody] LoginDto info)
         {
             var user = await _userManager.Login(info.Email, info.Password, Response.Cookies).ConfigureAwait(false);
             if (user == null)
@@ -163,7 +161,12 @@ namespace GradProjectServer.Controllers
                 return Unauthorized("Invalid login credentials.");
             }
 
-            return Ok(user.Token);
+            LoginResultDto result = new()
+            {
+                User = _mapper.Map<UserDto>(user),
+                Token = user.Token!
+            };
+            return Ok(result);
         }
 
         /// <summary>
@@ -201,13 +204,15 @@ namespace GradProjectServer.Controllers
                     });
             }
 
-            var userImage = await _userManager.GetImage(userId).ConfigureAwait(false);
+            var userImage = _userManager.GetImage(userId);
             if (userImage == null)
             {
                 return NoContent();
             }
 
-            return File(userImage, "application/octet-stream");
+            var result  = File(userImage, "application/octet-stream");
+            result.FileDownloadName = $"{userId}ProfilePicture.jpg";
+            return result;
         }
         [LoggedInFilter]
         [HttpGet("GetLoggedIn")]
