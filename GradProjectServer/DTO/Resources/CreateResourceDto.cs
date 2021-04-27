@@ -10,6 +10,9 @@ namespace GradProjectServer.DTO.Resources
         public Semester CreationSemester { get; set; }
         public string Name { get; set; }
         public string FileBase64 { get; set; }
-        public string FileName { get; set; }
+        /// <summary>
+        /// Don't prefix with dot.
+        /// </summary>
+        public string FileExtension { get; set; }
     }
 }

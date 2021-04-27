@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SkiaSharp;
 
 namespace GradProjectServer.Services.UserSystem
@@ -17,7 +18,11 @@ namespace GradProjectServer.Services.UserSystem
         public static readonly string LoginHeaderName = "Authorization";
         private string GenerateToken(User user) => $"{user.Id}:{DateTime.UtcNow.Ticks}";
         public static string ProfilePicturesDirectory { get; private set; }
-
+        /// <summary>
+        /// Its public to be used only by <see cref="User.Seed"/>.
+        /// </summary>
+        public static string GetProfilePicturePath(int userId) =>
+            Path.Combine(ProfilePicturesDirectory, $"{userId}.jpg");
         /// <summary>
         /// To be used by filters only.
         /// </summary>
@@ -26,8 +31,8 @@ namespace GradProjectServer.Services.UserSystem
         public static void Init(IServiceProvider sp)
         {
             var fac = sp.GetRequiredService<IDbContextFactory<AppDbContext>>();
-            ProfilePicturesDirectory = Path.Combine(sp.GetRequiredService<IWebHostEnvironment>().ContentRootPath,
-                "ProfilePictures");
+            var appOptions = sp.GetRequiredService<IOptions<AppOptions>>().Value;
+            ProfilePicturesDirectory = Path.Combine(appOptions.DataSaveDirectory, "ProfilesPictures");
             if (!Directory.Exists(ProfilePicturesDirectory))
             {
                 Directory.CreateDirectory(ProfilePicturesDirectory);
@@ -37,7 +42,7 @@ namespace GradProjectServer.Services.UserSystem
         }
 
         /// <summary>
-        /// Its public to be used only for seeding
+        /// Its public to be used only by <see cref="User.Seed"/>.
         /// </summary>
         public static string HashPassword(string password) => password;
 
@@ -72,8 +77,7 @@ namespace GradProjectServer.Services.UserSystem
             return ValidateImage(stream);
         }
 
-        private static string GetProfilePicturePath(int userId) =>
-            Path.Combine(ProfilePicturesDirectory, $"{userId}.jpg");
+        
 
         public void UpdateImage(int userId, Stream? imageStream)
         {

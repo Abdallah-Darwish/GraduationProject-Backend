@@ -13,7 +13,10 @@ namespace GradProjectServer.DTO.Exams
         public ExamType Type { get; set; }
         public Semester Semester { get; set; }
         public string Name { get; set; }
-        public TimeSpan Duration { get; set; }
+        /// <summary>
+        /// In milliseconds.
+        /// </summary>
+        public int Duration { get; set; }
         public CourseDto Course { get; set; }
         public UserMetadataDto Volunteer { get; set; }
     }

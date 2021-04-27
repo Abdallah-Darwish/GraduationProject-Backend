@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace GradProjectServer.Migrations
 {
-    public partial class InitCreate : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -275,6 +275,38 @@ namespace GradProjectServer.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Question_Users_VolunteerId",
+                        column: x => x.VolunteerId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Resources",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CourseId = table.Column<int>(type: "integer", nullable: false),
+                    CreationYear = table.Column<int>(type: "integer", nullable: false),
+                    CreationSemester = table.Column<byte>(type: "smallint", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    FileExtension = table.Column<string>(type: "text", nullable: false),
+                    IsApproved = table.Column<bool>(type: "boolean", nullable: false),
+                    VolunteerId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Resources", x => x.Id);
+                    table.CheckConstraint("CK_RESOURCE_CREATIONYEAR", "\"CreationYear\" >= 1900;");
+                    table.ForeignKey(
+                        name: "FK_Resources_Courses_CourseId",
+                        column: x => x.CourseId,
+                        principalTable: "Courses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Resources_Users_VolunteerId",
                         column: x => x.VolunteerId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -609,6 +641,16 @@ namespace GradProjectServer.Migrations
                 column: "VolunteerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Resources_CourseId",
+                table: "Resources",
+                column: "CourseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Resources_VolunteerId",
+                table: "Resources",
+                column: "VolunteerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_StudyPlans_MajorId_Year",
                 table: "StudyPlans",
                 columns: new[] { "MajorId", "Year" },
@@ -675,6 +717,9 @@ namespace GradProjectServer.Migrations
 
             migrationBuilder.DropTable(
                 name: "ProgramsDependencies");
+
+            migrationBuilder.DropTable(
+                name: "Resources");
 
             migrationBuilder.DropTable(
                 name: "StudyPlansCoursesPrerequisites");

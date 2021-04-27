@@ -182,9 +182,9 @@ namespace GradProjectServer.Controllers
             return Ok();
         }
 
-        /// <summary>
-        /// Gets the user profile picture as stream of bytes with header Content-Type: application/octet-stream.
-        /// </summary>
+        /// <remarks>
+        /// Gets the user profile picture as stream of bytes with header Content-Type: image/jpeg.
+        /// </remarks>
         /// <param name="userId">Id of the user to get his profile picture.</param>
         /// <response code="404">If there is no user with this id.</response>
         /// <response code="204">If the user doesn't have a profile picture.</response>
@@ -210,8 +210,8 @@ namespace GradProjectServer.Controllers
                 return NoContent();
             }
 
-            var result  = File(userImage, "application/octet-stream");
-            result.FileDownloadName = $"{userId}ProfilePicture.jpg";
+            var result  = File(userImage, "image/jpeg");
+            result.FileDownloadName = $"{userId}_ProfilePicture.jpg";
             return result;
         }
         [LoggedInFilter]

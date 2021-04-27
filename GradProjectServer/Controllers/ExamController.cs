@@ -140,12 +140,14 @@ namespace GradProjectServer.Controllers
 
             if (filter.MinDuration != null)
             {
-                exams = exams.Where(e => e.Duration >= filter.MinDuration);
+                var minDuration = TimeSpan.FromMilliseconds(filter.MinDuration.Value);
+                exams = exams.Where(e => e.Duration >= minDuration);
             }
 
             if (filter.MaxDuration != null)
             {
-                exams = exams.Where(e => e.Duration <= filter.MaxDuration);
+                var maxDuration = TimeSpan.FromMilliseconds(filter.MaxDuration.Value);
+                exams = exams.Where(e => e.Duration <= maxDuration);
             }
 
             if (filter.MinYear != null)
@@ -274,7 +276,7 @@ namespace GradProjectServer.Controllers
             var exam = new Exam
             {
                 CourseId = data.CourseId,
-                Duration = data.Duration,
+                Duration = TimeSpan.FromMilliseconds(data.Duration),
                 IsApproved = false,
                 Name = data.Name,
                 Semester = data.Semester,
@@ -290,6 +292,12 @@ namespace GradProjectServer.Controllers
         /// <summary>
         /// Updates an exam.
         /// </summary>
+        /// <remarks>
+        /// A user can update:
+        ///     HIS NOT approved exams.
+        /// An admin can update:
+        ///     All exams.
+        /// </remarks>
         /// <param name="update">The update to apply, null fields mean no update to this property.</param>
         [LoggedInFilter]
         [HttpPatch("Update")]
@@ -307,7 +315,7 @@ namespace GradProjectServer.Controllers
 
             if (update.Duration.HasValue)
             {
-                exam.Duration = update.Duration.Value;
+                exam.Duration = TimeSpan.FromMilliseconds(update.Duration.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(update.Name))

@@ -10,8 +10,8 @@ namespace GradProjectServer.DTO.Exams
         public int? MaxYear { get; set; }
         public ExamType[]? Types { get; set; }
         public Semester[]? Semesters { get; set; }
-        public TimeSpan? MinDuration { get; set; }
-        public TimeSpan? MaxDuration { get; set; }
+        public int? MinDuration { get; set; }
+        public int? MaxDuration { get; set; }
         public int[]? Courses { get; set; }
         public int[]? Tags { get; set; }
         public bool? IsApproved { get; set; }

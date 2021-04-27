@@ -12,7 +12,7 @@ namespace GradProjectServer.Validators.Exams
             RuleFor(d => d.Name)
                 .NotEmpty();
             RuleFor(d => d.Duration)
-                .InclusiveBetween(TimeSpan.FromSeconds(1), TimeSpan.FromHours(10))
+                .InclusiveBetween(1, (int)TimeSpan.FromHours(10).TotalMilliseconds)
                 .WithMessage("{PropertyName} must be in range [1 second, 10 hours].");
             RuleFor(d => d.Year)
                 .InclusiveBetween(1990, DateTime.Now.Year)

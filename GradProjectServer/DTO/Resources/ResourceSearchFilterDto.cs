@@ -16,7 +16,12 @@ namespace GradProjectServer.DTO.Resources
         public Semester[]? CreationSemesters { get; set; }
         public string? NameMask { get; set; }
         public int[]? Volunteers { get; set; }
+        /// <summary>
+        /// Don't prefix with dot.
+        /// </summary>
+        public string[]? Extesnions { get; set; }
         public int Offset { get; set; }
         public int Count { get; set; }
+       
     }
 }

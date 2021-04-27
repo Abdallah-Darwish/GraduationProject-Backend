@@ -31,7 +31,7 @@ namespace GradProjectServer
             return lst[rand.Next(lst.Count)];
         }
         public static bool NextBool(this Random rand) => (rand.Next() & 1) == 1;
-        public static string NextText(this Random rand, int length = 0)
+        public static string NextText(this Random rand, int length = -1)
         {
             if (length < 0)
             {

@@ -16,7 +16,7 @@ namespace GradProjectServer.Mapping.Exams
         public ExamDto Convert(Exam src, ExamDto dst, ResolutionContext ctx)
         {
             dst.Course = ctx.Mapper.Map<CourseDto>(src.Course);
-            dst.Duration = src.Duration;
+            dst.Duration = (int)src.Duration.TotalMilliseconds;
             dst.Id = src.Id;
             dst.IsApproved = src.IsApproved;
             dst.Name = src.Name;

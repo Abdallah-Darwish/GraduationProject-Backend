@@ -479,6 +479,49 @@ namespace GradProjectServer.Migrations
                     b.ToTable("StudyPlansCoursesPrerequisites");
                 });
 
+            modelBuilder.Entity("GradProjectServer.Services.Resources.Resource", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("integer");
+
+                    b.Property<byte>("CreationSemester")
+                        .HasColumnType("smallint");
+
+                    b.Property<int>("CreationYear")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FileExtension")
+                        .IsRequired()
+                        .IsUnicode(true)
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .IsUnicode(true)
+                        .HasColumnType("text");
+
+                    b.Property<int>("VolunteerId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("VolunteerId");
+
+                    b.ToTable("Resources");
+
+                    b.HasCheckConstraint("CK_RESOURCE_CREATIONYEAR", "\"CreationYear\" >= 1900;");
+                });
+
             modelBuilder.Entity("GradProjectServer.Services.UserSystem.User", b =>
                 {
                     b.Property<int>("Id")
@@ -793,6 +836,25 @@ namespace GradProjectServer.Migrations
                     b.Navigation("Prerequisite");
                 });
 
+            modelBuilder.Entity("GradProjectServer.Services.Resources.Resource", b =>
+                {
+                    b.HasOne("GradProjectServer.Services.Infrastructure.Course", "Course")
+                        .WithMany("Resources")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GradProjectServer.Services.UserSystem.User", "Volunteer")
+                        .WithMany("VolunteeredResources")
+                        .HasForeignKey("VolunteerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Volunteer");
+                });
+
             modelBuilder.Entity("GradProjectServer.Services.UserSystem.User", b =>
                 {
                     b.HasOne("GradProjectServer.Services.Infrastructure.StudyPlan", "StudyPlan")
@@ -874,6 +936,8 @@ namespace GradProjectServer.Migrations
             modelBuilder.Entity("GradProjectServer.Services.Infrastructure.Course", b =>
                 {
                     b.Navigation("Exams");
+
+                    b.Navigation("Resources");
                 });
 
             modelBuilder.Entity("GradProjectServer.Services.Infrastructure.Major", b =>
@@ -908,6 +972,8 @@ namespace GradProjectServer.Migrations
                     b.Navigation("VolunteeredExams");
 
                     b.Navigation("VolunteeredQuestions");
+
+                    b.Navigation("VolunteeredResources");
                 });
 
             modelBuilder.Entity("GradProjectServer.Services.Exams.Entities.MCQSubQuestion", b =>

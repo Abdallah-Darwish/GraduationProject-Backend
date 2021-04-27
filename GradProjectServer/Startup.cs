@@ -14,6 +14,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using GradProjectServer.Controllers;
 using GradProjectServer.Services.UserSystem;
 
 namespace GradProjectServer
@@ -72,20 +73,27 @@ namespace GradProjectServer
             });
 
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
-
-            var connString = Configuration.GetConnectionString("Default");
-            services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connString),
+            var appOptions = Configuration
+                .GetSection(AppOptions.SectionName)
+                .Get<AppOptions>();
+            
+            services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(appOptions.BuildAppConnectionString()),
                 contextLifetime: ServiceLifetime.Scoped,
                 optionsLifetime: ServiceLifetime.Singleton);
-            services.AddDbContextFactory<AppDbContext>(opt => opt.UseNpgsql(connString));
+            services.AddDbContextFactory<AppDbContext>(opt => opt.UseNpgsql(appOptions.BuildAppConnectionString()));
+            services.Configure<AppOptions>(Configuration.GetSection(AppOptions.SectionName));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DbManager dbManager,
             IServiceProvider serviceProvider)
         {
-            dbManager.EnsureDb().Wait();
             UserManager.Init(serviceProvider);
+            ResourceController.Init(serviceProvider);
+            
+            dbManager.EnsureDb().Wait();
+
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

@@ -5,7 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using GradProjectServer.DTO.Users;
 using GradProjectServer.Services.Resources;
+using SkiaSharp;
 
 namespace GradProjectServer.Services.UserSystem
 {
@@ -23,6 +27,7 @@ namespace GradProjectServer.Services.UserSystem
         public ICollection<Exam> VolunteeredExams { get; set; }
         public ICollection<Question> VolunteeredQuestions { get; set; }
         public ICollection<Resource> VolunteeredResources { get; set; }
+
         public static void ConfigureEntity(EntityTypeBuilder<User> b)
         {
             b.HasKey(u => u.Id);
@@ -40,21 +45,71 @@ namespace GradProjectServer.Services.UserSystem
                 .HasForeignKey(u => u.StudyPlanId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
-
         }
+
         //todo: can volunteer
         //todo: points
 
+        public static async Task CreateSeedFiles()
+        {
+            using SKPaint paint = new()
+            {
+                Color = SKColors.Red, Style = SKPaintStyle.Fill, HintingLevel = SKPaintHinting.Full,
+                IsAntialias = true, TextAlign = SKTextAlign.Center, TextSize = 10, StrokeWidth = 10
+            };
+            Random rand = new();
+
+//todo: fix me
+            async Task GenerateProfilePicture(User u)
+            {
+                using SKBitmap bmp = new(200, 200);
+                using (SKCanvas can = new(bmp))
+                {
+                    can.Clear(new SKColor((uint) rand.Next(100, int.MaxValue)));
+                    can.DrawText(u.Name, new SKPoint(0, 0), paint);
+                    can.Flush();
+                }
+
+                using var bmpData = bmp.Encode(SKEncodedImageFormat.Jpeg, 100);
+                await using var userImageFileStream = new FileStream(UserManager.GetProfilePicturePath(u.Id),
+                    FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read);
+                bmpData.SaveTo(userImageFileStream);
+                await userImageFileStream.FlushAsync();
+            }
+
+
+            foreach (var user in Seed)
+            {
+                if (rand.NextBool())
+                {
+                    await GenerateProfilePicture(user).ConfigureAwait(false);
+                }
+            }
+        }
+
         private static User[]? _seed = null;
+
         public static User[] Seed
         {
             get
             {
-                if (_seed != null) { return _seed; }
+                if (_seed != null)
+                {
+                    return _seed;
+                }
+
                 var rand = new Random();
                 var studyPlans = StudyPlan.Seed;
-                var firstNames = new string[] { "Abdallah", "Hashim", "Shatha", "Jannah", "Malik", "Basel", "Al-Bara", "Mohammad", "Aya", "Issra", "Huda", "Tuqa", "Deema" };
-                var lastNames = new string[] { "Darwish", "Al-Mansour", "Shreim", "Barqawi", "Arabiat", "Azaizeh", "Zeer", "Faroun", "Abu-Rumman", "Allan", "Odeh" };
+                var firstNames = new string[]
+                {
+                    "Abdallah", "Hashim", "Shatha", "Jannah", "Malik", "Basel", "Al-Bara", "Mohammad", "Aya", "Issra",
+                    "Huda", "Tuqa", "Deema"
+                };
+                var lastNames = new string[]
+                {
+                    "Darwish", "Al-Mansour", "Shreim", "Barqawi", "Arabiat", "Azaizeh", "Zeer", "Faroun", "Abu-Rumman",
+                    "Allan", "Odeh"
+                };
                 var seed = new List<User>();
                 int id = 1;
                 for (char i = 'a'; i <= 'z'; i++)
@@ -70,8 +125,10 @@ namespace GradProjectServer.Services.UserSystem
                         PasswordHash = UserManager.HashPassword($"{i}123456789{i}"),
                         Token = null
                     };
+
                     seed.Add(user);
                 }
+
                 _seed = seed.ToArray();
                 return _seed;
             }
