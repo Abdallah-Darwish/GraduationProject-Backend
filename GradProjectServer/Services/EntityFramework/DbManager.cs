@@ -1,5 +1,7 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using GradProjectServer.Resources;
 using GradProjectServer.Services.Exams.Entities;
 using GradProjectServer.Services.Infrastructure;
@@ -9,7 +11,9 @@ using Npgsql;
 using System.Threading.Tasks;
 using GradProjectServer.Controllers;
 using GradProjectServer.Services.Resources;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualBasic;
 
 namespace GradProjectServer.Services.EntityFramework
 {
@@ -18,32 +22,37 @@ namespace GradProjectServer.Services.EntityFramework
     {
         private readonly AppDbContext _dbContext;
         private readonly AppOptions _appOptions;
+
         public DbManager(AppDbContext dbContext, IOptions<AppOptions> appOptions)
         {
             _dbContext = dbContext;
             _appOptions = appOptions.Value;
         }
+
         public async Task RecreateDb()
         {
-            Directory.Delete(UserManager.ProfilePicturesDirectory,true);
+            Directory.Delete(UserManager.ProfilePicturesDirectory, true);
             Directory.CreateDirectory(UserManager.ProfilePicturesDirectory);
-            Directory.Delete(ResourceController.ResourcesDirectory,true);
+            Directory.Delete(ResourceController.ResourcesDirectory, true);
             Directory.CreateDirectory(ResourceController.ResourcesDirectory);
             using (var postgreCon = new NpgsqlConnection(_appOptions.BuildPostgresConnectionString()))
             {
                 await postgreCon.OpenAsync().ConfigureAwait(false);
-                using (var dropCommand = new NpgsqlCommand($"DROP DATABASE IF EXISTS \"{_appOptions.DbName}\" WITH (FORCE);", postgreCon))
+                using (var dropCommand =
+                    new NpgsqlCommand($"DROP DATABASE IF EXISTS \"{_appOptions.DbName}\" WITH (FORCE);", postgreCon))
                 {
                     await dropCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
+
                 using (var createCommand = new NpgsqlCommand($"CREATE DATABASE \"{_appOptions.DbName}\";", postgreCon))
                 {
                     await createCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
             }
+
             NpgsqlConnection.ClearAllPools();
             string dbScript = await ResourcesManager.GetText("DbInitScript.sql").ConfigureAwait(false);
-            
+
             using (var dbCon = new NpgsqlConnection(_appOptions.BuildAppConnectionString()))
             using (var initCommand = new NpgsqlCommand(dbScript, dbCon))
             {
@@ -51,6 +60,7 @@ namespace GradProjectServer.Services.EntityFramework
                 await initCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
+
         public async Task EnsureDb()
         {
             try
@@ -63,6 +73,7 @@ namespace GradProjectServer.Services.EntityFramework
                 await RecreateDb().ConfigureAwait(false);
             }
         }
+
         public async Task Seed()
         {
             await _dbContext.Courses.AddRangeAsync(Course.Seed).ConfigureAwait(false);
@@ -80,13 +91,15 @@ namespace GradProjectServer.Services.EntityFramework
             await _dbContext.Users.AddRangeAsync(User.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
-            await _dbContext.StudyPlansCoursesCategories.AddRangeAsync(StudyPlanCourseCategory.Seed).ConfigureAwait(false);
+            await _dbContext.StudyPlansCoursesCategories.AddRangeAsync(StudyPlanCourseCategory.Seed)
+                .ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
             await _dbContext.StudyPlansCourses.AddRangeAsync(StudyPlanCourse.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
-            await _dbContext.StudyPlansCoursesPrerequisites.AddRangeAsync(StudyPlanCoursePrerequisite.Seed).ConfigureAwait(false);
+            await _dbContext.StudyPlansCoursesPrerequisites.AddRangeAsync(StudyPlanCoursePrerequisite.Seed)
+                .ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
             await _dbContext.Programs.AddRangeAsync(Program.Seed).ConfigureAwait(false);
@@ -122,13 +135,48 @@ namespace GradProjectServer.Services.EntityFramework
 
             await _dbContext.ExamSubQuestions.AddRangeAsync(ExamSubQuestion.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            
+
             await _dbContext.Resources.AddRangeAsync(Resources.Resource.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
             await User.CreateSeedFiles().ConfigureAwait(false);
             await Resource.CreateSeedFiles().ConfigureAwait(false);
 
+            List<string> tablesNames = new();
+
+            await using (var dbCon = new NpgsqlConnection(_appOptions.BuildAppConnectionString()))
+            await using (var listCommand =
+                new NpgsqlCommand(
+                    @"SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';",
+                    dbCon))
+            {
+                await dbCon.OpenAsync().ConfigureAwait(false);
+                await using var reader = await listCommand.ExecuteReaderAsync().ConfigureAwait(false);
+                while (await reader.ReadAsync().ConfigureAwait(false))
+                {
+                    //
+                    tablesNames.Add(reader.GetString(0));
+                }
+            }
+
+            foreach (var table in tablesNames)
+            {
+                var conString = _appOptions.BuildAppConnectionString();
+                try
+                {
+                    await using var dbCon = new NpgsqlConnection(_appOptions.BuildAppConnectionString());
+                    await using var resetCommand =
+                        new NpgsqlCommand(
+                            $"SELECT setval(pg_get_serial_sequence('\"{table}\"', 'Id'), coalesce(max(\"Id\"),0) + 1, false) FROM \"{table}\";",
+                            dbCon);
+                    await dbCon.OpenAsync().ConfigureAwait(false);
+                    await resetCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
+                }
+                catch(Exception ex)
+                {
+                    ex.ToString();
+                }
+            }
         }
     }
 }

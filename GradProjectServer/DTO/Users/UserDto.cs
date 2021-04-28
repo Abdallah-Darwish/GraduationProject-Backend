@@ -1,9 +1,11 @@
-﻿namespace GradProjectServer.DTO.Users
+﻿using GradProjectServer.DTO.StudyPlans;
+
+namespace GradProjectServer.DTO.Users
 {
-    //todo: fill me
     public class UserDto : UserMetadataDto
     {
         public string Email { get; set; }
         public bool IsAdmin { get; set; }
+        public StudyPlanMetadataDto StudyPlan { get; set; }
     }
 }

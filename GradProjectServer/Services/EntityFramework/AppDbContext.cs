@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Linq;
 using System.Reflection;
+using GradProjectServer.Services.Exams.Entities.ExamAttempts;
 using GradProjectServer.Services.Resources;
 
 namespace GradProjectServer.Services.EntityFramework

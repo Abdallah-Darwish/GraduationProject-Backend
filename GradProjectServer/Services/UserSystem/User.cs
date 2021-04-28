@@ -13,7 +13,6 @@ using SkiaSharp;
 
 namespace GradProjectServer.Services.UserSystem
 {
-    //todo: Configure
     public class User
     {
         public int Id { get; set; }

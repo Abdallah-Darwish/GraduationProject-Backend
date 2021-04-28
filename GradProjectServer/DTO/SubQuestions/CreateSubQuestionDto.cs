@@ -2,7 +2,6 @@
 
 namespace GradProjectServer.DTO.SubQuestions
 {
-    //todo: add update models
     public abstract class CreateSubQuestionDto
     {
         public string Content { get; set; }

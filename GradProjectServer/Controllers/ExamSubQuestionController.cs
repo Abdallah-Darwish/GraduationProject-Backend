@@ -152,7 +152,8 @@ namespace GradProjectServer.Controllers
             {
                 ExamQuestionId = dto.ExamQuestionId,
                 SubQuestionId = dto.SubQuestionId,
-                Weight = dto.Weight
+                Weight = dto.Weight,
+                Order = dto.Order
             };
             await _dbContext.ExamSubQuestions.AddAsync(examSubQuestion).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
@@ -168,6 +169,11 @@ namespace GradProjectServer.Controllers
             if (update.Weight.HasValue)
             {
                 examSubQuestion.Weight = update.Weight.Value;
+            }
+
+            if (update.Order.HasValue)
+            {
+                examSubQuestion.Order = update.Order.Value;
             }
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();

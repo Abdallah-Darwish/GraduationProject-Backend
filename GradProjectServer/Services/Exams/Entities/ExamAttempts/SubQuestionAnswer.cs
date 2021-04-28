@@ -1,20 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace GradProjectServer.Services.Exams.Entities
+namespace GradProjectServer.Services.Exams.Entities.ExamAttempts
 {
     public class SubQuestionAnswer
     {
+        public int Id { get; set; }
         public int AttemptId { get; set; }
         public int SubQuestionId { get; set; }
-        public string? Answer { get; set; }
         public ExamAttempt Attempt { get; set; }
         public ExamSubQuestion SubQuestion { get; set; }
         public static void ConfigureEntity(EntityTypeBuilder<SubQuestionAnswer> b)
         {
-            b.HasKey(a => new { a.AttemptId, a.SubQuestionId });
-            b.Property(a => a.Answer)
-                .IsUnicode();
+            b.ToTable(nameof(SubQuestionAnswer));
+            b.HasKey(a => a.Id);
             b.HasOne(a => a.SubQuestion)
                 .WithMany()
                 .HasForeignKey(a => a.SubQuestionId)

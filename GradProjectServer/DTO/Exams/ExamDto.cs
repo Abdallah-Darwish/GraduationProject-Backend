@@ -4,7 +4,6 @@ namespace GradProjectServer.DTO.Exams
 {
     public class ExamDto : ExamMetadataDto
     {
-        //todo: order and order sub questions
         public ExamQuestionDto[] Questions { get; set; }
         //maybe we should add tags here !
     }

@@ -109,8 +109,8 @@ namespace GradProjectServer.Controllers
             {
                 _userManager.UpdateImage(user.Id, dto.ProfilePictureJpgBase64);
             }
-            
-            return CreatedAtAction(nameof(Get), new {usersIds = new int[] {user.Id}, metadata = false},
+
+            return CreatedAtAction(nameof(Get), new {usersIds = new[] {user.Id}, metadata = false},
                 _mapper.Map<UserDto>(user));
         }
 
@@ -210,10 +210,11 @@ namespace GradProjectServer.Controllers
                 return NoContent();
             }
 
-            var result  = File(userImage, "image/jpeg");
+            var result = File(userImage, "image/jpeg");
             result.FileDownloadName = $"{userId}_ProfilePicture.jpg";
             return result;
         }
+
         [LoggedInFilter]
         [HttpGet("GetLoggedIn")]
         [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]

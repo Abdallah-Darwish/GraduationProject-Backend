@@ -8,6 +8,9 @@ namespace GradProjectServer
         public string DbName { get; set; }
         public string PostgresUserId { get; set; }
         public string PostgresPassword { get; set; }
+        /// <summary>
+        /// Created so we could save files on another server and use multiple containers at the same time with a web server like nginx.
+        /// </summary>
         public string DataSaveDirectory { get; set; }
         public string PostgresServerAddress { get; set; }
         public int PostgresMaxAutoPrepare { get; set; }

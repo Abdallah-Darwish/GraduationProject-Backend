@@ -16,7 +16,7 @@ namespace GradProjectServer.Mapping.Exams
         public ExamDto Convert(Exam src, ExamDto dst, ResolutionContext ctx)
         {
             dst.Course = ctx.Mapper.Map<CourseDto>(src.Course);
-            dst.Duration = (int)src.Duration.TotalMilliseconds;
+            dst.Duration = (int) src.Duration.TotalMilliseconds;
             dst.Id = src.Id;
             dst.IsApproved = src.IsApproved;
             dst.Name = src.Name;
@@ -24,17 +24,24 @@ namespace GradProjectServer.Mapping.Exams
             dst.Volunteer = ctx.Mapper.Map<UserMetadataDto>(src.Volunteer);
             dst.Year = src.Year;
             dst.Questions = src.Questions.Select(q => new ExamQuestionDto
-            {
-                Id = q.Id,
-                Title = q.Question.Title,
-                Content = q.Question.Content,
-                QuestionId = q.QuestionId,
-                ExamSubQuestions = q.ExamSubQuestions.Select(sq => new ExamSubQuestionDto
                 {
-                    SubQuestion = ctx.Mapper.Map<SubQuestionMetadataDto>(sq.SubQuestion),
-                    Weight = sq.Weight
-                }).ToArray()
-            })
+                    Id = q.Id,
+                    Title = q.Question.Title,
+                    Content = q.Question.Content,
+                    QuestionId = q.QuestionId,
+                    ExamSubQuestions = q.ExamSubQuestions.Select(sq => new ExamSubQuestionDto
+                        {
+                            Id = sq.Id,
+                            SubQuestion = ctx.Mapper.Map<SubQuestionMetadataDto>(sq.SubQuestion),
+                            Weight = sq.Weight,
+                            Order = sq.Order
+                        })
+                        .OrderBy(sq => sq.Order)
+                        .ThenBy(sq => sq.Id)
+                        .ToArray()
+                })
+                .OrderBy(q => q.Order)
+                .ThenBy(q => q.Id)
                 .ToArray();
             return dst;
         }

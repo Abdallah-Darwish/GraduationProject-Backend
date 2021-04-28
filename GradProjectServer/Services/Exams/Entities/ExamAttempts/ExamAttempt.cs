@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
 
-namespace GradProjectServer.Services.Exams.Entities
+namespace GradProjectServer.Services.Exams.Entities.ExamAttempts
 {
     public class ExamAttempt
     {

@@ -22,7 +22,6 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class ResourceController : ControllerBase
     {
-        //todo: Init
         public static string ResourcesDirectory { get; private set; }
 
         public static string GetResourceFilePath(Resource res) =>
