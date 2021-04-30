@@ -19,5 +19,6 @@ namespace GradProjectServer.DTO.Resources
         /// </summary>
         public bool? IsApproved { get; set; }
         
+        public ResourceType? Type { get; set; }
     }
 }

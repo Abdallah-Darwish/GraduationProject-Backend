@@ -14,5 +14,6 @@ namespace GradProjectServer.DTO.Resources
         /// Don't prefix with dot.
         /// </summary>
         public string FileExtension { get; set; }
+        public ResourceType Type { get; set; }
     }
 }

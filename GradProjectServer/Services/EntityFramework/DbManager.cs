@@ -154,7 +154,6 @@ namespace GradProjectServer.Services.EntityFramework
                 await using var reader = await listCommand.ExecuteReaderAsync().ConfigureAwait(false);
                 while (await reader.ReadAsync().ConfigureAwait(false))
                 {
-                    //
                     tablesNames.Add(reader.GetString(0));
                 }
             }
@@ -172,9 +171,8 @@ namespace GradProjectServer.Services.EntityFramework
                     await dbCon.OpenAsync().ConfigureAwait(false);
                     await resetCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
-                catch(Exception ex)
+                catch (NpgsqlException)
                 {
-                    ex.ToString();
                 }
             }
         }

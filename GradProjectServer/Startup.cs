@@ -16,6 +16,7 @@ using System.Linq;
 using System.Reflection;
 using GradProjectServer.Controllers;
 using GradProjectServer.Services.UserSystem;
+using SkiaSharp;
 
 namespace GradProjectServer
 {
@@ -32,6 +33,7 @@ namespace GradProjectServer
         public void ConfigureServices(IServiceCollection services)
         {
             //todo: please see https://github.com/micro-elements/MicroElements.Swashbuckle.FluentValidation
+            services.AddCors();
             services.AddScoped<DbManager>();
             services.AddScoped<UserManager>();
             services.AddHttpContextAccessor();
@@ -101,6 +103,10 @@ namespace GradProjectServer
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "GradProjectServer v1"));
             }
 
+            app.UseCors(op => op
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowAnyOrigin());
             //app.UseHttpsRedirection();
 
             app.UseRouting();

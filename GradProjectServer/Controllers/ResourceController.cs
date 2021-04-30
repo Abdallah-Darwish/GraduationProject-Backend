@@ -169,6 +169,11 @@ namespace GradProjectServer.Controllers
             {
                 resources = resources.Where(e => filter.Extesnions!.Contains(e.FileExtension));
             }
+
+            if ((filter.Types?.Length ?? 0) > 0)
+            {
+                resources = resources.Where(e => filter.Types!.Contains(e.Type));
+            }
             resources = resources
                 .OrderByDescending(r => r.CreationYear)
                 .ThenBy(r => r.CreationSemester)
@@ -261,6 +266,7 @@ namespace GradProjectServer.Controllers
                 CreationYear = data.CreationYear,
                 FileExtension = data.FileExtension,
                 IsApproved = false,
+                Type =  data.Type
             };
             await _dbContext.Resources.AddAsync(resource).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
@@ -305,6 +311,11 @@ namespace GradProjectServer.Controllers
             if (update.FileExtension != null)
             {
                 resource.FileExtension = update.FileExtension;
+            }
+
+            if (update.Type != null)
+            {
+                resource.Type = update.Type.Value;
             }
             if (update.FileBase64 != null)
             {

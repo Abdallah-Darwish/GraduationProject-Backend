@@ -16,6 +16,7 @@ namespace GradProjectServer.Services.Resources
     {
         public int Id { get; set; }
         public int CourseId { get; set; }
+        public ResourceType Type { get; set; }
         public Course Course { get; set; }
         //todo: connect with Instructor if you ever add it
         public int CreationYear { get; set; }
@@ -40,6 +41,9 @@ namespace GradProjectServer.Services.Resources
             b.Property(r => r.FileExtension)
                 .IsRequired()
                 .IsUnicode();
+            b.Property(r => r.Type)
+                .IsRequired()
+                .HasConversion<byte>();
             b.Property(r => r.IsApproved)
                 .IsRequired();
             b.Property(r => r.CreationYear)

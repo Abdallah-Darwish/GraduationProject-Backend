@@ -18,5 +18,6 @@ namespace GradProjectServer.DTO.Resources
         public string FileExtension { get; set; }
         public bool IsApproved { get; set; }
         public UserMetadataDto Volunteer { get; set; }
+        public ResourceType Type { get; set; }
     }
 }

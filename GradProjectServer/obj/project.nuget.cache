@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "f4yiYR3WO6GYLt0sZLCjWDnGIarOVb0pssaK/f8A8EILRVIRJn0Xuv66/OPo0cTe4Q3KawlvH2FxNXgszOvK8g==",
+  "dgSpecHash": "WL4wUnZIOO8FRsvlX2V8gWmQGsIfQ7YcbzCQq0YVC7IFnJ0DmqUHjDNq75lPWM27y5sZcnPGknrxSHXjloW5Qg==",
   "success": true,
   "projectFilePath": "/home/abdallah/Desktop/GraduationProject-Backend/GradProjectServer/GradProjectServer.csproj",
   "expectedPackageFiles": [
@@ -9,9 +9,9 @@
     "/home/abdallah/.nuget/packages/automapper.collection.entityframeworkcore/7.0.1/automapper.collection.entityframeworkcore.7.0.1.nupkg.sha512",
     "/home/abdallah/.nuget/packages/automapper.extensions.expressionmapping/4.0.2/automapper.extensions.expressionmapping.4.0.2.nupkg.sha512",
     "/home/abdallah/.nuget/packages/automapper.extensions.microsoft.dependencyinjection/8.1.1/automapper.extensions.microsoft.dependencyinjection.8.1.1.nupkg.sha512",
-    "/home/abdallah/.nuget/packages/fluentvalidation/10.0.4/fluentvalidation.10.0.4.nupkg.sha512",
-    "/home/abdallah/.nuget/packages/fluentvalidation.aspnetcore/10.0.4/fluentvalidation.aspnetcore.10.0.4.nupkg.sha512",
-    "/home/abdallah/.nuget/packages/fluentvalidation.dependencyinjectionextensions/10.0.4/fluentvalidation.dependencyinjectionextensions.10.0.4.nupkg.sha512",
+    "/home/abdallah/.nuget/packages/fluentvalidation/10.1.0/fluentvalidation.10.1.0.nupkg.sha512",
+    "/home/abdallah/.nuget/packages/fluentvalidation.aspnetcore/10.1.0/fluentvalidation.aspnetcore.10.1.0.nupkg.sha512",
+    "/home/abdallah/.nuget/packages/fluentvalidation.dependencyinjectionextensions/10.1.0/fluentvalidation.dependencyinjectionextensions.10.1.0.nupkg.sha512",
     "/home/abdallah/.nuget/packages/humanizer.core/2.8.26/humanizer.core.2.8.26.nupkg.sha512",
     "/home/abdallah/.nuget/packages/microsoft.aspnetcore.jsonpatch/5.0.5/microsoft.aspnetcore.jsonpatch.5.0.5.nupkg.sha512",
     "/home/abdallah/.nuget/packages/microsoft.aspnetcore.mvc.newtonsoftjson/5.0.5/microsoft.aspnetcore.mvc.newtonsoftjson.5.0.5.nupkg.sha512",

@@ -32,6 +32,10 @@ RUN apt-get update && \
     postgresql-client \
     postgresql-contrib
 
+RUN apt-get update && \
+    apt-get install -y \
+    fontconfig
+
 USER postgres
 RUN    /etc/init.d/postgresql start &&\
     psql --command "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';"

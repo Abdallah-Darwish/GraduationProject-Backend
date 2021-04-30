@@ -48,7 +48,7 @@
             },
             "FluentValidation.AspNetCore": {
               "target": "Package",
-              "version": "[10.0.4, )"
+              "version": "[10.1.0, )"
             },
             "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
               "target": "Package",

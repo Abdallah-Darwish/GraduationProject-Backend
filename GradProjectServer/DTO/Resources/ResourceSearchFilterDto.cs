@@ -22,6 +22,7 @@ namespace GradProjectServer.DTO.Resources
         public string[]? Extesnions { get; set; }
         public int Offset { get; set; }
         public int Count { get; set; }
+        public ResourceType[]? Types { get; set; }
        
     }
 }
