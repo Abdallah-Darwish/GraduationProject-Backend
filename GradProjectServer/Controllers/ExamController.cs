@@ -70,7 +70,17 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public async  Task<IActionResult> Get([FromBody] int[] examsIds, bool metadata = false)
         {
-            var existingExams = _dbContext.Exams.Where(e => examsIds.Contains(e.Id));
+            var exams = _dbContext.Exams.Include(e => e.Questions)
+                .ThenInclude(q => q.Question)
+                .ThenInclude(q => q.Course) as IQueryable<Exam>;
+            exams = exams.Include(e => e.Course);
+            exams = exams
+                .Include(e => e.Questions)
+                .ThenInclude(q => q.Question);
+            exams = exams.Include(e => e.Questions)
+                .ThenInclude(e => e.ExamSubQuestions)
+                .ThenInclude(e => e.SubQuestion);
+            var existingExams = exams.Where(e => examsIds.Contains(e.Id));
             var nonExistingExams = examsIds.Except(existingExams.Select(e => e.Id)).ToArray();
             if (nonExistingExams.Length > 0)
             {
@@ -115,7 +125,16 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(IEnumerable<ExamMetadataDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Search([FromBody] ExamSearchFilterDto filter)
         {
-            var exams = _dbContext.Exams.AsQueryable();
+            var exams = _dbContext.Exams.Include(e => e.Questions)
+                .ThenInclude(q => q.Question)
+                .ThenInclude(q => q.Course) as IQueryable<Exam>;
+            exams = exams.Include(e => e.Course);
+            exams = exams
+                .Include(e => e.Questions)
+                .ThenInclude(q => q.Question);
+            exams = exams.Include(e => e.Questions)
+                .ThenInclude(e => e.ExamSubQuestions)
+                .ThenInclude(e => e.SubQuestion);
             var user = this.GetUser();
             if (user == null)
             {
