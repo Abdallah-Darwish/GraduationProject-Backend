@@ -6,6 +6,6 @@ namespace GradProjectServer.DTO.StudyPlanCourses
     {
         public int StudyPlanCourseCategoryId { get; set; }
         public CourseDto Course { get; set; }
-        public CourseDto[] Prerequisites { get; set; }
+        public StudyPlanCoursePrerequisiteDto[] Prerequisites { get; set; }
     }
 }

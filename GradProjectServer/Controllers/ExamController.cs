@@ -68,7 +68,7 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ActionResult<IEnumerable<ExamDto>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
-        public IActionResult Get([FromBody] int[] examsIds, bool metadata = false)
+        public async  Task<IActionResult> Get([FromBody] int[] examsIds, bool metadata = false)
         {
             var existingExams = _dbContext.Exams.Where(e => examsIds.Contains(e.Id));
             var nonExistingExams = examsIds.Except(existingExams.Select(e => e.Id)).ToArray();
@@ -97,13 +97,13 @@ namespace GradProjectServer.Controllers
                         });
                 }
             }
-
+            var result = await existingExams.ToArrayAsync().ConfigureAwait(false);
             if (metadata)
             {
-                return Ok(_mapper.ProjectTo<ExamMetadataDto>(existingExams));
+                return Ok(_mapper.Map<ExamMetadataDto[]>(result));
             }
 
-            return Ok(_mapper.ProjectTo<ExamDto>(existingExams));
+            return Ok(_mapper.Map<ExamDto[]>(result));
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace GradProjectServer.Controllers
         [HttpPost("Search")]
         [ProducesResponseType(typeof(IEnumerable<ExamDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(IEnumerable<ExamMetadataDto>), StatusCodes.Status200OK)]
-        public IActionResult Search([FromBody] ExamSearchFilterDto filter)
+        public async Task<IActionResult> Search([FromBody] ExamSearchFilterDto filter)
         {
             var exams = _dbContext.Exams.AsQueryable();
             var user = this.GetUser();
@@ -190,10 +190,10 @@ namespace GradProjectServer.Controllers
             var result = exams.Skip(filter.Offset).Take(filter.Count);
             if (filter.Metadata)
             {
-                return Ok(_mapper.ProjectTo<ExamMetadataDto>(result));
+                return Ok(_mapper.Map<ExamMetadataDto[]>(await result.ToArrayAsync().ConfigureAwait(false)));
             }
 
-            return Ok(_mapper.ProjectTo<ExamDto>(result));
+            return Ok(_mapper.Map<ExamDto[]>(await result.ToArrayAsync().ConfigureAwait(false)));
         }
 
         /// <summary>Deletes the specified exams.</summary>

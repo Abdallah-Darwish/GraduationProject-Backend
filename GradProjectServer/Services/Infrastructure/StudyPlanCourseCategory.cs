@@ -20,7 +20,7 @@ namespace GradProjectServer.Services.Infrastructure
             b.Property(c => c.AllowedCreditHours)
                 .IsRequired();
             b.HasOne(c => c.StudyPlan)
-                .WithMany(p => p.Categories)
+                .WithMany(p => p.CourseCategories)
                 .HasForeignKey(c => c.StudyPlanId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);

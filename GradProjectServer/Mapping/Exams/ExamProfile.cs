@@ -8,7 +8,8 @@ namespace GradProjectServer.Mapping.Exams
     {
         public ExamProfile()
         {
-            CreateMap<Exam, ExamMetadataDto>();
+            CreateMap<Exam, ExamMetadataDto>()
+                .ConvertUsing<ExamToExamMetadataConverter>();
             CreateMap<Exam, ExamDto>()
                 .ConvertUsing<ExamToExamDtoConverter>();
 

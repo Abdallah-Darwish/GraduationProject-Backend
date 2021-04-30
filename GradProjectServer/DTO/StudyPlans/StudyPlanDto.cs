@@ -7,6 +7,5 @@ namespace GradProjectServer.DTO.StudyPlans
     public class StudyPlanDto : StudyPlanMetadataDto
     {
         public StudyPlanCourseCategoryDto[] CourseCategories { get; set; }
-        public MajorMetadataDto Major { get; set; }
     }
 }

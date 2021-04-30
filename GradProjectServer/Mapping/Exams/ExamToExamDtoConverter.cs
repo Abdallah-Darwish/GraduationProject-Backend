@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using GradProjectServer.DTO.Courses;
 using GradProjectServer.DTO.ExamQuestions;
 using GradProjectServer.DTO.Exams;
@@ -15,34 +16,37 @@ namespace GradProjectServer.Mapping.Exams
         //todo: check me
         public ExamDto Convert(Exam src, ExamDto dst, ResolutionContext ctx)
         {
-            dst.Course = ctx.Mapper.Map<CourseDto>(src.Course);
-            dst.Duration = (int) src.Duration.TotalMilliseconds;
-            dst.Id = src.Id;
-            dst.IsApproved = src.IsApproved;
-            dst.Name = src.Name;
-            dst.Semester = src.Semester;
-            dst.Volunteer = ctx.Mapper.Map<UserMetadataDto>(src.Volunteer);
-            dst.Year = src.Year;
-            dst.Questions = src.Questions.Select(q => new ExamQuestionDto
-                {
-                    Id = q.Id,
-                    Title = q.Question.Title,
-                    Content = q.Question.Content,
-                    QuestionId = q.QuestionId,
-                    ExamSubQuestions = q.ExamSubQuestions.Select(sq => new ExamSubQuestionDto
-                        {
-                            Id = sq.Id,
-                            SubQuestion = ctx.Mapper.Map<SubQuestionMetadataDto>(sq.SubQuestion),
-                            Weight = sq.Weight,
-                            Order = sq.Order
-                        })
-                        .OrderBy(sq => sq.Order)
-                        .ThenBy(sq => sq.Id)
-                        .ToArray()
-                })
-                .OrderBy(q => q.Order)
-                .ThenBy(q => q.Id)
-                .ToArray();
+            dst = new()
+            {
+                Course = ctx.Mapper.Map<CourseDto>(src.Course),
+                Duration = (int) src.Duration.TotalMilliseconds,
+                Id = src.Id,
+                IsApproved = src.IsApproved,
+                Name = src.Name,
+                Semester = src.Semester,
+                Volunteer = ctx.Mapper.Map<UserMetadataDto>(src.Volunteer),
+                Year = src.Year,
+                Questions = src.Questions?.Select(q => new ExamQuestionDto
+                    {
+                        Id = q.Id,
+                        Title = q.Question.Title,
+                        Content = q.Question.Content,
+                        QuestionId = q.QuestionId,
+                        ExamSubQuestions = q.ExamSubQuestions?.Select(sq => new ExamSubQuestionDto
+                            {
+                                Id = sq.Id,
+                                SubQuestion = ctx.Mapper.Map<SubQuestionMetadataDto>(sq.SubQuestion),
+                                Weight = sq.Weight,
+                                Order = sq.Order
+                            })
+                            .OrderBy(sq => sq.Order)
+                            .ThenBy(sq => sq.Id)
+                            .ToArray()
+                    })
+                    .OrderBy(q => q.Order)
+                    .ThenBy(q => q.Id)
+                    .ToArray()
+            };
             return dst;
         }
     }
