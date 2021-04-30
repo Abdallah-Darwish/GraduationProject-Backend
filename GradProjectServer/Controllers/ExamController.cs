@@ -80,6 +80,7 @@ namespace GradProjectServer.Controllers
             exams = exams.Include(e => e.Questions)
                 .ThenInclude(e => e.ExamSubQuestions)
                 .ThenInclude(e => e.SubQuestion);
+            exams = exams.Include(e => e.Volunteer);
             var existingExams = exams.Where(e => examsIds.Contains(e.Id));
             var nonExistingExams = examsIds.Except(existingExams.Select(e => e.Id)).ToArray();
             if (nonExistingExams.Length > 0)
@@ -135,6 +136,7 @@ namespace GradProjectServer.Controllers
             exams = exams.Include(e => e.Questions)
                 .ThenInclude(e => e.ExamSubQuestions)
                 .ThenInclude(e => e.SubQuestion);
+            exams = exams.Include(e => e.Volunteer);
             var user = this.GetUser();
             if (user == null)
             {

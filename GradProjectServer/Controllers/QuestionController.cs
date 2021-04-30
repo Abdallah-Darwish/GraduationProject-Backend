@@ -65,7 +65,12 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public IActionResult Get([FromBody] int[] questionsIds, [FromQuery] bool metadata = false)
         {
-            var existingQuestions = _dbContext.Questions.Where(e => questionsIds.Contains(e.Id));
+
+            var questions =  _dbContext.Questions.AsQueryable()
+                .Include(q => q.Course)
+                .Include(q => q.Volunteer)
+                .Include(q => q.SubQuestions);
+            var existingQuestions = questions.Where(e => questionsIds.Contains(e.Id));
             var nonExistingQuestions = questionsIds.Except(existingQuestions.Select(e => e.Id)).ToArray();
             if (nonExistingQuestions.Length > 0)
             {
@@ -179,7 +184,10 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(IEnumerable<QuestionDto>), StatusCodes.Status200OK)]
         public IActionResult Search(QuestionSearchFilterDto filter)
         {
-            var questions = _dbContext.Questions.AsQueryable();
+            IQueryable<Question> questions =  _dbContext.Questions.AsQueryable()
+                .Include(q => q.Course)
+                .Include(q => q.Volunteer)
+                .Include(q => q.SubQuestions);
             var user = this.GetUser();
             if (user == null) { filter.VolunteersIds = null; }
 
