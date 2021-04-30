@@ -2,6 +2,7 @@
 using GradProjectServer.DTO.StudyPlans;
 using GradProjectServer.Services.Infrastructure;
 using System.Linq;
+
 namespace GradProjectServer.Mapping.StudyPlans
 {
     public class StudyPlanProfile : Profile
@@ -9,7 +10,8 @@ namespace GradProjectServer.Mapping.StudyPlans
         public StudyPlanProfile()
         {
             CreateMap<StudyPlanCourse, StudyPlanCourseDto>()
-                .ForMember(d => d.PrerequisiteCourses, op => op.MapFrom(e => e.Prerequisites.Select(p => p.PrerequisiteId)));
+                .ForMember(d => d.PrerequisiteCourses,
+                    op => op.MapFrom(e => e.Prerequisites.Select(p => p.PrerequisiteId).ToArray()));
             CreateMap<StudyPlan, StudyPlanMetadataDto>();
             CreateMap<StudyPlan, StudyPlanDto>()
                 .ConvertUsing<StudyPlanToStudyPlanDtoConverter>();

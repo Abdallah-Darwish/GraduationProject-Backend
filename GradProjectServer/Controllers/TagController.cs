@@ -71,7 +71,7 @@ namespace GradProjectServer.Controllers
             };
             await _dbContext.Tags.AddAsync(newTag).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return CreatedAtAction(nameof(Get), new { tagsIds = new int[] { newTag.Id } }, newTag);
+            return CreatedAtAction(nameof(Get), new { tagsIds = new int[] { newTag.Id } }, _mapper.Map<TagDto>(newTag));
         }
 
         /// <summary>
@@ -105,6 +105,7 @@ namespace GradProjectServer.Controllers
         /// <response code="404">Ids of the non existing tags.</response>
         [AdminFilter]
         [HttpDelete("Delete")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete([FromBody] int[] tagsIds)
         {
