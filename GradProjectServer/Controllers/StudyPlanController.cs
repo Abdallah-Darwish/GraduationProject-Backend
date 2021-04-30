@@ -57,7 +57,7 @@ namespace GradProjectServer.Controllers
                         new ErrorDTO
                         {
                             Description = "The following study plans don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingTags"] = nonExistingStudyPlans }
+                            Data = new Dictionary<string, object> { ["NonExistingStuyPlans"] = nonExistingStudyPlans }
                         });
             }
 

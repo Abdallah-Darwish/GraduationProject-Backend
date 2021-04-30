@@ -1,8 +1,8 @@
 ﻿namespace GradProjectServer.DTO.CourseCategories
 {
-    public class UpdateCourseCatgoryDto
+    public class CourseCategoryDto
     {
         public int Id { get; set; }
-        public string? Name { get; set; }
+        public string Name { get; set; }
     }
 }
