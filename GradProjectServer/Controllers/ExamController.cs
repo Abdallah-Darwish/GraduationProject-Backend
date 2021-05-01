@@ -19,6 +19,25 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class ExamController : ControllerBase
     {
+        private IQueryable<Exam> GetPreparedQueryable(bool metadata = false)
+        {
+            IQueryable<Exam> q = _dbContext.Exams
+                .Include(e => e.Questions)
+                .ThenInclude(q => q.Question)
+                .Include(e => e.Course)
+                .Include(e => e.Volunteer);
+            if (!metadata)
+            {
+                q = q
+                    .Include(e => e.Questions)
+                    .ThenInclude(q => q.Question)
+                    .Include(e => e.Questions)
+                    .ThenInclude(e => e.ExamSubQuestions)
+                    .ThenInclude(e => e.SubQuestion);
+            }
+
+            return q;
+        }
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
 
@@ -70,18 +89,7 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public async  Task<IActionResult> Get([FromBody] int[] examsIds, bool metadata = false)
         {
-            var exams = _dbContext.Exams.Include(e => e.Questions)
-                .ThenInclude(q => q.Question)
-                .ThenInclude(q => q.Course) as IQueryable<Exam>;
-            exams = exams.Include(e => e.Course);
-            exams = exams
-                .Include(e => e.Questions)
-                .ThenInclude(q => q.Question);
-            exams = exams.Include(e => e.Questions)
-                .ThenInclude(e => e.ExamSubQuestions)
-                .ThenInclude(e => e.SubQuestion);
-            exams = exams.Include(e => e.Volunteer);
-            var existingExams = exams.Where(e => examsIds.Contains(e.Id));
+            var existingExams = GetPreparedQueryable(metadata).Where(e => examsIds.Contains(e.Id));
             var nonExistingExams = examsIds.Except(existingExams.Select(e => e.Id)).ToArray();
             if (nonExistingExams.Length > 0)
             {
@@ -126,17 +134,7 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(IEnumerable<ExamMetadataDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Search([FromBody] ExamSearchFilterDto filter)
         {
-            var exams = _dbContext.Exams.Include(e => e.Questions)
-                .ThenInclude(q => q.Question)
-                .ThenInclude(q => q.Course) as IQueryable<Exam>;
-            exams = exams.Include(e => e.Course);
-            exams = exams
-                .Include(e => e.Questions)
-                .ThenInclude(q => q.Question);
-            exams = exams.Include(e => e.Questions)
-                .ThenInclude(e => e.ExamSubQuestions)
-                .ThenInclude(e => e.SubQuestion);
-            exams = exams.Include(e => e.Volunteer);
+            var exams = GetPreparedQueryable(filter.Metadata);
             var user = this.GetUser();
             if (user == null)
             {

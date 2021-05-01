@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace GradProjectServer.Controllers
 {
@@ -18,6 +19,13 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class ExamQuestionController : ControllerBase
     {
+        private IQueryable<ExamQuestion> GetPreparedQueryable()
+        {
+            var q = _dbContext.ExamsQuestions.Include(e => e.Question)
+                .Include(e => e.ExamSubQuestions)
+                .ThenInclude(e => e.SubQuestion);
+            return q;
+        }
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
         public ExamQuestionController(AppDbContext dbContext, IMapper mapper)
@@ -62,7 +70,8 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public ActionResult<IEnumerable<ExamQuestion>> Get([FromBody] int[] examQuestionsIds)
         {
-            var existingExamQuestions = _dbContext.ExamsQuestions.Where(c => examQuestionsIds.Contains(c.Id));
+            var examQuestions = GetPreparedQueryable();
+            var existingExamQuestions = examQuestions.Where(c => examQuestionsIds.Contains(c.Id));
             var nonExistingExamQuestions = examQuestionsIds.Except(existingExamQuestions.Select(c => c.Id)).ToArray();
             if (nonExistingExamQuestions.Length > 0)
             {
@@ -154,6 +163,8 @@ namespace GradProjectServer.Controllers
             };
             await _dbContext.ExamsQuestions.AddAsync(examQuestion).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+            examQuestion =
+                await GetPreparedQueryable().FirstAsync(q => q.Id == examQuestion.Id).ConfigureAwait(false);
             return CreatedAtAction(nameof(Get), new { examQuestionsIds = new int[] { examQuestion.Id } }, _mapper.Map<ExamQuestionDto>(examQuestion));
         }
         /// <summary>Updates an exam question.</summary>

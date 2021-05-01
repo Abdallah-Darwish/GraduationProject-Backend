@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace GradProjectServer.Controllers
 {
@@ -17,13 +18,22 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class ExamSubQuestionController : ControllerBase
     {
+        private IQueryable<ExamSubQuestion> GetPreparedQueryable()
+        {
+            var q = _dbContext.ExamSubQuestions
+                .Include(e => e.SubQuestion);
+            return q;
+        }
+
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
+
         public ExamSubQuestionController(AppDbContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
             _mapper = mapper;
         }
+
         /// <summary>Result is ordered by Id.</summary>
         /// <remarks>
         /// A user has access to:
@@ -41,10 +51,13 @@ namespace GradProjectServer.Controllers
             if (!(user?.IsAdmin ?? false))
             {
                 var userId = user?.Id ?? -1;
-                examSubQuestions = examSubQuestions.Where(e => e.ExamQuestion.Exam.VolunteerId == userId || e.ExamQuestion.Exam.IsApproved);
+                examSubQuestions = examSubQuestions.Where(e =>
+                    e.ExamQuestion.Exam.VolunteerId == userId || e.ExamQuestion.Exam.IsApproved);
             }
+
             return Ok(examSubQuestions.Skip(info.Offset).Take(info.Count).Select(e => e.Id));
         }
+
         /// <param name="examSubQuestionsIds">Ids of the exam sub questions to get.</param>
         /// <remarks>
         /// A user has access to:
@@ -61,17 +74,20 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public ActionResult<IEnumerable<ExamSubQuestionDto>> Get([FromBody] int[] examSubQuestionsIds)
         {
-            var existingExamSubQuestions = _dbContext.ExamSubQuestions.Where(c => examSubQuestionsIds.Contains(c.Id));
-            var nonExistingExamSubQuestions = examSubQuestionsIds.Except(existingExamSubQuestions.Select(c => c.Id)).ToArray();
+            var existingExamSubQuestions = GetPreparedQueryable().Where(c => examSubQuestionsIds.Contains(c.Id));
+            var nonExistingExamSubQuestions =
+                examSubQuestionsIds.Except(existingExamSubQuestions.Select(c => c.Id)).ToArray();
             if (nonExistingExamSubQuestions.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following exam sub questions don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingExamSubQuestions"] = nonExistingExamSubQuestions }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following exam sub questions don't exist.",
+                        Data = new Dictionary<string, object>
+                            {["NonExistingExamSubQuestions"] = nonExistingExamSubQuestions}
+                    });
             }
+
             var user = this.GetUser();
             if (!(user?.IsAdmin ?? false))
             {
@@ -86,12 +102,15 @@ namespace GradProjectServer.Controllers
                         new ErrorDTO
                         {
                             Description = "User doesn't own the following not approved exam sub questions.",
-                            Data = new Dictionary<string, object> { ["NotOwnedNotApprovedExamQuestions"] = notOwnedExamSubQuestions }
+                            Data = new Dictionary<string, object>
+                                {["NotOwnedNotApprovedExamQuestions"] = notOwnedExamSubQuestions}
                         });
                 }
             }
+
             return Ok(_mapper.ProjectTo<ExamSubQuestionDto>(existingExamSubQuestions));
         }
+
         /// <summary>Deletes the specified exam sub questions.</summary>
         /// <param name="examSubQuestionsIds">Ids of exam sub question to delete.</param>
         /// <remarks>
@@ -110,37 +129,42 @@ namespace GradProjectServer.Controllers
         public async Task<IActionResult> Delete([FromBody] int[] examSubQuestionsIds)
         {
             var existingExamSubQuestions = _dbContext.ExamSubQuestions.Where(c => examSubQuestionsIds.Contains(c.Id));
-            var nonExistingExamSubQuestions = examSubQuestionsIds.Except(existingExamSubQuestions.Select(c => c.Id)).ToArray();
+            var nonExistingExamSubQuestions =
+                examSubQuestionsIds.Except(existingExamSubQuestions.Select(c => c.Id)).ToArray();
             if (nonExistingExamSubQuestions.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
+                    new ErrorDTO
+                    {
+                        Description = "The following exam sub questions don't exist.",
+                        Data = new Dictionary<string, object>
                         {
-                            Description = "The following exam sub questions don't exist.",
-                            Data = new Dictionary<string, object>
-                            {
-                                ["NonExistingExamSubQuestions"] = nonExistingExamSubQuestions
-                            }
-                        });
+                            ["NonExistingExamSubQuestions"] = nonExistingExamSubQuestions
+                        }
+                    });
             }
+
             var user = this.GetUser()!;
             if (!user.IsAdmin)
             {
-                var approvedExamQuestionsIds = existingExamSubQuestions.Where(sq => sq.ExamQuestion.Exam.IsApproved).Select(sq => sq.Id).ToArray();
+                var approvedExamQuestionsIds = existingExamSubQuestions.Where(sq => sq.ExamQuestion.Exam.IsApproved)
+                    .Select(sq => sq.Id).ToArray();
                 return StatusCode(StatusCodes.Status403Forbidden,
-                        new ErrorDTO
+                    new ErrorDTO
+                    {
+                        Description = "The following exam sub questions are already approved so they can't be updated.",
+                        Data = new Dictionary<string, object>
                         {
-                            Description = "The following exam sub questions are already approved so they can't be updated.",
-                            Data = new Dictionary<string, object>
-                            {
-                                ["ApprovedExamSubQuestions"] = approvedExamQuestionsIds
-                            }
-                        });
+                            ["ApprovedExamSubQuestions"] = approvedExamQuestionsIds
+                        }
+                    });
             }
+
             _dbContext.ExamSubQuestions.RemoveRange(existingExamSubQuestions);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
+
         /// <summary>Creates a new exam sub question.</summary>
         /// <response code="201">The newly created exam sub question.</response>
         [LoggedInFilter]
@@ -157,8 +181,12 @@ namespace GradProjectServer.Controllers
             };
             await _dbContext.ExamSubQuestions.AddAsync(examSubQuestion).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return CreatedAtAction(nameof(Get), new { examSubQuestionsIds = new int[] { examSubQuestion.Id } }, _mapper.Map<ExamSubQuestionDto>(examSubQuestion));
+            examSubQuestion = await GetPreparedQueryable().FirstAsync(sq => sq.Id == examSubQuestion.Id)
+                .ConfigureAwait(false);
+            return CreatedAtAction(nameof(Get), new {examSubQuestionsIds = new int[] {examSubQuestion.Id}},
+                _mapper.Map<ExamSubQuestionDto>(examSubQuestion));
         }
+
         /// <summary>Updates an exam sub question.</summary>
         [LoggedInFilter]
         [HttpPatch("Update")]
@@ -175,6 +203,7 @@ namespace GradProjectServer.Controllers
             {
                 examSubQuestion.Order = update.Order.Value;
             }
+
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }

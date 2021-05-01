@@ -18,13 +18,29 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class QuestionController : ControllerBase
     {
+        private IQueryable<Question> GetPreparedQueryable(bool metadata = false)
+        {
+            var q = _dbContext.Questions
+                .Include(q => q.Course)
+                .AsQueryable();
+            if (!metadata)
+            {
+                q = q.Include(e => e.Volunteer)
+                    .Include(e => e.SubQuestions);
+            }
+
+            return q;
+        }
+
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
+
         public QuestionController(AppDbContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
             _mapper = mapper;
         }
+
         /// <summary>Result is ordered by title ascending.</summary>
         /// <remarks>
         /// A user has access to:
@@ -39,14 +55,16 @@ namespace GradProjectServer.Controllers
         {
             var questions = _dbContext.Questions.AsQueryable();
             var user = this.GetUser();
-            if(!(user?.IsAdmin ?? false))
+            if (!(user?.IsAdmin ?? false))
             {
                 var userId = user?.Id ?? -1;
                 questions = questions.Where(q => q.IsApproved || q.VolunteerId == userId);
             }
+
             questions = questions.OrderBy(q => q.Title);
             return Ok(questions.Skip(info.Offset).Take(info.Count).Select(q => q.Id));
         }
+
         /// <param name="questionsIds">Ids of the questions to get.</param>
         /// <param name="metadata">Whether to return QuestionMetadataDto or QuestionDto.</param>
         /// <remarks>
@@ -65,45 +83,46 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public IActionResult Get([FromBody] int[] questionsIds, [FromQuery] bool metadata = false)
         {
-
-            var questions =  _dbContext.Questions.AsQueryable()
-                .Include(q => q.Course)
-                .Include(q => q.Volunteer)
-                .Include(q => q.SubQuestions);
+            var questions = GetPreparedQueryable(metadata);
             var existingQuestions = questions.Where(e => questionsIds.Contains(e.Id));
             var nonExistingQuestions = questionsIds.Except(existingQuestions.Select(e => e.Id)).ToArray();
             if (nonExistingQuestions.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
+                    new ErrorDTO
+                    {
+                        Description = "The following questions don't exist.",
+                        Data = new Dictionary<string, object>
                         {
-                            Description = "The following questions don't exist.",
-                            Data = new Dictionary<string, object> 
-                            { 
-                                ["NonExistingQuestions"] = nonExistingQuestions 
-                            }
-                        });
+                            ["NonExistingQuestions"] = nonExistingQuestions
+                        }
+                    });
             }
+
             var user = this.GetUser();
             if (user?.IsAdmin ?? false)
             {
-                var notOwnedQuestions = existingQuestions.Where(e => e.VolunteerId != user.Id && !e.IsApproved).ToArray();
+                var notOwnedQuestions =
+                    existingQuestions.Where(e => e.VolunteerId != user.Id && !e.IsApproved).ToArray();
                 if (notOwnedQuestions.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,
                         new ErrorDTO
                         {
                             Description = "User dosn't own the following not approved questions.",
-                            Data = new Dictionary<string, object> { ["NotOwnedNotApprovedQuestions"] = notOwnedQuestions }
+                            Data = new Dictionary<string, object> {["NotOwnedNotApprovedQuestions"] = notOwnedQuestions}
                         });
                 }
             }
+
             if (metadata)
             {
                 return Ok(_mapper.ProjectTo<QuestionMetadataDto>(existingQuestions));
             }
+
             return Ok(_mapper.ProjectTo<QuestionDto>(existingQuestions));
         }
+
         /// <summary>Deletes the specified questions.</summary>
         /// <param name="questionsIds">Ids of the questions to delete.</param>
         /// <remarks>
@@ -114,7 +133,6 @@ namespace GradProjectServer.Controllers
         /// </remarks>
         /// <response code="404">Ids of the non existing questions.</response>
         /// <response code="403">Ids of the questions user can't modify.</response>
-
         [LoggedInFilter]
         [HttpDelete("Delete")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -127,12 +145,13 @@ namespace GradProjectServer.Controllers
             if (nonExistingQuestions.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following questions don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingQuestions"] = nonExistingQuestions }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following questions don't exist.",
+                        Data = new Dictionary<string, object> {["NonExistingQuestions"] = nonExistingQuestions}
+                    });
             }
+
             var user = this.GetUser()!;
             if (!user.IsAdmin)
             {
@@ -146,14 +165,17 @@ namespace GradProjectServer.Controllers
                         new ErrorDTO
                         {
                             Description = "User dosn't own the following or they are approved.",
-                            Data = new Dictionary<string, object> { ["NotOwnedOrApprovedQuestions"] = approvedOrNotOwnedQuestions }
+                            Data = new Dictionary<string, object>
+                                {["NotOwnedOrApprovedQuestions"] = approvedOrNotOwnedQuestions}
                         });
                 }
             }
+
             _dbContext.Questions.RemoveRange(existingQuestions);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
+
         /// <summary>Creates a new question.</summary>
         /// <response code="201">Metadata of the newly created question.</response>
         [LoggedInFilter]
@@ -173,8 +195,10 @@ namespace GradProjectServer.Controllers
             question.SubQuestions = new List<SubQuestion>();
             await _dbContext.Questions.AddAsync(question).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return CreatedAtAction(nameof(Get), new { questionsIds = new int[] { question.Id }, metadata = true }, _mapper.Map<QuestionMetadataDto>(question));
+            return CreatedAtAction(nameof(Get), new {questionsIds = new int[] {question.Id}, metadata = true},
+                _mapper.Map<QuestionMetadataDto>(question));
         }
+
         /// <summary>
         /// Returns questions that satisfy the filters ordered by title.
         /// </summary>
@@ -184,50 +208,59 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(IEnumerable<QuestionDto>), StatusCodes.Status200OK)]
         public IActionResult Search(QuestionSearchFilterDto filter)
         {
-            IQueryable<Question> questions =  _dbContext.Questions.AsQueryable()
-                .Include(q => q.Course)
-                .Include(q => q.Volunteer)
-                .Include(q => q.SubQuestions);
+            IQueryable<Question> questions = GetPreparedQueryable(filter.Metadata);
             var user = this.GetUser();
-            if (user == null) { filter.VolunteersIds = null; }
+            if (user == null)
+            {
+                filter.VolunteersIds = null;
+            }
 
             if (!(user?.IsAdmin ?? false))
             {
                 var userId = user?.Id ?? -1;
                 questions = questions.Where(q => q.IsApproved || q.VolunteerId == userId);
             }
+
             if (filter.TitleMask != null)
             {
                 questions = questions.Where(e => EF.Functions.Like(e.Title, filter.TitleMask));
             }
+
             if ((filter.QuestionsIds?.Length ?? 0) > 0)
             {
                 questions = questions.Where(e => filter.QuestionsIds!.Contains(e.Id));
             }
+
             if ((filter.CoursesIds?.Length ?? 0) > 0)
             {
                 questions = questions.Where(e => filter.CoursesIds!.Contains(e.CourseId));
             }
+
             if ((filter.TagsIds?.Length ?? 0) > 0)
             {
                 //probably very bad and I have to write the sql manually
                 questions = questions.Where(e => !filter.TagsIds!.Except(e.Tags.Select(e => e.Id)).Any());
             }
+
             if (filter.IsApproved.HasValue)
             {
                 questions = questions.Where(e => e.IsApproved == filter.IsApproved.Value);
             }
+
             if ((filter.VolunteersIds?.Length ?? 0) > 0)
             {
                 questions = questions.Where(e => filter.VolunteersIds!.Contains(e.VolunteerId));
             }
+
             var result = questions.OrderBy(e => e.Title).Skip(filter.Offset).Take(filter.Count);
             if (filter.Metadata)
             {
                 return Ok(_mapper.ProjectTo<QuestionMetadataDto>(result));
             }
+
             return Ok(_mapper.ProjectTo<QuestionDto>(result));
         }
+
         /// <summary>
         /// Updates a question.
         /// </summary>
@@ -244,17 +277,19 @@ namespace GradProjectServer.Controllers
             {
                 question.Content = update.Content;
             }
+
             if (update.CourseId.HasValue)
             {
                 question.CourseId = update.CourseId.Value;
             }
+
             if (update.Title != null)
             {
                 question.Title = update.Title;
             }
+
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
-
     }
 }

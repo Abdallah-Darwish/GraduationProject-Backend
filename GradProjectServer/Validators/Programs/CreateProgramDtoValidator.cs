@@ -26,10 +26,6 @@ namespace GradProjectServer.Validators.Programs
         }
         public CreateProgramDtoValidator(AppDbContext dbContext)
         {
-            RuleForEach(d => d.Dependencies)
-                .MustAsync(async (id, _) => (await dbContext.Dependencies.FindAsync(id).ConfigureAwait(false)) != null)
-                .WithMessage((_, id) => "Dependency(Id: {PropertyValue}) doens't exist.")
-                .When(d => d.Dependencies != null);
             RuleFor(d => d.ArchiveBase64)
                 .Custom((base64, ctx) =>
                 {

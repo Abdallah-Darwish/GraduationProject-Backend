@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace GradProjectServer.Controllers
 {
@@ -15,6 +16,17 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class UserController : ControllerBase
     {
+        private IQueryable<User> GetPreparedQueryable(bool metadata = false)
+        {
+            var q = _dbContext.Users.AsQueryable();
+            if (!metadata)
+            {
+                q = q.Include(u => u.StudyPlan)
+                    .ThenInclude(s => s.Major);
+            }
+
+            return q;
+        }
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
         private readonly UserManager _userManager;
@@ -58,7 +70,8 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public IActionResult Get([FromBody] int[] usersIds, bool metadata = false)
         {
-            var existingUsers = _dbContext.Users.Where(e => usersIds.Contains(e.Id));
+            var users = GetPreparedQueryable(metadata);
+            var existingUsers = users.Where(e => usersIds.Contains(e.Id));
             var nonExistingUsers = usersIds.Except(existingUsers.Select(e => e.Id)).ToArray();
             if (nonExistingUsers.Length > 0)
             {

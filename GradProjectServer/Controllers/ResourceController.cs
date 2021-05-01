@@ -36,6 +36,15 @@ namespace GradProjectServer.Controllers
                 Directory.CreateDirectory(ResourcesDirectory);
             }
         }
+
+        private IQueryable<Resource> GetPreparedQueryable()
+        {
+            var q = _dbContext.Resources
+                .Include(r => r.Course)
+                .Include(r => r.Volunteer);
+            return q;
+        }
+
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
 
@@ -88,7 +97,8 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public IActionResult Get([FromBody] int[] resourcesIds)
         {
-            var existingResources = _dbContext.Resources.Where(r => resourcesIds.Contains(r.Id));
+            var resources = GetPreparedQueryable();
+            var existingResources =  resources.Where(r => resourcesIds.Contains(r.Id));
             var nonExistingResources = resourcesIds.Except(existingResources.Select(r => r.Id)).ToArray();
             if (nonExistingResources.Length > 0)
             {
@@ -128,7 +138,7 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(IEnumerable<ResourceDto>), StatusCodes.Status200OK)]
         public IActionResult Search([FromBody] ResourceSearchFilterDto filter)
         {
-            var resources = _dbContext.Resources.AsQueryable();
+            var resources = GetPreparedQueryable();
             var user = this.GetUser();
             if (!(user?.IsAdmin ?? false))
             {

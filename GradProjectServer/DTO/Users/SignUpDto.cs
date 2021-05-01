@@ -4,7 +4,7 @@
     //todo: validate email is not used before
     //todo: validate password constraints
     //todo: validate ProfilePictureBase64 is a valid jpg
-
+//todo: validate mail domain
     public class SignUpDto
     {
         public string Name { get; set; }

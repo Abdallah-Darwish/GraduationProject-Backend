@@ -20,6 +20,29 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class StudyPlanController : ControllerBase
     {
+        private IQueryable<StudyPlan> GetPreparedQueryable(bool metadata = false)
+        {
+            var q = _dbContext.StudyPlans
+                .Include(s => s.Major)
+                .AsQueryable();
+            if (!metadata)
+            {
+                q = q.Include(s => s.CourseCategories)
+                    .ThenInclude(s => s.Category)
+                    .Include(s => s.CourseCategories)
+                    .ThenInclude(s => s.Courses)
+                    .ThenInclude(s => s.Course)
+                    .Include(s => s.CourseCategories)
+                    .ThenInclude(s => s.Courses)
+                    .ThenInclude(s => s.Prerequisites)
+                    .Include(s => s.CourseCategories)
+                    .ThenInclude(s => s.Courses)
+                    .ThenInclude(s => s.Prerequisites)
+                    .ThenInclude(s => s.Course);
+            }
+
+            return q;
+        }
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
 
@@ -41,15 +64,16 @@ namespace GradProjectServer.Controllers
                 .Select(t => t.Id));
         }
         /// <param name="studyPlansIds">Ids of the study plans to get.</param>
+        /// <param name="metadata">Whether to return StudyPlanDto or StudyPlanMetadataDto.</param>
         /// <response code="404">Ids of the non existing study plans.</response>
-
         [HttpPost("Get")]
         [ProducesResponseType(typeof(IEnumerable<StudyPlanDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(IEnumerable<StudyPlanMetadataDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
         public IActionResult Get([FromBody] int[] studyPlansIds, [FromQuery] bool metadata = false)
         {
-            var existingStudyPlans = _dbContext.StudyPlans.Where(c => studyPlansIds.Contains(c.Id));
+            var studyPlans = GetPreparedQueryable(metadata);
+            var existingStudyPlans = studyPlans.Where(c => studyPlansIds.Contains(c.Id));
             var nonExistingStudyPlans = studyPlansIds.Except(existingStudyPlans.Select(c => c.Id)).ToArray();
             if (nonExistingStudyPlans.Length > 0)
             {

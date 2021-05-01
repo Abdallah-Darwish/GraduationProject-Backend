@@ -20,6 +20,39 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class SubQuestionController : ControllerBase
     {
+        private IQueryable<BlankSubQuestion> GetPreparedBlankQueryable(bool metadata = false)
+        {
+            var q = _dbContext.BlankSubQuestions.AsQueryable();
+            if (!metadata)
+            {
+                q = q.Include(e => e.Tags)
+                    .Include(e => e.Checker);
+            }
+
+            return q;
+        }
+        private IQueryable<MCQSubQuestion> GetPreparedMCQQueryable(bool metadata = false)
+        {
+            var q = _dbContext.MCQSubQuestions.AsQueryable();
+            if (!metadata)
+            {
+                q = q.Include(e => e.Tags)
+                    .Include(e => e.Choices);
+            }
+
+            return q;
+        }
+        private IQueryable<ProgrammingSubQuestion> GetPreparedProgrammingQueryable(bool metadata = false)
+        {
+            var q = _dbContext.ProgrammingSubQuestions.AsQueryable();
+            if (!metadata)
+            {
+                q = q.Include(e => e.Tags)
+                    .Include(e => e.Checker);
+            }
+
+            return q;
+        }
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
         private readonly IProgramService _programService;
@@ -103,21 +136,24 @@ namespace GradProjectServer.Controllers
                 }
             }
             var result = new List<SubQuestion>();
+            var mcqQueryable = GetPreparedMCQQueryable(metadata);
+            var blankQueryable = GetPreparedMCQQueryable(metadata);
+            var programmingQueryable = GetPreparedMCQQueryable(metadata);
             foreach (var q in existingSubQuestions)
             {
                 result.Add(q.Type switch
                 {
                     SubQuestionType.MultipleChoice =>
-                        await _dbContext.MCQSubQuestions.FindAsync(q.Id).ConfigureAwait(false),
+                        await mcqQueryable.FirstAsync(e => e.Id == q.Id).ConfigureAwait(false),
                     SubQuestionType.Blank =>
-                        await _dbContext.BlankSubQuestions.FindAsync(q.Id).ConfigureAwait(false),
+                        await blankQueryable.FirstAsync(e => e.Id == q.Id).ConfigureAwait(false),
                     SubQuestionType.Programming =>
-                        await _dbContext.ProgrammingSubQuestions.FindAsync(q.Id).ConfigureAwait(false),
+                        await programmingQueryable.FirstAsync(e => e.Id == q.Id).ConfigureAwait(false),
                 });
             }
             if (metadata)
             {
-                return Ok(_mapper.Map<List<SubQuestionMetadataDto>>(existingSubQuestions));
+                return Ok(_mapper.Map<List<SubQuestionMetadataDto>>(result));
             }
             var resultDtos = result.Select(q =>
             {

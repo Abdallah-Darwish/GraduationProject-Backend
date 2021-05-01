@@ -18,6 +18,18 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class MajorController : ControllerBase
     {
+        private IQueryable<Major> GetPreparedQueryable(bool metadata = false)
+        {
+            IQueryable<Major> q = _dbContext.Majors;
+               
+            if (!metadata)
+            {
+                q = q
+                    .Include(e => e.StudyPlans)
+                    .ThenInclude(q => q.Major);
+            }
+            return q;
+        }
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
         public MajorController(AppDbContext dbContext, IMapper mapper)
@@ -41,7 +53,8 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
         public IActionResult Get([FromBody] int[] majorsIds, [FromQuery] bool metadata = false)
         {
-            var existingMajors = _dbContext.Majors.Where(c => majorsIds.Contains(c.Id));
+            var majors = GetPreparedQueryable(metadata);
+            var existingMajors = majors.Where(c => majorsIds.Contains(c.Id));
             var nonExistingMajors = majorsIds.Except(existingMajors.Select(c => c.Id)).ToArray();
             if (nonExistingMajors.Length > 0)
             {

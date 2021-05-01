@@ -22,6 +22,7 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class StudyPlanCourseCategoryController : ControllerBase
     {
+        
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
 
