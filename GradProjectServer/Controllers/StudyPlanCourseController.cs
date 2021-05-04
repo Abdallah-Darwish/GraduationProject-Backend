@@ -74,17 +74,21 @@ namespace GradProjectServer.Controllers
         {
             var studyPlanCourse =
                 await _dbContext.StudyPlansCourses.FindAsync(update.Id).ConfigureAwait(false);
-            if (update.PrerequisitesToDelete!= null)
+            if (update.PrerequisitesToDelete != null)
             {
                 var prerequisitesToDeleteSet = update.PrerequisitesToDelete.ToHashSet();
                 foreach (var pre in studyPlanCourse.Prerequisites)
                 {
-                    if(!prerequisitesToDeleteSet.Contains(pre.CourseId)){continue;}
+                    if (!prerequisitesToDeleteSet.Contains(pre.CourseId))
+                    {
+                        continue;
+                    }
 
                     studyPlanCourse.Prerequisites.Remove(pre);
                 }
             }
-            if (update.PrerequisitesToAdd!= null)
+
+            if (update.PrerequisitesToAdd != null)
             {
                 var prerequisites = update.PrerequisitesToAdd.Select(p => new StudyPlanCoursePrerequisite
                 {
@@ -93,6 +97,7 @@ namespace GradProjectServer.Controllers
                 });
                 await _dbContext.StudyPlansCoursesPrerequisites.AddRangeAsync(prerequisites).ConfigureAwait(false);
             }
+
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }

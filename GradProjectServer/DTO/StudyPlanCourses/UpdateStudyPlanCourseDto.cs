@@ -3,6 +3,7 @@ namespace GradProjectServer.DTO.StudyPlanCourses
     public class UpdateStudyPlanCourseDto
     {
         public int Id { get; set; }
+
         /// <summary>
         /// Ids of StudyPlanCourse prerequisites.
         /// </summary>

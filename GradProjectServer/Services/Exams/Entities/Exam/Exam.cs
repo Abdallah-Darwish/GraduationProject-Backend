@@ -10,7 +10,6 @@ using System.Linq;
 
 namespace GradProjectServer.Services.Exams.Entities
 {
-
     public class Exam
     {
         public int Id { get; set; }
@@ -25,7 +24,10 @@ namespace GradProjectServer.Services.Exams.Entities
         public Course Course { get; set; }
         public int VolunteerId { get; set; }
         public User Volunteer { get; set; }
-        public IEnumerable<Tag> Tags => Questions.SelectMany(e => e.Question.SubQuestions.SelectMany(q => q.Tags.Select(t => t.Tag))).Distinct();
+
+        public IEnumerable<Tag> Tags => Questions
+            .SelectMany(e => e.Question.SubQuestions.SelectMany(q => q.Tags.Select(t => t.Tag))).Distinct();
+
         public static void ConfigureEntity(EntityTypeBuilder<Exam> b)
         {
             b.HasKey(e => e.Id);
@@ -59,15 +61,20 @@ namespace GradProjectServer.Services.Exams.Entities
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
-            b.HasCheckConstraint("CK_EXAM_YEAR", $"\"{ nameof(Year)}\" >= 1");
+            b.HasCheckConstraint("CK_EXAM_YEAR", $"\"{nameof(Year)}\" >= 1");
             b.HasCheckConstraint("CK_EXAM_DURATION", $"\"{nameof(Duration)}\" > 0");
         }
+
         private static Exam[]? _seed = null;
+
         public static Exam[] Seed
         {
             get
             {
-                if (_seed != null) { return _seed; }
+                if (_seed != null)
+                {
+                    return _seed;
+                }
 
                 Random rand = new();
                 List<Exam> seed = new();
@@ -100,10 +107,12 @@ namespace GradProjectServer.Services.Exams.Entities
                         seed.Add(exam);
                     }
                 }
+
                 for (int i = 1; i <= seed.Count; i++)
                 {
                     seed[i - 1].Id = i;
                 }
+
                 _seed = seed.ToArray();
                 return _seed;
             }

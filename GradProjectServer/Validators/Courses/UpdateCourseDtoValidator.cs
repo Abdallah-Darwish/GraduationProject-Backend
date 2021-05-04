@@ -12,8 +12,8 @@ namespace GradProjectServer.Validators.Courses
                 .MustAsync(async (id, _) => (await dbContext.Courses.FindAsync(id).ConfigureAwait(false)) != null)
                 .WithMessage("Course(Id: {PropertyValue}) doesn't exist.");
             RuleFor(d => d.Name)
-               .NotEmpty()
-               .When(d => d.Name != null);
+                .NotEmpty()
+                .When(d => d.Name != null);
             RuleFor(d => d.CreditHours)
                 .GreaterThanOrEqualTo(1)
                 .WithMessage("{PropertyName} must be >= {ComparisonValue}.")

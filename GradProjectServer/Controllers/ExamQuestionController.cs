@@ -14,7 +14,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GradProjectServer.Controllers
 {
-
     [ApiController]
     [Route("[controller]")]
     public class ExamQuestionController : ControllerBase
@@ -26,13 +25,16 @@ namespace GradProjectServer.Controllers
                 .ThenInclude(e => e.SubQuestion);
             return q;
         }
+
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
+
         public ExamQuestionController(AppDbContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
             _mapper = mapper;
         }
+
         /// <summary>Result is ordered by Id.</summary>
         /// <remarks>
         /// A user has access to:
@@ -52,8 +54,10 @@ namespace GradProjectServer.Controllers
                 var userId = user?.Id ?? -1;
                 examQuestions = examQuestions.Where(e => e.Exam.VolunteerId == userId || e.Exam.IsApproved);
             }
+
             return Ok(examQuestions.Skip(info.Offset).Take(info.Count).Select(e => e.Id));
         }
+
         /// <param name="examQuestionsIds">Ids of the exam questions to get.</param>
         /// <remarks>
         /// A user has access to:
@@ -76,12 +80,13 @@ namespace GradProjectServer.Controllers
             if (nonExistingExamQuestions.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following exam questions don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingExamQuestions"] = nonExistingExamQuestions }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following exam questions don't exist.",
+                        Data = new Dictionary<string, object> {["NonExistingExamQuestions"] = nonExistingExamQuestions}
+                    });
             }
+
             var user = this.GetUser();
             if (!(user?.IsAdmin ?? false))
             {
@@ -96,12 +101,15 @@ namespace GradProjectServer.Controllers
                         new ErrorDTO
                         {
                             Description = "User doesn't own the following not approved exam questions.",
-                            Data = new Dictionary<string, object> { ["NotOwnedNotApprovedExamQuestions"] = notOwnedExamQuestions }
+                            Data = new Dictionary<string, object>
+                                {["NotOwnedNotApprovedExamQuestions"] = notOwnedExamQuestions}
                         });
                 }
             }
+
             return Ok(_mapper.ProjectTo<ExamQuestionDto>(existingExamQuestions));
         }
+
         /// <summary>Deletes the specified exam questions.</summary>
         /// <param name="examQuestionsIds">Ids of exam question to delete.</param>
         /// <remarks>
@@ -124,30 +132,34 @@ namespace GradProjectServer.Controllers
             if (nonExistingExamQuestions.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
+                    new ErrorDTO
+                    {
+                        Description = "The following exam questions don't exist.",
+                        Data = new Dictionary<string, object>
                         {
-                            Description = "The following exam questions don't exist.",
-                            Data = new Dictionary<string, object> 
-                            {
-                                ["NonExistingExamQuestions"] = nonExistingExamQuestions
-                            }
-                        });
+                            ["NonExistingExamQuestions"] = nonExistingExamQuestions
+                        }
+                    });
             }
+
             var user = this.GetUser()!;
             if (!user.IsAdmin)
             {
-                var approvedExamQuestionsIds = existingExamQuestions.Where(q => q.Exam.IsApproved).Select(q => q.Id).ToArray();
+                var approvedExamQuestionsIds =
+                    existingExamQuestions.Where(q => q.Exam.IsApproved).Select(q => q.Id).ToArray();
                 return StatusCode(StatusCodes.Status403Forbidden,
-                        new ErrorDTO
-                        {
-                            Description = "The following exam questions are already approved so they can't be updated.",
-                            Data = new Dictionary<string, object> { ["ApprovedExamQuestions"] = approvedExamQuestionsIds }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following exam questions are already approved so they can't be updated.",
+                        Data = new Dictionary<string, object> {["ApprovedExamQuestions"] = approvedExamQuestionsIds}
+                    });
             }
+
             _dbContext.ExamsQuestions.RemoveRange(existingExamQuestions);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
+
         /// <summary>Creates a new exam question.</summary>
         /// <response code="201">The newly created exam question.</response>
         [LoggedInFilter]
@@ -165,8 +177,10 @@ namespace GradProjectServer.Controllers
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             examQuestion =
                 await GetPreparedQueryable().FirstAsync(q => q.Id == examQuestion.Id).ConfigureAwait(false);
-            return CreatedAtAction(nameof(Get), new { examQuestionsIds = new int[] { examQuestion.Id } }, _mapper.Map<ExamQuestionDto>(examQuestion));
+            return CreatedAtAction(nameof(Get), new {examQuestionsIds = new int[] {examQuestion.Id}},
+                _mapper.Map<ExamQuestionDto>(examQuestion));
         }
+
         /// <summary>Updates an exam question.</summary>
         [LoggedInFilter]
         [HttpPatch("Updated")]
@@ -178,6 +192,7 @@ namespace GradProjectServer.Controllers
             {
                 examQuestion.Order = update.Order.Value;
             }
+
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }

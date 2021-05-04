@@ -16,11 +16,13 @@ namespace GradProjectServer.Validators.Exams
             RuleFor(d => d.MinDuration)
                 .LessThan(d => d.MaxDuration)
                 .When(d => d.MinDuration.HasValue && d.MaxDuration.HasValue)
-                .WithMessage($"{nameof(ExamSearchFilterDto.MinDuration)} must be <= ${ nameof(ExamSearchFilterDto.MaxDuration)}.");
+                .WithMessage(
+                    $"{nameof(ExamSearchFilterDto.MinDuration)} must be <= ${nameof(ExamSearchFilterDto.MaxDuration)}.");
             RuleFor(d => d.MinYear)
                 .LessThan(d => d.MaxYear)
                 .When(d => d.MinYear.HasValue && d.MaxYear.HasValue)
-                .WithMessage($"{nameof(ExamSearchFilterDto.MinYear)} must be <= ${ nameof(ExamSearchFilterDto.MaxYear)}.");
+                .WithMessage(
+                    $"{nameof(ExamSearchFilterDto.MinYear)} must be <= ${nameof(ExamSearchFilterDto.MaxYear)}.");
         }
     }
 }

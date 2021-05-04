@@ -12,7 +12,6 @@ namespace GradProjectServer.Mapping.Exams
                 .ConvertUsing<ExamToExamMetadataConverter>();
             CreateMap<Exam, ExamDto>()
                 .ConvertUsing<ExamToExamDtoConverter>();
-
         }
     }
 }

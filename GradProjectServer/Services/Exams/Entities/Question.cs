@@ -20,10 +20,11 @@ namespace GradProjectServer.Services.Exams.Entities
         public int VolunteerId { get; set; }
         public User Volunteer { get; set; }
         public IEnumerable<Tag> Tags => SubQuestions.SelectMany(s => s.Tags.Select(t => t.Tag)).Distinct();
+
         public static void ConfigureEntity(EntityTypeBuilder<Question> b)
         {
             b.ToTable(nameof(Question))
-               .HasKey(q => q.Id);
+                .HasKey(q => q.Id);
             b.Property(q => q.Title)
                 .IsUnicode()
                 .IsRequired();
@@ -44,12 +45,18 @@ namespace GradProjectServer.Services.Exams.Entities
                 .HasForeignKey(b => b.VolunteerId)
                 .IsRequired();
         }
+
         private static Question[]? _seed = null;
+
         public static Question[] Seed
         {
             get
             {
-                if (_seed != null) { return _seed; }
+                if (_seed != null)
+                {
+                    return _seed;
+                }
+
                 var rand = new Random();
                 var seed = new List<Question>();
                 var courses = Course.Seed;
@@ -71,6 +78,7 @@ namespace GradProjectServer.Services.Exams.Entities
                     };
                     seed.Add(question);
                 }
+
                 _seed = seed.ToArray();
                 return _seed;
             }

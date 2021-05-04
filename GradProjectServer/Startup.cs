@@ -15,6 +15,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using GradProjectServer.Controllers;
+using GradProjectServer.Services.Exams.Entities;
+using GradProjectServer.Services.FilesManagers;
 using GradProjectServer.Services.UserSystem;
 using SkiaSharp;
 
@@ -35,6 +37,12 @@ namespace GradProjectServer
             //todo: please see https://github.com/micro-elements/MicroElements.Swashbuckle.FluentValidation
             services.AddCors();
             services.AddScoped<DbManager>();
+            services.AddScoped<UserManager>();
+            services.AddScoped<BlankSubQuestionFileManager>()
+                .AddScoped<ProgrammingSubQuestionAnswerFileManager>()
+                .AddScoped<ProgrammingSubQuestionFileManager>()
+                .AddScoped<ResourceFileManager>()
+                .AddScoped<UserFileManager>();
             services.AddScoped<UserManager>();
             services.AddHttpContextAccessor();
             services.AddControllers()
@@ -78,7 +86,7 @@ namespace GradProjectServer
             var appOptions = Configuration
                 .GetSection(AppOptions.SectionName)
                 .Get<AppOptions>();
-            
+
             services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(appOptions.BuildAppConnectionString()),
                 contextLifetime: ServiceLifetime.Scoped,
                 optionsLifetime: ServiceLifetime.Singleton);
@@ -91,11 +99,15 @@ namespace GradProjectServer
             IServiceProvider serviceProvider)
         {
             UserManager.Init(serviceProvider);
-            ResourceController.Init(serviceProvider);
-            
+            UserFileManager.Init(serviceProvider);
+            ProgrammingSubQuestionFileManager.Init(serviceProvider);
+            BlankSubQuestionFileManager.Init(serviceProvider);
+            ProgrammingSubQuestionAnswerFileManager.Init(serviceProvider);
+            ResourceFileManager.Init(serviceProvider);
+
             dbManager.EnsureDb().Wait();
 
-            
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

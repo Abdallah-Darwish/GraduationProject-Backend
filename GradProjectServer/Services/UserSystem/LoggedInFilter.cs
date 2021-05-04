@@ -1,10 +1,6 @@
-﻿using GradProjectServer.Controllers;
-using GradProjectServer.Db;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradProjectServer.Services.UserSystem
 {
@@ -23,6 +19,7 @@ namespace GradProjectServer.Services.UserSystem
                 };
                 return;
             }
+
             context.HttpContext.Features.Set(user);
             base.OnActionExecuting(context);
         }

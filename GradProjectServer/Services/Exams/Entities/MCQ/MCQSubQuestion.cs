@@ -9,25 +9,35 @@ namespace GradProjectServer.Services.Exams.Entities
     {
         public bool IsCheckBox { get; set; }
         public ICollection<MCQSubQuestionChoice> Choices { get; set; }
+
         public static void ConfigureEntity(EntityTypeBuilder<MCQSubQuestion> b)
         {
             b.HasBaseType<SubQuestion>()
-             .ToTable(nameof(MCQSubQuestion));
+                .ToTable(nameof(MCQSubQuestion));
             b.Property(m => m.IsCheckBox)
                 .IsRequired();
         }
+
         private static MCQSubQuestion[]? _seed = null;
+
         public static new MCQSubQuestion[] Seed
         {
             get
             {
-                if (_seed != null) { return _seed; }
+                if (_seed != null)
+                {
+                    return _seed;
+                }
 
                 Random rand = new();
                 List<MCQSubQuestion> seed = new();
                 foreach (var question in Question.Seed)
                 {
-                    if (!rand.NextBool()) { continue; }
+                    if (!rand.NextBool())
+                    {
+                        continue;
+                    }
+
                     for (int i = 0; i < rand.Next(1, 3); i++)
                     {
                         var sq = new MCQSubQuestion
@@ -40,6 +50,7 @@ namespace GradProjectServer.Services.Exams.Entities
                         seed.Add(sq);
                     }
                 }
+
                 _seed = seed.ToArray();
                 return _seed;
             }

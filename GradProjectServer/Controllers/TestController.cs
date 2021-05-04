@@ -12,18 +12,21 @@ namespace GradProjectServer.Controllers
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
         private readonly DbManager _dbSeeder;
-        public TestController(AppDbContext dbContext, IMapper mapper,DbManager dbSeeder)
+
+        public TestController(AppDbContext dbContext, IMapper mapper, DbManager dbSeeder)
         {
             _dbContext = dbContext;
             _mapper = mapper;
             _dbSeeder = dbSeeder;
         }
+
         [HttpGet("Seed")]
         public async Task<IActionResult> Seed()
         {
             await _dbSeeder.Seed().ConfigureAwait(false);
             return Ok("Seeded succfully.");
         }
+
         [HttpGet("RecreateDb")]
         public async Task<IActionResult> RecreateDb()
         {

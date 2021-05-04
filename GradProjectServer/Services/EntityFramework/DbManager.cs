@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Threading.Tasks;
 using GradProjectServer.Controllers;
+using GradProjectServer.Services.FilesManagers;
 using GradProjectServer.Services.Resources;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -22,19 +23,36 @@ namespace GradProjectServer.Services.EntityFramework
     {
         private readonly AppDbContext _dbContext;
         private readonly AppOptions _appOptions;
+        private readonly IServiceProvider _serviceProvider;
 
-        public DbManager(AppDbContext dbContext, IOptions<AppOptions> appOptions)
+        public DbManager(AppDbContext dbContext, IOptions<AppOptions> appOptions, IServiceProvider serviceProvider)
         {
             _dbContext = dbContext;
             _appOptions = appOptions.Value;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task RecreateDb()
         {
-            Directory.Delete(UserManager.ProfilePicturesDirectory, true);
-            Directory.CreateDirectory(UserManager.ProfilePicturesDirectory);
-            Directory.Delete(ResourceController.ResourcesDirectory, true);
-            Directory.CreateDirectory(ResourceController.ResourcesDirectory);
+            var dirs = new[]
+            {
+                BlankSubQuestionFileManager.SaveDirectory,
+                ProgrammingSubQuestionFileManager.CheckerSaveDirectory,
+                ProgrammingSubQuestionFileManager.KeyAnswerSaveDirectory,
+                ProgrammingSubQuestionAnswerFileManager.SaveDirectory,
+                ResourceFileManager.SaveDirectory,
+                UserFileManager.SaveDirectory
+            };
+            foreach (var dir in dirs)
+            {
+                if (Directory.Exists(dir))
+                {
+                    Directory.Delete(dir, true);
+                }
+
+                Directory.CreateDirectory(dir);
+            }
+
             using (var postgreCon = new NpgsqlConnection(_appOptions.BuildPostgresConnectionString()))
             {
                 await postgreCon.OpenAsync().ConfigureAwait(false);
@@ -102,16 +120,10 @@ namespace GradProjectServer.Services.EntityFramework
                 .ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
-            await _dbContext.Programs.AddRangeAsync(Program.Seed).ConfigureAwait(false);
-            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-
             await _dbContext.Tags.AddRangeAsync(Tag.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
             await _dbContext.Questions.AddRangeAsync(Question.Seed).ConfigureAwait(false);
-            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-
-            await _dbContext.ProgrammingSubQuestions.AddRangeAsync(ProgrammingSubQuestion.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
             await _dbContext.BlankSubQuestions.AddRangeAsync(BlankSubQuestion.Seed).ConfigureAwait(false);
@@ -139,8 +151,10 @@ namespace GradProjectServer.Services.EntityFramework
             await _dbContext.Resources.AddRangeAsync(Resources.Resource.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
-            await User.CreateSeedFiles().ConfigureAwait(false);
-            await Resource.CreateSeedFiles().ConfigureAwait(false);
+            await User.CreateSeedFiles(_serviceProvider).ConfigureAwait(false);
+            await Resource.CreateSeedFiles(_serviceProvider).ConfigureAwait(false);
+            await BlankSubQuestion.CreateSeedFiles(_serviceProvider).ConfigureAwait(false);
+            await ProgrammingSubQuestion.CreateSeedFiles(_serviceProvider).ConfigureAwait(false);
 
             List<string> tablesNames = new();
 

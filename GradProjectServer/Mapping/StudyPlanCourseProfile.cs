@@ -30,7 +30,7 @@ namespace GradProjectServer.Mapping
             CreateMap<StudyPlanCoursePrerequisite, StudyPlanCoursePrerequisiteDto>()
                 .ForMember(d => d.StudyPlanCourseId, op => op.MapFrom(e => e.PrerequisiteId))
                 .ForMember(d => d.Course, op => op.MapFrom(e => e.Prerequisite.Course));
-                
+
             CreateMap<StudyPlanCourse, StudyPlanCourseDto>()
                 .ForMember(d => d.StudyPlanCourseCategoryId, op => op.MapFrom(e => e.CategoryId));
         }

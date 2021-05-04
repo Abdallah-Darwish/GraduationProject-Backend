@@ -4,6 +4,7 @@
     public class CreateMCQSubQuestionChoiceDto
     {
         public string Content { get; set; }
+
         /// <summary>
         /// [-1, 1]
         /// </summary>

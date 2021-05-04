@@ -17,12 +17,7 @@ namespace GradProjectServer.Services.UserSystem
         public static readonly string LoginCookieName = "marje3";
         public static readonly string LoginHeaderName = "Authorization";
         private string GenerateToken(User user) => $"{user.Id}:{DateTime.UtcNow.Ticks}";
-        public static string ProfilePicturesDirectory { get; private set; }
-        /// <summary>
-        /// Its public to be used only by <see cref="User.Seed"/>.
-        /// </summary>
-        public static string GetProfilePicturePath(int userId) =>
-            Path.Combine(ProfilePicturesDirectory, $"{userId}.jpg");
+
         /// <summary>
         /// To be used by filters only.
         /// </summary>
@@ -31,12 +26,6 @@ namespace GradProjectServer.Services.UserSystem
         public static void Init(IServiceProvider sp)
         {
             var fac = sp.GetRequiredService<IDbContextFactory<AppDbContext>>();
-            var appOptions = sp.GetRequiredService<IOptions<AppOptions>>().Value;
-            ProfilePicturesDirectory = Path.Combine(appOptions.DataSaveDirectory, "ProfilesPictures");
-            if (!Directory.Exists(ProfilePicturesDirectory))
-            {
-                Directory.CreateDirectory(ProfilePicturesDirectory);
-            }
 
             Instance = new UserManager(fac.CreateDbContext());
         }
@@ -51,80 +40,6 @@ namespace GradProjectServer.Services.UserSystem
         public UserManager(AppDbContext dbContext)
         {
             _dbContext = dbContext;
-        }
-
-        public bool ValidateImage(Stream? imageStream)
-        {
-            if (imageStream == null || imageStream.Length == 0)
-            {
-                return true;
-            }
-
-            using var image = SKImage.FromEncodedData(imageStream);
-            return image != null;
-        }
-
-        public bool ValidateImage(string? base64ImageBytes)
-        {
-            if (string.IsNullOrEmpty(base64ImageBytes))
-            {
-                return true;
-            }
-
-            using var stream = new MemoryStream();
-            stream.Write(Convert.FromBase64String(base64ImageBytes));
-            stream.Position = 0;
-            return ValidateImage(stream);
-        }
-
-        
-
-        public void UpdateImage(int userId, Stream? imageStream)
-        {
-            var picPath = GetProfilePicturePath(userId);
-            if (imageStream == null || imageStream.Position == imageStream.Length)
-            {
-                if (File.Exists(picPath))
-                {
-                    File.Delete(picPath);
-                }
-
-                return;
-            }
-
-            using var fileStream =
-                new FileStream(picPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
-            using var pic = SKImage.FromEncodedData(imageStream);
-            using var encodedPic = pic.Encode(SKEncodedImageFormat.Jpeg, 100);
-            encodedPic.SaveTo(fileStream);
-            fileStream.SetLength(imageStream.Position);
-            fileStream.Flush();
-        }
-
-        public void UpdateImage(int userId, string? base64ImageBytes)
-        {
-            if (string.IsNullOrEmpty(base64ImageBytes))
-            {
-                base64ImageBytes = "";
-            }
-
-            SKImage x;
-
-            using var stream = new MemoryStream();
-            stream.Write(Convert.FromBase64String(base64ImageBytes));
-            stream.Position = 0;
-            UpdateImage(userId, stream);
-        }
-
-        public Stream? GetImage(int userId)
-        {
-            var picPath = GetProfilePicturePath(userId);
-            if (!File.Exists(picPath))
-            {
-                return null;
-            }
-
-            return new FileStream(picPath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
         }
 
         public async Task<User?> Login(string email, string password, IResponseCookies cookies)

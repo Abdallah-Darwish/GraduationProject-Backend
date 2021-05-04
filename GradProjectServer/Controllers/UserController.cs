@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GradProjectServer.Common;
+using GradProjectServer.Services.FilesManagers;
 using Microsoft.EntityFrameworkCore;
 
 namespace GradProjectServer.Controllers
@@ -27,15 +29,19 @@ namespace GradProjectServer.Controllers
 
             return q;
         }
+
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
         private readonly UserManager _userManager;
+        private readonly UserFileManager _userFileManager;
 
-        public UserController(AppDbContext dbContext, IMapper mapper, UserManager userManager)
+        public UserController(AppDbContext dbContext, IMapper mapper, UserManager userManager,
+            UserFileManager userFileManager)
         {
             _dbContext = dbContext;
             _mapper = mapper;
             _userManager = userManager;
+            _userFileManager = userFileManager;
         }
 
         /// <summary>
@@ -120,7 +126,9 @@ namespace GradProjectServer.Controllers
 
             if (dto.ProfilePictureJpgBase64 != null)
             {
-                _userManager.UpdateImage(user.Id, dto.ProfilePictureJpgBase64);
+                await using var pic =
+                    await Utility.DecodeBase64Async(dto.ProfilePictureJpgBase64).ConfigureAwait(false);
+                await _userFileManager.SaveProfilePicture(user, pic).ConfigureAwait(false);
             }
 
             return CreatedAtAction(nameof(Get), new {usersIds = new[] {user.Id}, metadata = false},
@@ -148,7 +156,9 @@ namespace GradProjectServer.Controllers
                 update.StudyPlanId).ConfigureAwait(false);
             if (update.ProfilePictureJpgBase64 != null)
             {
-                _userManager.UpdateImage(user.Id, update.ProfilePictureJpgBase64);
+                await using var pic =
+                    await Utility.DecodeBase64Async(update.ProfilePictureJpgBase64).ConfigureAwait(false);
+                await _userFileManager.SaveProfilePicture(user, pic).ConfigureAwait(false);
             }
 
             return Ok();
@@ -217,7 +227,7 @@ namespace GradProjectServer.Controllers
                     });
             }
 
-            var userImage = _userManager.GetImage(userId);
+            var userImage = _userFileManager.GetProfilePicture(userId);
             if (userImage == null)
             {
                 return NoContent();

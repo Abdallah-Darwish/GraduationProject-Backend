@@ -12,7 +12,8 @@ namespace GradProjectServer.Services.Infrastructure
         public string Name { get; set; }
         public int CreditHours { get; set; }
         public ICollection<Exam> Exams { get; set; }
-        public  ICollection<Resource> Resources { get; set; }
+        public ICollection<Resource> Resources { get; set; }
+
         public static void ConfigureEntity(EntityTypeBuilder<Course> b)
         {
             b.HasKey(c => c.Id);
@@ -23,12 +24,18 @@ namespace GradProjectServer.Services.Infrastructure
                 .IsRequired();
             b.HasCheckConstraint("CK_COURSE_CREDITHOURS", $"\"{nameof(CreditHours)}\" >= 0");
         }
+
         private static Course[]? _seed = null;
+
         public static Course[] Seed
         {
             get
             {
-                if (_seed != null) { return _seed; }
+                if (_seed != null)
+                {
+                    return _seed;
+                }
+
                 _seed = new Course[]
                 {
                     new Course
@@ -174,17 +181,20 @@ namespace GradProjectServer.Services.Infrastructure
                         Id = 24,
                         CreditHours = 3,
                         Name = "Foreign languages"
-                    }, new Course
+                    },
+                    new Course
                     {
                         Id = 25,
                         CreditHours = 3,
                         Name = "Entrepreneurship for Business"
-                    }, new Course
+                    },
+                    new Course
                     {
                         Id = 26,
                         CreditHours = 3,
                         Name = "Scientific Research Methods"
-                    }, new Course
+                    },
+                    new Course
                     {
                         Id = 27,
                         CreditHours = 3,

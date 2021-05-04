@@ -19,8 +19,6 @@ namespace GradProjectServer.Mapping.SubQuestions
             CreateMap<MCQSubQuestion, MCQSubQuestionMetadataDto>();
             CreateMap<MCQSubQuestion, MCQSubQuestionDto>();
             CreateMap<MCQSubQuestion, OwnedMCQSubQuestionDto>();
-
-            CreateMap<ProgrammingSubQuestion, OwnedProgrammingSubQuestionDto>();
         }
     }
 }

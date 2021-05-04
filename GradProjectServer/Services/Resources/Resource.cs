@@ -5,10 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using GradProjectServer.Common;
 using GradProjectServer.Controllers;
+using GradProjectServer.Services.FilesManagers;
 using GradProjectServer.Services.Infrastructure;
 using GradProjectServer.Services.UserSystem;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GradProjectServer.Services.Resources
 {
@@ -17,7 +19,9 @@ namespace GradProjectServer.Services.Resources
         public int Id { get; set; }
         public int CourseId { get; set; }
         public ResourceType Type { get; set; }
+
         public Course Course { get; set; }
+
         //todo: connect with Instructor if you ever add it
         public int CreationYear { get; set; }
         public Semester CreationSemester { get; set; }
@@ -65,18 +69,25 @@ namespace GradProjectServer.Services.Resources
             b.HasCheckConstraint("CK_RESOURCE_CREATIONYEAR", $"\"{nameof(CreationYear)}\" >= 1900");
         }
 
-        public static async Task CreateSeedFiles()
+        public static async Task CreateSeedFiles(IServiceProvider sp)
         {
+            var fileManager = sp.GetRequiredService<ResourceFileManager>();
             Random rand = new();
+            await using MemoryStream resourceStream = new();
             foreach (var resource in Seed)
             {
-                await using var resourceFileStream = new FileStream(ResourceController.GetResourceFilePath(resource),
-                    FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read);
-                await using var resourceWriter = new StreamWriter(resourceFileStream);
-                await resourceWriter.WriteLineAsync($"Id: {resource.Id}").ConfigureAwait(false);
-                await resourceWriter.WriteLineAsync($"Name: {resource.Name}").ConfigureAwait(false);
-                await resourceWriter.WriteLineAsync(rand.NextText()).ConfigureAwait(false);
-                await resourceWriter.FlushAsync().ConfigureAwait(false);
+                resourceStream.Position = 0;
+                await using (var resourceWriter = new StreamWriter(resourceStream, leaveOpen: true))
+                {
+                    await resourceWriter.WriteLineAsync($"Id: {resource.Id}").ConfigureAwait(false);
+                    await resourceWriter.WriteLineAsync($"Name: {resource.Name}").ConfigureAwait(false);
+                    await resourceWriter.WriteLineAsync(rand.NextText()).ConfigureAwait(false);
+                    await resourceWriter.FlushAsync().ConfigureAwait(false);
+                }
+
+                resourceStream.SetLength(resourceStream.Position);
+                resourceStream.Position = 0;
+                await fileManager.SaveResource(resource, resourceStream).ConfigureAwait(false);
             }
         }
 

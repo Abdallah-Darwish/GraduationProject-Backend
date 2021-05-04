@@ -6,19 +6,26 @@ namespace GradProjectServer.Services.Infrastructure
     {
         public int Id { get; set; }
         public string Name { get; set; }
+
         public static void ConfigureEntity(EntityTypeBuilder<CourseCategory> b)
         {
             b.HasKey(c => c.Id);
             b.Property(c => c.Name)
-                 .IsUnicode()
-                 .IsRequired();
+                .IsUnicode()
+                .IsRequired();
         }
+
         private static CourseCategory[]? _seed = null;
+
         public static CourseCategory[] Seed
         {
             get
             {
-                if (_seed != null) { return _seed; }
+                if (_seed != null)
+                {
+                    return _seed;
+                }
+
                 _seed = new CourseCategory[]
                 {
                     new CourseCategory

@@ -43,6 +43,7 @@ namespace GradProjectServer.Controllers
 
             return q;
         }
+
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
 
@@ -51,7 +52,8 @@ namespace GradProjectServer.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
         }
-         /// <reamarks>Result is ordered by major name then year.</reamarks>
+
+        /// <reamarks>Result is ordered by major name then year.</reamarks>
         [HttpPost("GetAll")]
         [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
@@ -63,6 +65,7 @@ namespace GradProjectServer.Controllers
                 .Take(info.Count)
                 .Select(t => t.Id));
         }
+
         /// <param name="studyPlansIds">Ids of the study plans to get.</param>
         /// <param name="metadata">Whether to return StudyPlanDto or StudyPlanMetadataDto.</param>
         /// <response code="404">Ids of the non existing study plans.</response>
@@ -78,19 +81,21 @@ namespace GradProjectServer.Controllers
             if (nonExistingStudyPlans.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following study plans don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingStuyPlans"] = nonExistingStudyPlans }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following study plans don't exist.",
+                        Data = new Dictionary<string, object> {["NonExistingStuyPlans"] = nonExistingStudyPlans}
+                    });
             }
 
             if (metadata)
             {
                 return Ok(_mapper.ProjectTo<StudyPlanMetadataDto>(existingStudyPlans));
             }
+
             return Ok(_mapper.ProjectTo<StudyPlanDto>(existingStudyPlans));
         }
+
         /// <summary>
         /// Creates a new study plan.
         /// </summary>
@@ -105,12 +110,13 @@ namespace GradProjectServer.Controllers
         {
             var newStudyPlan = new StudyPlan
             {
-                MajorId =  info.MajorId,
+                MajorId = info.MajorId,
                 Year = info.Year,
             };
             await _dbContext.StudyPlans.AddAsync(newStudyPlan).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return CreatedAtAction(nameof(Get), new { tagsIds = new int[] { newStudyPlan.Id } }, _mapper.Map<StudyPlanMetadataDto>(newStudyPlan));
+            return CreatedAtAction(nameof(Get), new {tagsIds = new int[] {newStudyPlan.Id}},
+                _mapper.Map<StudyPlanMetadataDto>(newStudyPlan));
         }
 
         /// <summary>
@@ -130,6 +136,7 @@ namespace GradProjectServer.Controllers
             {
                 studyPlan.Year = update.Year.Value;
             }
+
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
@@ -153,12 +160,13 @@ namespace GradProjectServer.Controllers
             if (nonExistingStudyPlans.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following study plans don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingStudyPlans"] = nonExistingStudyPlans }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following study plans don't exist.",
+                        Data = new Dictionary<string, object> {["NonExistingStudyPlans"] = nonExistingStudyPlans}
+                    });
             }
+
             _dbContext.StudyPlans.RemoveRange(existingStudyPlans);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();

@@ -12,9 +12,10 @@ namespace GradProjectServer.Services.Exams.Entities
         public int TagId { get; set; }
         public Tag Tag { get; set; }
         public SubQuestion SubQuestion { get; set; }
+
         public static void ConfigureEntity(EntityTypeBuilder<SubQuestionTag> b)
         {
-            b.HasKey(t => new { t.SubQuestionId, t.TagId });
+            b.HasKey(t => new {t.SubQuestionId, t.TagId});
             b.HasOne(t => t.SubQuestion)
                 .WithMany(q => q.Tags)
                 .HasForeignKey(t => t.SubQuestionId)
@@ -26,12 +27,17 @@ namespace GradProjectServer.Services.Exams.Entities
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
         }
+
         private static SubQuestionTag[]? _seed = null;
+
         public static SubQuestionTag[] Seed
         {
             get
             {
-                if (_seed != null) { return _seed; }
+                if (_seed != null)
+                {
+                    return _seed;
+                }
 
                 Random rand = new();
                 List<SubQuestionTag> seed = new();
@@ -54,6 +60,7 @@ namespace GradProjectServer.Services.Exams.Entities
                         seed.Add(subQuestionTag);
                     }
                 }
+
                 _seed = seed.ToArray();
                 return _seed;
             }

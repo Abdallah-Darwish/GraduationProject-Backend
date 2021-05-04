@@ -8,6 +8,5 @@
         public bool? HasExams { get; set; }
         public int Offset { get; set; }
         public int Count { get; set; }
-
     }
 }

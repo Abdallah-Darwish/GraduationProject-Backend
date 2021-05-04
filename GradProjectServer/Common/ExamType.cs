@@ -1,4 +1,9 @@
 ﻿namespace GradProjectServer.Common
 {
-    public enum ExamType { TestBank, Quiz, University }
+    public enum ExamType
+    {
+        TestBank,
+        Quiz,
+        University
+    }
 }

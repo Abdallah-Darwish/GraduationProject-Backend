@@ -7,7 +7,7 @@ using System.IO.Compression;
 
 namespace GradProjectServer.Validators.Programs
 {
-    public class CreateProgramDtoValidator : AbstractValidator<CreateProgramDto>
+    public class CreateProgramDtoValidator : AbstractValidator<CreateFileDto>
     {
         static string[]? ValidateChecker(string base64)
         {
@@ -20,23 +20,28 @@ namespace GradProjectServer.Validators.Programs
             }
             catch
             {
-                return new string[] { "Invalid Archive" };
+                return new string[] {"Invalid Archive"};
             }
+
             return null;
         }
+
         public CreateProgramDtoValidator(AppDbContext dbContext)
         {
-            RuleFor(d => d.ArchiveBase64)
+            RuleFor(d => d.ContentBase64)
                 .Custom((base64, ctx) =>
                 {
                     var errors = ValidateChecker(base64);
-                    if ((errors?.Length ?? 0) == 0) { return; }
+                    if ((errors?.Length ?? 0) == 0)
+                    {
+                        return;
+                    }
+
                     foreach (var e in errors!)
                     {
                         ctx.AddFailure(e);
                     }
                 });
-
         }
     }
 }

@@ -14,6 +14,7 @@ namespace GradProjectServer.Services.Infrastructure
         public StudyPlan StudyPlan { get; set; }
         public CourseCategory Category { get; set; }
         public ICollection<StudyPlanCourse> Courses { get; set; }
+
         public static void ConfigureEntity(EntityTypeBuilder<StudyPlanCourseCategory> b)
         {
             b.HasKey(c => c.Id);
@@ -29,16 +30,23 @@ namespace GradProjectServer.Services.Infrastructure
                 .HasForeignKey(c => c.StudyPlanId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
-            b.HasCheckConstraint("CK_STUDYPLANCOURSECATEGORY_ALLOWEDCREDITHOURS", $"\"{nameof(AllowedCreditHours)}\" > 0");
-            b.HasIndex(c => new { c.StudyPlanId, c.CategoryId })
+            b.HasCheckConstraint("CK_STUDYPLANCOURSECATEGORY_ALLOWEDCREDITHOURS",
+                $"\"{nameof(AllowedCreditHours)}\" > 0");
+            b.HasIndex(c => new {c.StudyPlanId, c.CategoryId})
                 .IsUnique();
         }
+
         private static StudyPlanCourseCategory[]? _seed = null;
+
         public static StudyPlanCourseCategory[] Seed
         {
             get
             {
-                if (_seed != null) { return _seed; }
+                if (_seed != null)
+                {
+                    return _seed;
+                }
+
                 var rand = new Random();
                 var seed = new List<StudyPlanCourseCategory>();
                 foreach (var sp in StudyPlan.Seed)
@@ -53,10 +61,12 @@ namespace GradProjectServer.Services.Infrastructure
                         });
                     }
                 }
+
                 for (int i = 1; i <= seed.Count; i++)
                 {
                     seed[i - 1].Id = i;
                 }
+
                 _seed = seed.ToArray();
                 return _seed;
             }

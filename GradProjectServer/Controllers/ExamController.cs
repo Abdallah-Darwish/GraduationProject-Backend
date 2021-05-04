@@ -38,6 +38,7 @@ namespace GradProjectServer.Controllers
 
             return q;
         }
+
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
 
@@ -87,7 +88,7 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ActionResult<IEnumerable<ExamDto>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
-        public async  Task<IActionResult> Get([FromBody] int[] examsIds, bool metadata = false)
+        public async Task<IActionResult> Get([FromBody] int[] examsIds, bool metadata = false)
         {
             var existingExams = GetPreparedQueryable(metadata).Where(e => examsIds.Contains(e.Id));
             var nonExistingExams = examsIds.Except(existingExams.Select(e => e.Id)).ToArray();
@@ -116,6 +117,7 @@ namespace GradProjectServer.Controllers
                         });
                 }
             }
+
             var result = await existingExams.ToArrayAsync().ConfigureAwait(false);
             if (metadata)
             {

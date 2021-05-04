@@ -12,6 +12,7 @@ namespace GradProjectServer.Resources
             var assembly = typeof(ResourcesManager).Assembly;
             return assembly.GetManifestResourceStream(AssemblyName + name)!;
         }
+
         public static async Task<string> GetText(string name)
         {
             using var reader = new StreamReader(GetStream(name));

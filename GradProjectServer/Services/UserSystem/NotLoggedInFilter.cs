@@ -11,7 +11,7 @@ namespace GradProjectServer.Services.UserSystem
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             var user = UserManager.Instance.IdentifyUser(context.HttpContext.Request);
-           
+
             if (user != null)
             {
                 context.Result = new ContentResult
@@ -22,6 +22,7 @@ namespace GradProjectServer.Services.UserSystem
                 };
                 return;
             }
+
             base.OnActionExecuting(context);
         }
     }

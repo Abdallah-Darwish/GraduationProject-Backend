@@ -14,7 +14,8 @@ namespace GradProjectServer.DTO
         public KnownTypesBinder()
         {
             var asm = Assembly.GetExecutingAssembly();
-            var types = asm.GetExportedTypes().Where(t => t.IsClass && t.Name.EndsWith("dto", StringComparison.OrdinalIgnoreCase));
+            var types = asm.GetExportedTypes()
+                .Where(t => t.IsClass && t.Name.EndsWith("dto", StringComparison.OrdinalIgnoreCase));
 
             this.nameToType = types.ToDictionary(p => p.Name);
             nameToType.Add("Dictionary<string, object>", typeof(Dictionary<string, object>));

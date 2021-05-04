@@ -2,6 +2,12 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Threading.Tasks;
+using GradProjectServer.Services.FilesManagers;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GradProjectServer.Services.Exams.Entities
 {
@@ -13,6 +19,7 @@ namespace GradProjectServer.Services.Exams.Entities
         public int QuestionId { get; set; }
         public Question Question { get; set; }
         public ICollection<SubQuestionTag> Tags { get; set; }
+
         public static void ConfigureEntity(EntityTypeBuilder<SubQuestion> b)
         {
             b.HasKey(q => q.Id);
@@ -27,8 +34,10 @@ namespace GradProjectServer.Services.Exams.Entities
                 .HasForeignKey(sq => sq.QuestionId)
                 .IsRequired();
         }
+
         private static int _seedId = 1;
         private static readonly Random _seedRand = new();
+
         /// <summary>
         /// Fills <see cref="Id"/> and <see cref="Content"/>.
         /// <see cref="QuestionId"/> must be already initialized.
@@ -38,8 +47,10 @@ namespace GradProjectServer.Services.Exams.Entities
         {
             _seed.Add(subQuestion);
             subQuestion.Id = _seedId++;
-            subQuestion.Content = $"Question {subQuestion.QuestionId}, SubQuestion {subQuestion.Id}. {_seedRand.NextText(_seedRand.Next(40, 200))} .";
+            subQuestion.Content =
+                $"Question {subQuestion.QuestionId}, SubQuestion {subQuestion.Id}. {_seedRand.NextText(_seedRand.Next(40, 200))} .";
         }
+
         private static readonly List<SubQuestion> _seed = new();
 
         public static IReadOnlyList<SubQuestion> Seed => _seed;

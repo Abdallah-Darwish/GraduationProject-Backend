@@ -15,6 +15,7 @@ namespace GradProjectServer.Services.Exams.Entities
         public ICollection<ExamSubQuestion> ExamSubQuestions { get; set; }
         public Exam Exam { get; set; }
         public Question Question { get; set; }
+
         public static void ConfigureEntity(EntityTypeBuilder<ExamQuestion> b)
         {
             b.HasKey(q => q.Id);
@@ -33,11 +34,15 @@ namespace GradProjectServer.Services.Exams.Entities
         }
 
         private static ExamQuestion[]? _seed = null;
+
         public static ExamQuestion[] Seed
         {
             get
             {
-                if (_seed != null) { return _seed; }
+                if (_seed != null)
+                {
+                    return _seed;
+                }
 
                 Random rand = new();
                 List<ExamQuestion> seed = new();
@@ -61,10 +66,12 @@ namespace GradProjectServer.Services.Exams.Entities
                         seed.Add(examQuestion);
                     }
                 }
+
                 for (int i = 1; i <= seed.Count; i++)
                 {
                     seed[i - 1].Id = i;
                 }
+
                 _seed = seed.ToArray();
                 return _seed;
             }

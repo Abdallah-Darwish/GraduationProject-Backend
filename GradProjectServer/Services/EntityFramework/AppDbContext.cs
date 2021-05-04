@@ -15,8 +15,8 @@ namespace GradProjectServer.Services.EntityFramework
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
-
         }
+
         public const string EntityConfigurationMethodName = "ConfigureEntity";
         public DbSet<Exam> Exams { get; set; }
         public DbSet<ExamAttempt> ExamsAttempts { get; set; }
@@ -34,41 +34,78 @@ namespace GradProjectServer.Services.EntityFramework
         public DbSet<Course> Courses { get; set; }
         public DbSet<CourseCategory> CoursesCategories { get; set; }
         public DbSet<Major> Majors { get; set; }
-        public DbSet<Program> Programs { get; set; }
         public DbSet<StudyPlan> StudyPlans { get; set; }
         public DbSet<StudyPlanCourse> StudyPlansCourses { get; set; }
         public DbSet<StudyPlanCoursePrerequisite> StudyPlansCoursesPrerequisites { get; set; }
         public DbSet<StudyPlanCourseCategory> StudyPlansCoursesCategories { get; set; }
-        public DbSet<Dependency> Dependencies { get; set; }
-        public DbSet<ProgramDependency> ProgramsDependencies { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Resource> Resources { get; set; }
+
+        public DbSet<SubQuestionAnswer> SubQuestionAnswers { get; set; }
+        public DbSet<BlankSubQuestionAnswer> BlankSubQuestionAnswers { get; set; }
+        public DbSet<MCQSubQuestionAnswer> MCQSubQuestionAnswers { get; set; }
 
         private static MethodInfo? FindEntityConfigurationMethod(Type t)
         {
             var typeMethods = t.GetMethods(BindingFlags.Static | BindingFlags.Public);
             foreach (var m in typeMethods)
             {
-                if (m.Name != EntityConfigurationMethodName) { continue; }
-                if (m.ReturnType != typeof(void)) { continue; }
-                if (m.IsGenericMethod) { continue; }
-                if (!m.IsStatic) { continue; }
-                if (!m.IsPublic) { continue; }
+                if (m.Name != EntityConfigurationMethodName)
+                {
+                    continue;
+                }
+
+                if (m.ReturnType != typeof(void))
+                {
+                    continue;
+                }
+
+                if (m.IsGenericMethod)
+                {
+                    continue;
+                }
+
+                if (!m.IsStatic)
+                {
+                    continue;
+                }
+
+                if (!m.IsPublic)
+                {
+                    continue;
+                }
+
                 var parameters = m.GetParameters();
-                if (parameters.Length != 1) { continue; }
-                if (!parameters[0].ParameterType.IsGenericType) { continue; }
+                if (parameters.Length != 1)
+                {
+                    continue;
+                }
+
+                if (!parameters[0].ParameterType.IsGenericType)
+                {
+                    continue;
+                }
+
                 var typeBuilder = typeof(EntityTypeBuilder<>).MakeGenericType(t);
-                if (parameters[0].ParameterType != typeBuilder) { continue; }
+                if (parameters[0].ParameterType != typeBuilder)
+                {
+                    continue;
+                }
+
                 return m;
             }
+
             return null;
         }
+
         public static bool IsEntity(Type t) => FindEntityConfigurationMethod(t) != null;
+
         public static Type[] GetAllEntitiesInAssembly(Assembly asm)
         {
             var types = asm.GetExportedTypes();
             return types.Where(IsEntity).ToArray();
         }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -84,7 +121,7 @@ namespace GradProjectServer.Services.EntityFramework
                 var configMethod = FindEntityConfigurationMethod(type)!;
 
                 object entityTypeBuilder = modelBuilderEntityMethod.MakeGenericMethod(type).Invoke(modelBuilder, null)!;
-                configMethod.Invoke(null, new object[] { entityTypeBuilder });
+                configMethod.Invoke(null, new object[] {entityTypeBuilder});
             }
         }
     }

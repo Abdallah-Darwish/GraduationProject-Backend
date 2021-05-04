@@ -4,7 +4,7 @@ namespace GradProjectServer.DTO.SubQuestions
 {
     public class CreateBlankSubQuestionDto : CreateSubQuestionDto
     {
-        public CreateProgramDto? Checker { get; set; }
-        public string? Answer { get; set; }
+        public string? CheckerBase64 { get; set; }
+        public string Answer { get; set; }
     }
 }

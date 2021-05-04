@@ -20,11 +20,13 @@ namespace GradProjectServer.Controllers
     {
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
+
         public TagController(AppDbContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
             _mapper = mapper;
         }
+
         /// <reamarks>Result is ordered by name.</reamarks>
         [HttpPost("GetAll")]
         [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
@@ -32,9 +34,9 @@ namespace GradProjectServer.Controllers
         {
             return Ok(_dbContext.Tags.OrderBy(t => t.Name).Skip(info.Offset).Take(info.Count).Select(t => t.Id));
         }
+
         /// <param name="tagsIds">Ids of the tags to get.</param>
         /// <response code="404">Ids of the non existing tags.</response>
-
         [HttpPost("Get")]
         [ProducesResponseType(typeof(IEnumerable<TagDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
@@ -45,14 +47,16 @@ namespace GradProjectServer.Controllers
             if (nonExistingTags.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following tags don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingTags"] = nonExistingTags }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following tags don't exist.",
+                        Data = new Dictionary<string, object> {["NonExistingTags"] = nonExistingTags}
+                    });
             }
+
             return Ok(_mapper.ProjectTo<TagDto>(existingTags));
         }
+
         /// <summary>
         /// Creates a new tag.
         /// </summary>
@@ -71,7 +75,7 @@ namespace GradProjectServer.Controllers
             };
             await _dbContext.Tags.AddAsync(newTag).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return CreatedAtAction(nameof(Get), new { tagsIds = new int[] { newTag.Id } }, _mapper.Map<TagDto>(newTag));
+            return CreatedAtAction(nameof(Get), new {tagsIds = new int[] {newTag.Id}}, _mapper.Map<TagDto>(newTag));
         }
 
         /// <summary>
@@ -91,6 +95,7 @@ namespace GradProjectServer.Controllers
             {
                 tag.Name = update.Name;
             }
+
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
@@ -114,12 +119,13 @@ namespace GradProjectServer.Controllers
             if (nonExistingTags.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following tags don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingTags"] = nonExistingTags }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following tags don't exist.",
+                        Data = new Dictionary<string, object> {["NonExistingTags"] = nonExistingTags}
+                    });
             }
+
             _dbContext.Tags.RemoveRange(existingTags);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
@@ -138,6 +144,7 @@ namespace GradProjectServer.Controllers
             {
                 tags = tags.Where(t => EF.Functions.Like(t.Name, filter.NameMask));
             }
+
             var result = tags.OrderBy(t => t.Name).Skip(filter.Offset).Take(filter.Count);
             return Ok(_mapper.ProjectTo<TagDto>(tags));
         }

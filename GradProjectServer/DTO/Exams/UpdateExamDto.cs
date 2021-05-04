@@ -15,10 +15,10 @@ namespace GradProjectServer.DTO.Exams
         public string? Name { get; set; }
         public int? Duration { get; set; }
         public int? CourseId { get; set; }
+
         /// <summary>
         /// Will be considered only if the user is an admin.
         /// </summary>
         public bool? IsApproved { get; set; }
-
     }
 }

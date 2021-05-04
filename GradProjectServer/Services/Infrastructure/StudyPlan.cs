@@ -13,25 +13,32 @@ namespace GradProjectServer.Services.Infrastructure
         public Major Major { get; set; }
         public ICollection<StudyPlanCourseCategory> CourseCategories { get; set; }
         public ICollection<StudyPlanCourse> Courses { get; set; }
+
         public static void ConfigureEntity(EntityTypeBuilder<StudyPlan> b)
         {
             b.HasKey(p => p.Id);
             b.Property(p => p.Year)
-                 .IsRequired();
+                .IsRequired();
             b.HasOne(p => p.Major)
-                 .WithMany(m => m.StudyPlans)
-                 .HasForeignKey(p => p.MajorId)
-                 .IsRequired();
-            b.HasIndex(p => new { p.MajorId, p.Year })
+                .WithMany(m => m.StudyPlans)
+                .HasForeignKey(p => p.MajorId)
+                .IsRequired();
+            b.HasIndex(p => new {p.MajorId, p.Year})
                 .IsUnique();
             b.HasCheckConstraint("CK_STUDYPLAN_YEAR", $"\"{nameof(Year)}\" > 0");
         }
+
         private static StudyPlan[]? _seed = null;
+
         public static StudyPlan[] Seed
         {
             get
             {
-                if (_seed != null) { return _seed; }
+                if (_seed != null)
+                {
+                    return _seed;
+                }
+
                 var rand = new Random();
                 var seed = new List<StudyPlan>();
                 foreach (var major in Major.Seed)
@@ -48,10 +55,12 @@ namespace GradProjectServer.Services.Infrastructure
                         Year = y + 2,
                     });
                 }
+
                 for (int i = 1; i <= seed.Count; i++)
                 {
                     seed[i - 1].Id = i;
                 }
+
                 _seed = seed.ToArray();
                 return _seed;
             }

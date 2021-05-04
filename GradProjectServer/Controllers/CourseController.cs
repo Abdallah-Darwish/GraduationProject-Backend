@@ -20,11 +20,13 @@ namespace GradProjectServer.Controllers
     {
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
+
         public CourseController(AppDbContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
             _mapper = mapper;
         }
+
         /// <summary>
         /// Ids of all courses in data base ordered by course name.
         /// </summary>
@@ -34,6 +36,7 @@ namespace GradProjectServer.Controllers
         {
             return Ok(_dbContext.Courses.OrderBy(c => c.Name).Skip(info.Offset).Take(info.Count).Select(c => c.Id));
         }
+
         /// <param name="coursesIds">Ids of the courses to get.</param>
         /// <response code="404">Ids of the non existing courses.</response>
         [HttpPost("Get")]
@@ -46,14 +49,16 @@ namespace GradProjectServer.Controllers
             if (nonExistingCourses.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following courses don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingCourses"] = nonExistingCourses }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following courses don't exist.",
+                        Data = new Dictionary<string, object> {["NonExistingCourses"] = nonExistingCourses}
+                    });
             }
+
             return Ok(_mapper.ProjectTo<CourseDto>(existingCourses));
         }
+
         /// <summary>
         /// Creates a new course.
         /// </summary>
@@ -73,8 +78,9 @@ namespace GradProjectServer.Controllers
             };
             await _dbContext.Courses.AddAsync(newCourse).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return CreatedAtAction(nameof(Get), new { coursesIds = new int[] { newCourse.Id } }, newCourse);
+            return CreatedAtAction(nameof(Get), new {coursesIds = new int[] {newCourse.Id}}, newCourse);
         }
+
         /// <summary>
         /// Deletes the specified courses.
         /// </summary>
@@ -94,16 +100,18 @@ namespace GradProjectServer.Controllers
             if (nonExistingCourses.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following courses don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingCourses"] = nonExistingCourses }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following courses don't exist.",
+                        Data = new Dictionary<string, object> {["NonExistingCourses"] = nonExistingCourses}
+                    });
             }
+
             _dbContext.Courses.RemoveRange(existingCourses);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
+
         /// <summary>
         /// Updates a course.
         /// </summary>
@@ -121,13 +129,16 @@ namespace GradProjectServer.Controllers
             {
                 course.Name = update.Name;
             }
+
             if (update.CreditHours.HasValue)
             {
                 course.CreditHours = update.CreditHours.Value;
             }
+
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
+
         /// <summary>
         /// Returns Courses that satisfy the filters ordered by name.
         /// </summary>
@@ -142,18 +153,22 @@ namespace GradProjectServer.Controllers
             {
                 courses = courses.Where(c => EF.Functions.Like(c.Name, filter.NameMask));
             }
+
             if (filter.MinCreditHours != null)
             {
                 courses = courses.Where(c => c.CreditHours >= filter.MinCreditHours);
             }
+
             if (filter.MaxCreditHours != null)
             {
                 courses = courses.Where(e => e.CreditHours <= filter.MaxCreditHours);
             }
+
             if (filter.HasExams.HasValue)
             {
                 courses = courses.Where(c => c.Exams.Any() == filter.HasExams);
             }
+
             var result = courses.OrderBy(e => e.Name).Skip(filter.Offset).Take(filter.Count);
             return Ok(_mapper.ProjectTo<CourseDto>(result));
         }

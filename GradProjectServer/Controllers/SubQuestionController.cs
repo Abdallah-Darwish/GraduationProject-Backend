@@ -4,7 +4,6 @@ using GradProjectServer.DTO;
 using GradProjectServer.DTO.SubQuestions;
 using GradProjectServer.Services.EntityFramework;
 using GradProjectServer.Services.Exams.Entities;
-using GradProjectServer.Services.Infrastructure.Programs;
 using GradProjectServer.Services.UserSystem;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,9 +12,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GradProjectServer.Services.FilesManagers;
 
 namespace GradProjectServer.Controllers
 {
+    //todo: create a separate method for approving because we need to compile checkers
     [ApiController]
     [Route("[controller]")]
     public class SubQuestionController : ControllerBase
@@ -26,42 +27,55 @@ namespace GradProjectServer.Controllers
             if (!metadata)
             {
                 q = q.Include(e => e.Tags)
-                    .Include(e => e.Checker);
+                    .ThenInclude(e => e.Tag)
+                    .Include(e => e.Question);
             }
 
             return q;
         }
-        private IQueryable<MCQSubQuestion> GetPreparedMCQQueryable(bool metadata = false)
-        {
-            var q = _dbContext.MCQSubQuestions.AsQueryable();
-            if (!metadata)
-            {
-                q = q.Include(e => e.Tags)
-                    .Include(e => e.Choices);
-            }
 
-            return q;
-        }
         private IQueryable<ProgrammingSubQuestion> GetPreparedProgrammingQueryable(bool metadata = false)
         {
             var q = _dbContext.ProgrammingSubQuestions.AsQueryable();
             if (!metadata)
             {
                 q = q.Include(e => e.Tags)
-                    .Include(e => e.Checker);
+                    .ThenInclude(e => e.Tag)
+                    .Include(e => e.Question);
             }
 
             return q;
         }
+
+        private IQueryable<MCQSubQuestion> GetPreparedMCQQueryable(bool metadata = false)
+        {
+            var q = _dbContext.MCQSubQuestions.AsQueryable();
+            if (!metadata)
+            {
+                q = q.Include(e => e.Tags)
+                    .ThenInclude(e => e.Tag)
+                    .Include(e => e.Choices)
+                    .Include(e => e.Question);
+            }
+
+            return q;
+        }
+
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
-        private readonly IProgramService _programService;
-        public SubQuestionController(AppDbContext dbContext, IMapper mapper, IProgramService programService)
+        private readonly BlankSubQuestionFileManager _blankSubQuestionFileManager;
+        private readonly ProgrammingSubQuestionFileManager _programmingSubQuestionFileManager;
+
+        public SubQuestionController(AppDbContext dbContext, IMapper mapper,
+            BlankSubQuestionFileManager blankSubQuestionFileManager,
+            ProgrammingSubQuestionFileManager programmingSubQuestionFileManager)
         {
             _dbContext = dbContext;
             _mapper = mapper;
-            _programService = programService;
+            _blankSubQuestionFileManager = blankSubQuestionFileManager;
+            _programmingSubQuestionFileManager = programmingSubQuestionFileManager;
         }
+
         /// <summary>Result is ordered by id.</summary>
         /// <remarks>
         /// A user has access to:
@@ -76,13 +90,15 @@ namespace GradProjectServer.Controllers
         {
             var subQuestions = _dbContext.SubQuestions.AsQueryable();
             var user = this.GetUser();
-            if(!(user?.IsAdmin ?? false))
+            if (!(user?.IsAdmin ?? false))
             {
                 var userId = user?.Id ?? -1;
                 subQuestions = subQuestions.Where(sq => sq.Question.IsApproved || sq.Question.VolunteerId == userId);
             }
+
             return Ok(subQuestions.Skip(info.Offset).Take(info.Count).Select(sq => sq.Id));
         }
+
         /// <param name="subQuestionsIds">Ids of the sub questions to get.</param>
         /// <param name="metadata">Whether to return SubQuestionMetadataDto or SubQuestionDto.</param>
         /// <remarks>
@@ -95,7 +111,6 @@ namespace GradProjectServer.Controllers
         /// The returned objects will be actually of type:
         ///     1- MCQSubQuestionDto or OwnedMCQSubQuestion
         ///     2- OwnedBlankSubQuestion
-        ///     3- OwnedProgrammingQuestionDto
         ///     4- SubQuestionDto
         /// </remarks>
         /// <response code="404">Ids of the non existing sub questions.</response>
@@ -107,38 +122,42 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Get([FromBody] int[] subQuestionsIds, bool metadata = false)
         {
-            var existingSubQuestions = _dbContext.SubQuestions.Where(e => subQuestionsIds.Contains(e.Id));
+            var existingSubQuestions = _dbContext.SubQuestions.Where(e => subQuestionsIds.Contains(e.Id)).ToArray();
             var nonExistingSubQuestions = subQuestionsIds.Except(existingSubQuestions.Select(e => e.Id)).ToArray();
             if (nonExistingSubQuestions.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
+                    new ErrorDTO
+                    {
+                        Description = "The following questions don't exist.",
+                        Data = new Dictionary<string, object>
                         {
-                            Description = "The following questions don't exist.",
-                            Data = new Dictionary<string, object> 
-                            {
-                                ["NonExistingQuestions"] = nonExistingSubQuestions
-                            }
-                        });
+                            ["NonExistingQuestions"] = nonExistingSubQuestions
+                        }
+                    });
             }
+
             var user = this.GetUser();
             if (user?.IsAdmin ?? false)
             {
-                var notOwnedSubQuestions = existingSubQuestions.Where(e => e.Question.VolunteerId != user.Id && !e.Question.IsApproved).ToArray();
+                var notOwnedSubQuestions = existingSubQuestions
+                    .Where(e => e.Question.VolunteerId != user.Id && !e.Question.IsApproved).ToArray();
                 if (notOwnedSubQuestions.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,
                         new ErrorDTO
                         {
                             Description = "User dosn't own the following not approved sub questions.",
-                            Data = new Dictionary<string, object> { ["NotOwnedNotApprovedSubQuestions"] = notOwnedSubQuestions }
+                            Data = new Dictionary<string, object>
+                                {["NotOwnedNotApprovedSubQuestions"] = notOwnedSubQuestions}
                         });
                 }
             }
+
             var result = new List<SubQuestion>();
             var mcqQueryable = GetPreparedMCQQueryable(metadata);
-            var blankQueryable = GetPreparedMCQQueryable(metadata);
-            var programmingQueryable = GetPreparedMCQQueryable(metadata);
+            var blankQueryable = GetPreparedBlankQueryable(metadata);
+            var programmingQueryable = GetPreparedProgrammingQueryable(metadata);
             foreach (var q in existingSubQuestions)
             {
                 result.Add(q.Type switch
@@ -151,26 +170,32 @@ namespace GradProjectServer.Controllers
                         await programmingQueryable.FirstAsync(e => e.Id == q.Id).ConfigureAwait(false),
                 });
             }
+
             if (metadata)
             {
                 return Ok(_mapper.Map<List<SubQuestionMetadataDto>>(result));
             }
+
             var resultDtos = result.Select(q =>
             {
                 SubQuestionDto dto = q.Type switch
                 {
-                    SubQuestionType.MultipleChoice => q.Question.VolunteerId == user?.Id ? _mapper.Map<OwnedMCQSubQuestionDto>(q) : _mapper.Map<MCQSubQuestionDto>(q),
-                    SubQuestionType.Blank => q.Question.VolunteerId == user?.Id ? _mapper.Map<OwnedBlankSubQuestionDto>(q) : _mapper.Map<SubQuestionDto>(q),
-                    SubQuestionType.Programming => q.Question.VolunteerId == user?.Id ? _mapper.Map<OwnedProgrammingSubQuestionDto>(q) : _mapper.Map<SubQuestionDto>(q),
+                    SubQuestionType.MultipleChoice => q.Question.VolunteerId == user?.Id
+                        ? _mapper.Map<OwnedMCQSubQuestionDto>(q)
+                        : _mapper.Map<MCQSubQuestionDto>(q),
+                    SubQuestionType.Blank => q.Question.VolunteerId == user?.Id
+                        ? _mapper.Map<OwnedBlankSubQuestionDto>(q)
+                        : _mapper.Map<SubQuestionDto>(q),
+                    SubQuestionType.Programming => _mapper.Map<SubQuestionDto>(q),
                 };
                 return dto;
             });
 
             return Ok(resultDtos);
         }
+
         /// <summary>Creates a new sub question.</summary>
         /// <response code="201">Metadata of the newly created sub question.</response>
-
         [HttpPost("Create")]
         [LoggedInFilter]
         [ProducesResponseType(typeof(SubQuestionMetadataDto), StatusCodes.Status201Created)]
@@ -183,10 +208,17 @@ namespace GradProjectServer.Controllers
                     BlankSubQuestion bq = new()
                     {
                         Answer = blank.Answer,
-                        Checker = blank.Checker != null ? await _programService.SaveProgram(blank.Checker) : null
                     };
                     subQuestion = bq;
                     await _dbContext.BlankSubQuestions.AddAsync(bq).ConfigureAwait(false);
+                    await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+                    if (blank.CheckerBase64 != null)
+                    {
+                        await using var checker =
+                            await Utility.DecodeBase64Async(blank.CheckerBase64).ConfigureAwait(false);
+                        await _blankSubQuestionFileManager.SaveChecker(bq, checker).ConfigureAwait(false);
+                    }
+
                     break;
 
                 case CreateMCQSubQuestionDto mcq:
@@ -205,22 +237,34 @@ namespace GradProjectServer.Controllers
                     await _dbContext.MCQSubQuestions.AddAsync(mq).ConfigureAwait(false);
                     break;
                 case CreateProgrammingSubQuestionDto pro:
+                {
                     ProgrammingSubQuestion pq = new()
                     {
-                        Checker = await _programService.SaveProgram(pro.Checker)
+                        KeyAnswerFileExtension = pro.KeyAnswer.FileExtension
                     };
                     subQuestion = pq;
                     await _dbContext.ProgrammingSubQuestions.AddAsync(pq).ConfigureAwait(false);
+                    await using var checker = await Utility.DecodeBase64Async(pro.CheckerBase64).ConfigureAwait(false);
+                    await using var keyAnswer =
+                        await Utility.DecodeBase64Async(pro.KeyAnswer.ContentBase64).ConfigureAwait(false);
+
+                    await _programmingSubQuestionFileManager.SaveChecker(pq, checker);
+                    await _programmingSubQuestionFileManager.SaveKeyAnswer(pq, keyAnswer);
                     break;
+                }
                 default:
                     throw new ArgumentOutOfRangeException(nameof(dto), "The dto isn't known.");
             }
+
             subQuestion.Content = dto.Content;
             subQuestion.Type = dto.Type;
-            subQuestion.Tags = dto.Tags?.Select(t => new SubQuestionTag { TagId = t, SubQuestion = subQuestion }).ToArray() ?? Array.Empty<SubQuestionTag>();
+            subQuestion.Tags =
+                dto.Tags?.Select(t => new SubQuestionTag {TagId = t, SubQuestion = subQuestion}).ToArray() ??
+                Array.Empty<SubQuestionTag>();
             subQuestion.QuestionId = dto.QuestionId;
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return CreatedAtAction(nameof(Get), new { subQuestionsIds = new int[] { subQuestion.Id }, metadata = true }, _mapper.Map<SubQuestionMetadataDto>(subQuestion));
+            return CreatedAtAction(nameof(Get), new {subQuestionsIds = new int[] {subQuestion.Id}, metadata = true},
+                _mapper.Map<SubQuestionMetadataDto>(subQuestion));
         }
 
         /// <summary>Deletes the specified sub questions.</summary>
@@ -240,32 +284,59 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Delete([FromBody] int[] subQuestionsIds)
         {
-            //todo: delete checkers
             var existingSubQuestions = _dbContext.SubQuestions.Where(e => subQuestionsIds.Contains(e.Id));
             var nonExistingSubQuestions = subQuestionsIds.Except(existingSubQuestions.Select(e => e.Id)).ToArray();
             if (nonExistingSubQuestions.Length > 0)
             {
                 return StatusCode(StatusCodes.Status404NotFound,
-                        new ErrorDTO
-                        {
-                            Description = "The following sub questions don't exist.",
-                            Data = new Dictionary<string, object> { ["NonExistingSubQuestions"] = nonExistingSubQuestions }
-                        });
+                    new ErrorDTO
+                    {
+                        Description = "The following sub questions don't exist.",
+                        Data = new Dictionary<string, object> {["NonExistingSubQuestions"] = nonExistingSubQuestions}
+                    });
             }
+
             var user = this.GetUser()!;
             if (!user.IsAdmin)
             {
-                var approvedOrNotOwnedSubQuestions = existingSubQuestions.Where(e => e.Question.VolunteerId != user.Id || e.Question.IsApproved).ToArray();
+                var approvedOrNotOwnedSubQuestions = existingSubQuestions
+                    .Where(e => e.Question.VolunteerId != user.Id || e.Question.IsApproved).ToArray();
                 if (approvedOrNotOwnedSubQuestions.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,
                         new ErrorDTO
                         {
-                            Description = "User dosn't own the following sub questions or they are approved.",
-                            Data = new Dictionary<string, object> { ["NotOwnedOrApprovedSubQuestions"] = approvedOrNotOwnedSubQuestions }
+                            Description = "User doesn't own the following sub questions or they are approved.",
+                            Data = new Dictionary<string, object>
+                                {["NotOwnedOrApprovedSubQuestions"] = approvedOrNotOwnedSubQuestions}
                         });
                 }
             }
+
+            var blanksIds = existingSubQuestions
+                .Where(q => q.Type == SubQuestionType.Blank)
+                .Select(q => q.Id)
+                .ToArray();
+            var blanksWithCheckers = _dbContext.BlankSubQuestions
+                .Where(b => blanksIds.Contains(b.Id))
+                .Where(b => b.HasChecker);
+            foreach (var blank in blanksWithCheckers)
+            {
+                _blankSubQuestionFileManager.DeleteChecker(blank);
+            }
+
+            var proIds = existingSubQuestions
+                .Where(q => q.Type == SubQuestionType.Programming)
+                .Select(q => q.Id)
+                .ToArray();
+            var pros = _dbContext.ProgrammingSubQuestions
+                .Where(b => proIds.Contains(b.Id));
+            foreach (var pro in pros)
+            {
+                _programmingSubQuestionFileManager.DeleteChecker(pro);
+                _programmingSubQuestionFileManager.DeleteKeyAnswer(pro);
+            }
+
             _dbContext.SubQuestions.RemoveRange(existingSubQuestions);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
@@ -286,15 +357,16 @@ namespace GradProjectServer.Controllers
                 case UpdateBlankSubQuestionDto blankUpdate:
                     var bq = await _dbContext.BlankSubQuestions.FindAsync(update.Id).ConfigureAwait(false);
                     baseSubQuestion = bq;
-                    if (blankUpdate.UpdateAnswer)
+                    if (blankUpdate.Answer != null)
                     {
                         bq.Answer = blankUpdate.Answer;
                     }
+
                     if (blankUpdate.UpdateChecker)
                     {
-                        bq.Checker = blankUpdate.Checker == null ?
-                            null :
-                            await _programService.SaveProgram(blankUpdate.Checker, $"BlankSubQuestion{blankUpdate.Id}Checker").ConfigureAwait(false);
+                        await using var checker = await Utility.DecodeBase64Async(blankUpdate.CheckerBase64)
+                            .ConfigureAwait(false);
+                        await _blankSubQuestionFileManager.SaveChecker(bq, checker).ConfigureAwait(false);
                     }
 
                     break;
@@ -306,6 +378,7 @@ namespace GradProjectServer.Controllers
                     {
                         mcq.IsCheckBox = mcqUpdate.IsCheckBox.Value;
                     }
+
                     if ((mcqUpdate.ChoicesToAdd?.Length ?? 0) > 0)
                     {
                         foreach (var newChoice in mcqUpdate.ChoicesToAdd!)
@@ -319,6 +392,7 @@ namespace GradProjectServer.Controllers
                             });
                         }
                     }
+
                     if ((mcqUpdate.ChoicesToDelete?.Length ?? 0) > 0)
                     {
                         var choicesToRemove = mcq.Choices.Where(c => mcqUpdate.ChoicesToDelete!.Contains(c.Id));
@@ -327,48 +401,71 @@ namespace GradProjectServer.Controllers
                             mcq.Choices.Remove(choiceToRemove);
                         }
                     }
+
                     if ((mcqUpdate.ChoicesToUpdate?.Length ?? 0) > 0)
                     {
                         var choicesToUpdate = mcqUpdate.ChoicesToUpdate!.ToDictionary(c => c.Id);
                         foreach (var choice in mcq.Choices)
                         {
-                            if (!choicesToUpdate.TryGetValue(choice.Id, out var choiceUpdate)) { continue; }
+                            if (!choicesToUpdate.TryGetValue(choice.Id, out var choiceUpdate))
+                            {
+                                continue;
+                            }
+
                             if (choiceUpdate.Content != null)
                             {
                                 choice.Content = choiceUpdate.Content;
                             }
+
                             if (choiceUpdate.Weight.HasValue)
                             {
                                 choice.Weight = choiceUpdate.Weight.Value;
                             }
                         }
                     }
+
                     break;
                 case UpdateProgrammingSubQuestionDto proUpdate:
                     var pro = await _dbContext.ProgrammingSubQuestions.FindAsync(update.Id).ConfigureAwait(false);
                     baseSubQuestion = pro;
-                    if (proUpdate.Checker != null)
+                    if (proUpdate.CheckerBase64 != null)
                     {
-                        pro.Checker = await _programService.SaveProgram(proUpdate.Checker, $"ProgrammingSubQuestion{pro.Id}Checker").ConfigureAwait(false);
-
+                        await using var checker =
+                            await Utility.DecodeBase64Async(proUpdate.CheckerBase64).ConfigureAwait(false);
+                        await _programmingSubQuestionFileManager.SaveChecker(pro, checker).ConfigureAwait(false);
                     }
+
+                    if (proUpdate.KeyAnswer != null)
+                    {
+                        _programmingSubQuestionFileManager.DeleteKeyAnswer(pro);
+                        pro.KeyAnswerFileExtension = proUpdate.KeyAnswer.FileExtension;
+                        await using var keyAnswer = await Utility.DecodeBase64Async(proUpdate.KeyAnswer.ContentBase64)
+                            .ConfigureAwait(false);
+                        await _programmingSubQuestionFileManager.SaveKeyAnswer(pro, keyAnswer).ConfigureAwait(false);
+                    }
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(update), update, "Update type is not supported.");
             }
+
             if (update.Content != null)
             {
                 baseSubQuestion.Content = update.Content;
             }
+
             if (update.QuestionId.HasValue)
             {
                 baseSubQuestion.QuestionId = update.QuestionId.Value;
             }
+
             if ((update.TagsToAdd?.Length ?? 0) > 0)
             {
                 await _dbContext.SubQuestionsTags
-                    .AddRangeAsync(update.TagsToAdd!.Select(t => new SubQuestionTag { SubQuestionId = baseSubQuestion.Id, TagId = t })).ConfigureAwait(false);
+                    .AddRangeAsync(update.TagsToAdd!.Select(t => new SubQuestionTag
+                        {SubQuestionId = baseSubQuestion.Id, TagId = t})).ConfigureAwait(false);
             }
+
             if ((update.TagsToDelete?.Length ?? 0) > 0)
             {
                 var tagsToDelete = baseSubQuestion.Tags.Where(t => update.TagsToDelete!.Contains(t.TagId));
@@ -377,8 +474,10 @@ namespace GradProjectServer.Controllers
                     baseSubQuestion.Tags.Remove(tag);
                 }
             }
+
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
+        //todo: crete methods to get checkers and key answers
     }
 }

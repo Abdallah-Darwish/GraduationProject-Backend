@@ -22,7 +22,6 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class StudyPlanCourseCategoryController : ControllerBase
     {
-        
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
 
@@ -42,7 +41,8 @@ namespace GradProjectServer.Controllers
         [AdminFilter]
         [HttpPost("Create")]
         [ProducesResponseType(typeof(StudyPlanCourseCategoryDto), StatusCodes.Status201Created)]
-        public async Task<ActionResult<StudyPlanCourseCategoryDto>> Create([FromBody] CreateStudyPlanCourseCategoryDto info)
+        public async Task<ActionResult<StudyPlanCourseCategoryDto>> Create(
+            [FromBody] CreateStudyPlanCourseCategoryDto info)
         {
             StudyPlanCourseCategory newStudyPlanCourseCategory = new()
             {
@@ -68,18 +68,23 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] UpdateStudyPlanCourseCategoryDto update)
         {
-            var studyPlanCourseCategory = await _dbContext.StudyPlansCoursesCategories.FindAsync(update.Id).ConfigureAwait(false);
+            var studyPlanCourseCategory =
+                await _dbContext.StudyPlansCoursesCategories.FindAsync(update.Id).ConfigureAwait(false);
             if (update.CategoryId != null)
             {
                 studyPlanCourseCategory.CategoryId = update.CategoryId.Value;
             }
+
             if (update.StudyPlanId != null)
             {
                 studyPlanCourseCategory.StudyPlanId = update.StudyPlanId.Value;
-            } if (update.AllowedCreditHours != null)
+            }
+
+            if (update.AllowedCreditHours != null)
             {
                 studyPlanCourseCategory.AllowedCreditHours = update.AllowedCreditHours.Value;
             }
+
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
@@ -98,7 +103,8 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete([FromBody] int[] studyPlanCourseCategoriesIds)
         {
-            var existingStudyPlanCoursesCategories = _dbContext.StudyPlansCoursesCategories.Where(c => studyPlanCourseCategoriesIds.Contains(c.Id));
+            var existingStudyPlanCoursesCategories =
+                _dbContext.StudyPlansCoursesCategories.Where(c => studyPlanCourseCategoriesIds.Contains(c.Id));
             var nonExistingStudyPlanCourseCategories =
                 studyPlanCourseCategoriesIds.Except(existingStudyPlanCoursesCategories.Select(c => c.Id)).ToArray();
             if (nonExistingStudyPlanCourseCategories.Length > 0)

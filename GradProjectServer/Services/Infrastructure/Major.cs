@@ -8,6 +8,7 @@ namespace GradProjectServer.Services.Infrastructure
         public int Id { get; set; }
         public string Name { get; set; }
         public ICollection<StudyPlan> StudyPlans { get; set; }
+
         public static void ConfigureEntity(EntityTypeBuilder<Major> b)
         {
             b.HasKey(m => m.Id);
@@ -15,12 +16,18 @@ namespace GradProjectServer.Services.Infrastructure
                 .IsUnicode()
                 .IsRequired();
         }
+
         private static Major[]? _seed = null;
+
         public static Major[] Seed
         {
             get
             {
-                if (_seed != null) { return _seed; }
+                if (_seed != null)
+                {
+                    return _seed;
+                }
+
                 _seed = new Major[]
                 {
                     new Major

@@ -8,7 +8,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using GradProjectServer.DTO.Users;
+using GradProjectServer.Services.FilesManagers;
 using GradProjectServer.Services.Resources;
+using Microsoft.Extensions.DependencyInjection;
 using SkiaSharp;
 
 namespace GradProjectServer.Services.UserSystem
@@ -46,10 +48,7 @@ namespace GradProjectServer.Services.UserSystem
                 .OnDelete(DeleteBehavior.Cascade);
         }
 
-        //todo: can volunteer
-        //todo: points
-
-        public static async Task CreateSeedFiles()
+        public static async Task CreateSeedFiles(IServiceProvider sp)
         {
             using SKPaint paint = new()
             {
@@ -57,6 +56,7 @@ namespace GradProjectServer.Services.UserSystem
                 IsAntialias = true, TextAlign = SKTextAlign.Center, TextSize = 10, StrokeWidth = 10
             };
             Random rand = new();
+            var fileManager = sp.GetRequiredService<UserFileManager>();
 
 //todo: fix me
             async Task GenerateProfilePicture(User u)
@@ -69,13 +69,10 @@ namespace GradProjectServer.Services.UserSystem
                     can.Flush();
                 }
 
-                using var bmpData = bmp.Encode(SKEncodedImageFormat.Jpeg, 100);
-                await using var userImageFileStream = new FileStream(UserManager.GetProfilePicturePath(u.Id),
-                    FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read);
-                bmpData.SaveTo(userImageFileStream);
-                await userImageFileStream.FlushAsync();
+                using var jpgData = bmp.Encode(SKEncodedImageFormat.Jpeg, 100);
+                await using var jpgStream = jpgData.AsStream();
+                await fileManager.SaveProfilePicture(u, jpgStream).ConfigureAwait(false);
             }
-
 
             foreach (var user in Seed)
             {

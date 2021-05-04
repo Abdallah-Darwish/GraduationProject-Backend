@@ -23,16 +23,20 @@ namespace GradProjectServer.Validators.SubQuestions
             RuleFor(d => d.Tags)
                 .Custom((ids, ctx) =>
                 {
-                    if ((ids?.Length ?? 0) == 0) { return; }
+                    if ((ids?.Length ?? 0) == 0)
+                    {
+                        return;
+                    }
 
                     var existingTags = dbContext.Tags
-                    .Where(t => ids!.Contains(t.Id))
-                    .Select(t => t.Id)
-                    .ToArray();
+                        .Where(t => ids!.Contains(t.Id))
+                        .Select(t => t.Id)
+                        .ToArray();
                     var nonExistingTags = ids!.Except(existingTags).ToArray();
                     if (nonExistingTags.Length > 0)
                     {
-                        ctx.AddFailure($"There are no tags with the following ids {{ {string.Join(", ", nonExistingTags)} }}.");
+                        ctx.AddFailure(
+                            $"There are no tags with the following ids {{ {string.Join(", ", nonExistingTags)} }}.");
                     }
                 });
             RuleFor(d => d.Type)

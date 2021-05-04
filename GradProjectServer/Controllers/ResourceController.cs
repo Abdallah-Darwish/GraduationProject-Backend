@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
+using GradProjectServer.Common;
+using GradProjectServer.Services.FilesManagers;
 using GradProjectServer.Services.Resources;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -22,21 +24,6 @@ namespace GradProjectServer.Controllers
     [Route("[controller]")]
     public class ResourceController : ControllerBase
     {
-        public static string ResourcesDirectory { get; private set; }
-
-        public static string GetResourceFilePath(Resource res) =>
-            Path.Combine(ResourcesDirectory, $"{res.Id}_{res.FileExtension}");
-
-        public static void Init(IServiceProvider sp)
-        {
-            var appOptions = sp.GetRequiredService<IOptions<AppOptions>>().Value;
-            ResourcesDirectory = Path.Combine(appOptions.DataSaveDirectory, "Resources");
-            if (!Directory.Exists(ResourcesDirectory))
-            {
-                Directory.CreateDirectory(ResourcesDirectory);
-            }
-        }
-
         private IQueryable<Resource> GetPreparedQueryable()
         {
             var q = _dbContext.Resources
@@ -47,11 +34,13 @@ namespace GradProjectServer.Controllers
 
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
+        private readonly ResourceFileManager _resourceFileManager;
 
-        public ResourceController(AppDbContext dbContext, IMapper mapper)
+        public ResourceController(AppDbContext dbContext, IMapper mapper, ResourceFileManager resourceFileManager)
         {
             _dbContext = dbContext;
             _mapper = mapper;
+            _resourceFileManager = resourceFileManager;
         }
 
         /// <remarks>
@@ -62,7 +51,7 @@ namespace GradProjectServer.Controllers
         /// An admin has access to:
         ///     All resources.
         /// </remarks>
-        [HttpGet("GetAll")]
+        [HttpPost("GetAll")]
         [ProducesResponseType(typeof(IEnumerable<int>), StatusCodes.Status200OK)]
         public ActionResult<ResourceDto> GetAll([FromBody] GetAllDto info)
         {
@@ -98,7 +87,7 @@ namespace GradProjectServer.Controllers
         public IActionResult Get([FromBody] int[] resourcesIds)
         {
             var resources = GetPreparedQueryable();
-            var existingResources =  resources.Where(r => resourcesIds.Contains(r.Id));
+            var existingResources = resources.Where(r => resourcesIds.Contains(r.Id));
             var nonExistingResources = resourcesIds.Except(existingResources.Select(r => r.Id)).ToArray();
             if (nonExistingResources.Length > 0)
             {
@@ -175,6 +164,7 @@ namespace GradProjectServer.Controllers
             {
                 resources = resources.Where(e => filter.Volunteers!.Contains(e.VolunteerId));
             }
+
             if ((filter.Extesnions?.Length ?? 0) > 0)
             {
                 resources = resources.Where(e => filter.Extesnions!.Contains(e.FileExtension));
@@ -184,6 +174,7 @@ namespace GradProjectServer.Controllers
             {
                 resources = resources.Where(e => filter.Types!.Contains(e.Type));
             }
+
             resources = resources
                 .OrderByDescending(r => r.CreationYear)
                 .ThenBy(r => r.CreationSemester)
@@ -274,18 +265,19 @@ namespace GradProjectServer.Controllers
                 VolunteerId = user.Id,
                 CreationSemester = data.CreationSemester,
                 CreationYear = data.CreationYear,
-                FileExtension = data.FileExtension,
+                FileExtension = data.Resource.FileExtension,
                 IsApproved = false,
-                Type =  data.Type
+                Type = data.Type
             };
             await _dbContext.Resources.AddAsync(resource).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            await using var resourceFileStream = new FileStream(GetResourceFilePath(resource), FileMode.Create,
-                FileAccess.ReadWrite, FileShare.Read);
-            await resourceFileStream.WriteAsync(Convert.FromBase64String(data.FileBase64)).ConfigureAwait(false);
-            await resourceFileStream.FlushAsync().ConfigureAwait(false);
-            return CreatedAtAction(nameof(Get), new {resourcesIds = new int[] {resource.Id}}, _mapper.Map<ResourceDto>(resource));
+            await using var resourceStream =
+                await Utility.DecodeBase64Async(data.Resource.ContentBase64).ConfigureAwait(false);
+            await _resourceFileManager.SaveResource(resource, resourceStream).ConfigureAwait(false);
+            return CreatedAtAction(nameof(Get), new {resourcesIds = new int[] {resource.Id}},
+                _mapper.Map<ResourceDto>(resource));
         }
+
         /// <summary>
         /// Updates an resource.
         /// </summary>
@@ -306,18 +298,22 @@ namespace GradProjectServer.Controllers
             {
                 resource.Name = update.Name;
             }
+
             if (update.CreationSemester != null)
             {
                 resource.CreationSemester = update.CreationSemester.Value;
             }
+
             if (update.CreationYear != null)
             {
                 resource.CreationYear = update.CreationYear.Value;
             }
+
             if (update.IsApproved != null)
             {
                 resource.IsApproved = update.IsApproved.Value;
             }
+
             if (update.FileExtension != null)
             {
                 resource.FileExtension = update.FileExtension;
@@ -327,16 +323,20 @@ namespace GradProjectServer.Controllers
             {
                 resource.Type = update.Type.Value;
             }
-            if (update.FileBase64 != null)
+
+            if (update.Resource != null)
             {
-                await using var resourceFileStream = new FileStream(GetResourceFilePath(resource), FileMode.Open,
-                    FileAccess.ReadWrite, FileShare.Read);
-                await resourceFileStream.WriteAsync(Convert.FromBase64String(update.FileBase64)).ConfigureAwait(false);
-                resourceFileStream.SetLength(resourceFileStream.Position);
-                await resourceFileStream.FlushAsync().ConfigureAwait(false);
+                _resourceFileManager.DeleteResource(resource);
+
+                resource.FileExtension = update.Resource.FileExtension;
+                await using var resourceStream =
+                    await Utility.DecodeBase64Async(update.Resource.ContentBase64).ConfigureAwait(false);
+                await _resourceFileManager.SaveResource(resource, resourceStream).ConfigureAwait(false);
             }
+
             return Ok();
         }
+
         /// <remarks>
         /// Gets the resource file as stream of bytes with header Content-Type: application/octet-stream.
         /// A user can get file of:
@@ -376,9 +376,7 @@ namespace GradProjectServer.Controllers
                     });
             }
 
-            var resourceFile = new FileStream(GetResourceFilePath(resource), FileMode.Open, FileAccess.ReadWrite,
-                FileShare.Read);
-            var result = File(resourceFile, "application/octet-stream");
+            var result = File(_resourceFileManager.GetResource(resource), "application/octet-stream");
             result.FileDownloadName = $"Resource_{resourceId}.{resource.FileExtension}";
             return result;
         }
