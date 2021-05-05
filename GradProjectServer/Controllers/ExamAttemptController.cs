@@ -8,6 +8,7 @@ using GradProjectServer.DTO.Courses;
 using GradProjectServer.DTO.ExamAttempts;
 using GradProjectServer.Services.EntityFramework;
 using GradProjectServer.Services.Exams.Entities.ExamAttempts;
+using GradProjectServer.Services.FilesManagers;
 using GradProjectServer.Services.UserSystem;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +28,8 @@ namespace GradProjectServer.Controllers
          Finish: to grade the exam and return feedback
          No need for update
          */
+        
+
         private IQueryable<ExamAttempt> GetPreparedQueryable()
         {
             IQueryable<ExamAttempt> q = _dbContext.ExamsAttempts
@@ -38,11 +41,13 @@ namespace GradProjectServer.Controllers
 
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
+        private readonly ProgrammingSubQuestionAnswerFileManager _programmingSubQuestionAnswerFileManager;
 
-        public ExamAttemptController(AppDbContext dbContext, IMapper mapper)
+        public ExamAttemptController(AppDbContext dbContext, IMapper mapper, ProgrammingSubQuestionAnswerFileManager programmingSubQuestionAnswerFileManager)
         {
             _dbContext = dbContext;
             _mapper = mapper;
+            _programmingSubQuestionAnswerFileManager = programmingSubQuestionAnswerFileManager;
         }
 
         /// <summary>
@@ -57,6 +62,7 @@ namespace GradProjectServer.Controllers
         public ActionResult<IEnumerable<int>> GetAll([FromBody] GetAllDto info)
         {
             return Ok(_dbContext.ExamsAttempts
+                .Where(e => (DateTimeOffset.Now - e.StartTime) <= e.Exam.Duration)
                 .OrderBy(c => c.StartTime)
                 .Skip(info.Offset)
                 .Take(info.Count)
@@ -76,7 +82,9 @@ namespace GradProjectServer.Controllers
         public ActionResult<IEnumerable<ExamAttemptDto>> Get([FromBody] int[] examAttemptsIds)
         {
             var examAttempts = GetPreparedQueryable();
-            var existingExamAttempts = examAttempts.Where(c => examAttemptsIds.Contains(c.Id));
+            var existingExamAttempts = examAttempts
+                .Where(e => (DateTimeOffset.Now - e.StartTime) <= e.Exam.Duration)
+                .Where(c => examAttemptsIds.Contains(c.Id));
             var nonExistingExamAttempts = examAttemptsIds.Except(existingExamAttempts.Select(c => c.Id)).ToArray();
             if (nonExistingExamAttempts.Length > 0)
             {
@@ -106,14 +114,23 @@ namespace GradProjectServer.Controllers
             var user = this.GetUser()!;
             var examAttempts = GetPreparedQueryable();
             var attempt = await examAttempts.FirstOrDefaultAsync(e => e.OwnerId == user.Id).ConfigureAwait(false);
-            if (attempt == null)
+            if (attempt == null || attempt.IsOver)
             {
                 return NoContent();
             }
 
             return Ok(_mapper.Map<ExamAttemptDto>(attempt));
         }
-        [NonAction]
+        /// <ramarks>
+        /// Creates a new exam attempt for user but he can't have any active attempts.
+        /// </ramarks>
+        /// <param name="examId"></param>
+        /// <returns></returns>
+        [LoggedInFilter]
+        [HttpGet("Create")]
+        [ProducesResponseType(typeof(ExamAttemptDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Create([FromQuery] int examId)
         {
             var user = this.GetUser()!;
@@ -134,6 +151,12 @@ namespace GradProjectServer.Controllers
             {
                 if (activeAttempt.IsOver)
                 {
+                    var activeAttemptProgrammingAnswers =
+                        _dbContext.ProgrammingSubQuestionAnswers.Where(a => a.AttemptId == activeAttempt.Id);
+                    foreach (var ans in activeAttemptProgrammingAnswers)
+                    {
+                        _programmingSubQuestionAnswerFileManager.DeleteAnswer(ans);
+                    }
                     _dbContext.ExamsAttempts.Remove(activeAttempt);
                 }
                 else
@@ -147,6 +170,7 @@ namespace GradProjectServer.Controllers
                 }
             }
 
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             ExamAttempt newAttempt = new()
             {
                 ExamId = examId,

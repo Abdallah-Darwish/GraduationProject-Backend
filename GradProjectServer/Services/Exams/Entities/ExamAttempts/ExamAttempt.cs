@@ -14,7 +14,11 @@ namespace GradProjectServer.Services.Exams.Entities.ExamAttempts
         public DateTimeOffset StartTime { get; set; }
         public Exam Exam { get; set; }
         public User Owner { get; set; }
+        /// <summary>
+        /// Over exam attempts are left in the db so the user can download his programming sub questions answers, it will be removed when he creates a new one.
+        /// </summary>
         public bool IsOver => (StartTime - DateTimeOffset.Now) >= BreakBeforeDeletingAttempt;
+       
 
         public static void ConfigureEntity(EntityTypeBuilder<ExamAttempt> b)
         {

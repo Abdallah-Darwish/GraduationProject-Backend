@@ -44,6 +44,7 @@ namespace GradProjectServer.Services.EntityFramework
         public DbSet<SubQuestionAnswer> SubQuestionAnswers { get; set; }
         public DbSet<BlankSubQuestionAnswer> BlankSubQuestionAnswers { get; set; }
         public DbSet<MCQSubQuestionAnswer> MCQSubQuestionAnswers { get; set; }
+        public DbSet<ProgrammingSubQuestionAnswer> ProgrammingSubQuestionAnswers { get; set; }
 
         private static MethodInfo? FindEntityConfigurationMethod(Type t)
         {
