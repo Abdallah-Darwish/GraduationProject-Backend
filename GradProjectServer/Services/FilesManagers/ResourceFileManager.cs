@@ -32,7 +32,7 @@ namespace GradProjectServer.Services.FilesManagers
             var resourcePath = GetResourceFilePath(resourceId, extension);
             if (File.Exists(resourcePath))
             {
-                File.Decrypt(resourcePath);
+                File.Delete(resourcePath);
             }
         }
 
