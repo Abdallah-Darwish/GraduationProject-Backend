@@ -113,7 +113,7 @@ namespace GradProjectServer.Controllers
 
             return Ok(_mapper.Map<ExamAttemptDto>(attempt));
         }
-
+        [NonAction]
         public async Task<IActionResult> Create([FromQuery] int examId)
         {
             var user = this.GetUser()!;

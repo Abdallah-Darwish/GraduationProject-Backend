@@ -7,12 +7,14 @@ RUN apt-get update && \
     tzdata \
     wget \ 
     apt-transport-https \
-    build-essential \
+    lsb-release \
+    fontconfig \
     libgcc1 \
     libgssapi-krb5-2 \
     libicu66 \
     libssl1.1 \
     libstdc++6 \
+    gnupg \
     zlib1g && \
     rm -rf /var/lib/apt/lists/*
 RUN wget https://packages.microsoft.com/config/ubuntu/20.10/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
@@ -20,9 +22,7 @@ RUN wget https://packages.microsoft.com/config/ubuntu/20.10/packages-microsoft-p
 RUN apt-get update && \
     apt-get install -y \
     dotnet-sdk-5.0
-RUN apt-get update && \
-    apt-get install -y \
-    lsb-release
+
 RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 
@@ -31,11 +31,7 @@ RUN apt-get update && \
     postgresql \
     postgresql-client \
     postgresql-contrib
-
-RUN apt-get update && \
-    apt-get install -y \
-    fontconfig
-
+    
 USER postgres
 RUN    /etc/init.d/postgresql start &&\
     psql --command "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';"
@@ -46,7 +42,6 @@ USER root
 FROM base as publish
 WORKDIR /src
 COPY . .
-RUN dotnet restore "/src/GradProjectServer.csproj"
 RUN dotnet publish "/src/GradProjectServer.csproj" -c Release -o /app/publish
 
 FROM base as final
