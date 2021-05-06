@@ -20,10 +20,10 @@ namespace GradProjectServer.DTO.Resources
         /// <summary>
         /// Don't prefix with dot.
         /// </summary>
-        public string[]? Extesnions { get; set; }
-
+        public string[]? Extensions { get; set; }
+        public ResourceType[]? Types { get; set; }
         public int Offset { get; set; }
         public int Count { get; set; }
-        public ResourceType[]? Types { get; set; }
+       
     }
 }

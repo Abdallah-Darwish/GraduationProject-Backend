@@ -165,9 +165,9 @@ namespace GradProjectServer.Controllers
                 resources = resources.Where(e => filter.Volunteers!.Contains(e.VolunteerId));
             }
 
-            if ((filter.Extesnions?.Length ?? 0) > 0)
+            if ((filter.Extensions?.Length ?? 0) > 0)
             {
-                resources = resources.Where(e => filter.Extesnions!.Contains(e.FileExtension));
+                resources = resources.Where(e => filter.Extensions!.Contains(e.FileExtension));
             }
 
             if ((filter.Types?.Length ?? 0) > 0)
@@ -181,7 +181,7 @@ namespace GradProjectServer.Controllers
                 .ThenBy(r => r.Name);
             var result = resources.Skip(filter.Offset).Take(filter.Count);
 
-            return Ok(_mapper.ProjectTo<ExamDto>(result));
+            return Ok(_mapper.ProjectTo<ResourceDto>(result));
         }
 
         /// <summary>Deletes the specified resources.</summary>

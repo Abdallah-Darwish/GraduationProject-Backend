@@ -27,7 +27,9 @@ namespace GradProjectServer.Controllers
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
         private readonly ProgrammingSubQuestionAnswerFileManager _programmingSubQuestionAnswerFileManager;
-        public SubQuestionAnswerController(AppDbContext dbContext, IMapper mapper, ProgrammingSubQuestionAnswerFileManager programmingSubQuestionAnswerFileManager)
+
+        public SubQuestionAnswerController(AppDbContext dbContext, IMapper mapper,
+            ProgrammingSubQuestionAnswerFileManager programmingSubQuestionAnswerFileManager)
         {
             _mapper = mapper;
             _dbContext = dbContext;
@@ -151,6 +153,7 @@ namespace GradProjectServer.Controllers
             }
         }
 
+        [NonAction]
         public async Task<IActionResult> GetProgrammingSubQuestionAnswerFile([FromQuery] int examSubQuestionId)
         {
             var user = this.GetUser()!;
@@ -178,7 +181,8 @@ namespace GradProjectServer.Controllers
                 return StatusCode(StatusCodes.Status404NotFound,
                     new ErrorDTO
                     {
-                        Description = "The current user attempt doesn't have any programming sub question with the following id.",
+                        Description =
+                            "The current user attempt doesn't have any programming sub question with the following id.",
                         Data = new()
                         {
                             ["ExamSubQuestionId"] = examSubQuestionId
@@ -191,13 +195,15 @@ namespace GradProjectServer.Controllers
                 return StatusCode(StatusCodes.Status403Forbidden,
                     new ErrorDTO
                     {
-                        Description = "The requested programming exam sub question doesn't belong to the user active attempt.",
+                        Description =
+                            "The requested programming exam sub question doesn't belong to the user active attempt.",
                         Data = new()
                         {
                             ["ProgrammingExamSubQuestionId"] = examSubQuestionId
                         }
                     });
             }
+
             var answer = await _dbContext.ProgrammingSubQuestionAnswers
                 .FirstOrDefaultAsync(e =>
                     e.Attempt.OwnerId == user.Id && e.SubQuestion.SubQuestion.Type == SubQuestionType.Programming &&
@@ -210,8 +216,8 @@ namespace GradProjectServer.Controllers
 
             return File(_programmingSubQuestionAnswerFileManager.GetAnswer(answer), "application/octet-stream",
                 $"{examSubQuestion}Answer.{answer.FileExtension}");
-
         }
+
         /// <remarks>
         /// Records student answer for a sub question in the active exam attempt.
         /// After calling this method any previous answers will be deleted.
@@ -376,6 +382,7 @@ namespace GradProjectServer.Controllers
                     .ConfigureAwait(false);
                 await _programmingSubQuestionAnswerFileManager.SaveAnswer(entity, answerStream);
             }
+
             return Ok();
         }
     }
