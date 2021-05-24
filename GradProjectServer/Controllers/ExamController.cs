@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace GradProjectServer.Controllers
 {
-    //todo: maybe we should move all of the logic into seperate controllers and add custom middlewares that would translate custom exceptions into status codes
+    //todo: maybe we should move all of the logic into separate controllers and add custom middlewares that would translate custom exceptions into status codes
     [ApiController]
     [Route("[controller]")]
     public class ExamController : ControllerBase

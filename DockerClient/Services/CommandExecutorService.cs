@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DockerCommon;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -34,15 +35,15 @@ namespace DockerClient
         private async Task HandleBuildMessage(NetMQMessage msg)
         {
             string jobId = msg[1].ConvertToString(Encoding.Default);
-            string archivePath = msg[2].ConvertToString(Encoding.Default);
-            string savePath = msg[3].ConvertToString(Encoding.Default);
+            string relativeArchivePath = msg[2].ConvertToString(Encoding.Default);
+            string relativeSavePath = msg[3].ConvertToString(Encoding.Default);
             _logger.LogInformation("Starting new build job with id: {JobId}", jobId);
-            _logger.LogDebug("Archive path: {ArchivePath}", archivePath);
-            _logger.LogDebug("Save path: {SavePath}", savePath);
+            _logger.LogDebug("Relative archive path: {RelativeArchivePath}", relativeArchivePath);
+            _logger.LogDebug("Relative save path: {RelativeSavePath}", relativeSavePath);
             JobResult result = JobResult.Done;
             try
             {
-                await _dockerManager.Build(archivePath, savePath).ConfigureAwait(false);
+                await _dockerManager.Build(relativeArchivePath, relativeSavePath).ConfigureAwait(false);
             }
             catch (TimeoutException ex)
             {
@@ -63,17 +64,17 @@ namespace DockerClient
         private async Task HandleCheckMessage(NetMQMessage msg)
         {
             string jobId = msg[1].ConvertToString(Encoding.Default);
-            string checkerPath = msg[2].ConvertToString(Encoding.Default);
-            string resultPath = msg[3].ConvertToString(Encoding.Default);
-            string submissionPath = msg[4].ConvertToString(Encoding.Default);
+            string relativeCheckerPath = msg[2].ConvertToString(Encoding.Default);
+            string relativeResultPath = msg[3].ConvertToString(Encoding.Default);
+            string relativeSubmissionPath = msg[4].ConvertToString(Encoding.Default);
             _logger.LogInformation("Starting new check job with id: {JobId}", jobId);
-            _logger.LogDebug("Checker path: {CheckerPath}", checkerPath);
-            _logger.LogDebug("Result path: {ResultPath}", resultPath);
-            _logger.LogDebug("Submission path: {SubmissionPath}", submissionPath);
+            _logger.LogDebug("Relative checker path: {RelativeCheckerPath}", relativeCheckerPath);
+            _logger.LogDebug("Relative result path: {RelativeResultPath}", relativeResultPath);
+            _logger.LogDebug("Relative submission path: {RelativeSubmissionPath}", relativeSubmissionPath);
             JobResult result = JobResult.Done;
             try
             {
-                await _dockerManager.Check(checkerPath, resultPath, submissionPath).ConfigureAwait(false);
+                await _dockerManager.Check(relativeCheckerPath, relativeResultPath, relativeSubmissionPath).ConfigureAwait(false);
             }
             catch (TimeoutException ex)
             {

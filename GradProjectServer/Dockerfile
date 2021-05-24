@@ -1,55 +1,21 @@
-﻿FROM ubuntu AS base
-ARG DEBIAN_FRONTEND=noninteractive
-ENV TZ=Asia/Amman
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
-RUN apt-get update && \
-    apt-get install -y \
-    tzdata \
-    wget \ 
-    apt-transport-https \
-    lsb-release \
-    fontconfig \
-    libgcc1 \
-    libgssapi-krb5-2 \
-    libicu66 \
-    libssl1.1 \
-    libstdc++6 \
-    gnupg \
-    zlib1g && \
-    rm -rf /var/lib/apt/lists/*
-RUN wget https://packages.microsoft.com/config/ubuntu/20.10/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
-    dpkg -i packages-microsoft-prod.deb
-RUN apt-get update && \
-    apt-get install -y \
-    dotnet-sdk-5.0
-
-RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-
-RUN apt-get update && \
-    apt-get install -y \
-    postgresql \
-    postgresql-client \
-    postgresql-contrib
-    
-USER postgres
-RUN    /etc/init.d/postgresql start &&\
-    psql --command "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';"
-RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/13/main/pg_hba.conf
-RUN echo "listen_addresses='*'" >> /etc/postgresql/13/main/postgresql.conf
-
-USER root
-FROM base as publish
+﻿FROM mcr.microsoft.com/dotnet/sdk as publish
 WORKDIR /src
 COPY . .
 RUN dotnet publish "/src/GradProjectServer.csproj" -c Release -o /app/publish
 
-FROM base as final
+FROM mcr.microsoft.com/dotnet/aspnet as final
+RUN apt-get update && \
+    apt-get install -y \
+    fontconfig && \
+    rm -rf /var/lib/apt/lists/*
 WORKDIR /app
+
+ARG HostUserId
+ARG HostGroupId
+RUN addgroup --gid $HostGroupId nonroot
+RUN adduser --disabled-password --gecos '' --uid $HostUserId --gid $HostGroupId nonroot
+USER nonroot
+
 COPY --from=publish /app/publish/ .
 EXPOSE 1234
-#EXPOSE 443
-#EXPOSE 5432
-COPY init.sh /app
-RUN chmod +x "/app/init.sh"
-ENTRYPOINT [ "/app/init.sh" ]
+ENTRYPOINT ["dotnet", "GradProjectServer.dll"]

@@ -13,19 +13,21 @@ namespace DockerClient
     public class DockerManager
     {
         public const string ImageName = "marje3sandbox";
-        public static TimeSpan Timeout = TimeSpan.FromMinutes(5);
-        public static string SaveDirectory { get; set; }
-
+        public static readonly TimeSpan Timeout = TimeSpan.FromMinutes(5);
+        public static string DockerVolumeDirectory { get; set; }
+        public static string CentralDataDirectory { get; set; }
         public static void Init(IServiceProvider sp)
         {
             var appOptions = sp.GetRequiredService<IOptions<AppOptions>>().Value;
-            SaveDirectory = Path.Combine(appOptions.DataSaveDirectory, "DockerVolume");
-            if (!Directory.Exists(SaveDirectory))
+            CentralDataDirectory = appOptions.CentralDataDirectory;
+            DockerVolumeDirectory = Path.Combine(appOptions.DataSaveDirectory, "DockerVolume");
+            if (!Directory.Exists(DockerVolumeDirectory))
             {
-                Directory.CreateDirectory(SaveDirectory);
+                Directory.CreateDirectory(DockerVolumeDirectory);
             }
         }
 
+        private static string AbsoluteCentralDirectory(string relativeCentralDirectory) => Path.Join(CentralDataDirectory, relativeCentralDirectory);
         private readonly ILogger<DockerManager> _logger;
 
         public DockerManager(ILogger<DockerManager> logger)
@@ -33,9 +35,12 @@ namespace DockerClient
             _logger = logger;
         }
 
-        public async Task Build(string archivePath, string savePath)
+        public async Task Build(string relativeArchivePath, string relativeSavePath)
         {
-            var extractionPath = Path.Join(SaveDirectory, $"Src{DateTime.Now.Ticks}");
+            string archivePath = AbsoluteCentralDirectory(relativeArchivePath);
+            string savePath = AbsoluteCentralDirectory(relativeSavePath);
+            
+            var extractionPath = Path.Join(DockerVolumeDirectory, $"Src{DateTime.Now.Ticks}");
             try
             {
                 await using FileStream archiveStream =
@@ -99,8 +104,11 @@ namespace DockerClient
             }
         }
 
-        public async Task Check(string checkerDirectory, string resultDirectory, string submissionDirectory)
+        public async Task Check(string relativeCheckerDirectory, string relativeResultDirectory, string relativeSubmissionDirectory)
         {
+            string checkerDirectory = AbsoluteCentralDirectory(relativeCheckerDirectory);
+            string resultDirectory = AbsoluteCentralDirectory(relativeResultDirectory);
+            string submissionDirectory = AbsoluteCentralDirectory(relativeSubmissionDirectory);
             if (!Directory.Exists(resultDirectory))
             {
                 Directory.CreateDirectory(resultDirectory);
@@ -174,7 +182,7 @@ namespace DockerClient
             }
 
             await docker.StandardOutput.ReadLineAsync().ConfigureAwait(false);
-            string line;
+            string? line;
             while (docker.StandardOutput.EndOfStream == false)
             {
                 line = await docker.StandardOutput.ReadLineAsync().ConfigureAwait(false);

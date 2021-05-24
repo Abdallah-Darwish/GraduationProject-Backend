@@ -28,6 +28,17 @@ namespace GradProjectServer.Controllers
         private readonly IMapper _mapper;
         private readonly ProgrammingSubQuestionAnswerFileManager _programmingSubQuestionAnswerFileManager;
 
+        /// <remarks>
+        /// Doesn't include owner.
+        /// </remarks>
+        private IQueryable<ExamAttempt> GetPreparedQueryable()
+        {
+            IQueryable<ExamAttempt> q = _dbContext.ExamsAttempts
+                .Include(e => e.Exam);
+
+            return q;
+        }
+
         public SubQuestionAnswerController(AppDbContext dbContext, IMapper mapper,
             ProgrammingSubQuestionAnswerFileManager programmingSubQuestionAnswerFileManager)
         {
@@ -91,7 +102,7 @@ namespace GradProjectServer.Controllers
             if (subQuestion.SubQuestion.Type == SubQuestionType.Blank)
             {
                 var blanksAnswers = _dbContext.BlankSubQuestionAnswers
-                    .Include(e => e.SubQuestion)
+                    .Include(e => e.ExamSubQuestion)
                     .ThenInclude(e => e.SubQuestion);
                 var answer = await blanksAnswers
                     .FirstAsync(e => e.AttemptId == attemptId && e.ExamSubQuestionId == examSubQuestionId)
@@ -103,7 +114,7 @@ namespace GradProjectServer.Controllers
 
                 BlankSubQuestionAnswerDto result = new()
                 {
-                    SubQuestion = _mapper.Map<ExamSubQuestionDto>(answer.SubQuestion),
+                    SubQuestion = _mapper.Map<ExamSubQuestionDto>(answer.ExamSubQuestion),
                     Answer = answer.Answer
                 };
                 return Ok(result);
@@ -112,7 +123,7 @@ namespace GradProjectServer.Controllers
             if (subQuestion.SubQuestion.Type == SubQuestionType.MultipleChoice)
             {
                 var mcqAnswers = _dbContext.MCQSubQuestionAnswers
-                    .Include(e => e.SubQuestion)
+                    .Include(e => e.ExamSubQuestion)
                     .ThenInclude(e => e.SubQuestion)
                     .Include(e => e.Choice);
                 var answers = await mcqAnswers
@@ -126,7 +137,7 @@ namespace GradProjectServer.Controllers
 
                 MCQSubQuestionAnswerDto result = new()
                 {
-                    SubQuestion = _mapper.Map<ExamSubQuestionDto>(answers[0].SubQuestion),
+                    SubQuestion = _mapper.Map<ExamSubQuestionDto>(answers[0].ExamSubQuestion),
                     SelectedChoices = _mapper.Map<MCQSubQuestionChoiceDto[]>(answers.Select(a => a.Choice).ToArray()),
                 };
                 return Ok(result);
@@ -134,7 +145,7 @@ namespace GradProjectServer.Controllers
 
             {
                 var programmingAnswers = _dbContext.ProgrammingSubQuestionAnswers
-                    .Include(e => e.SubQuestion)
+                    .Include(e => e.ExamSubQuestion)
                     .ThenInclude(e => e.SubQuestion);
                 var answer = await programmingAnswers
                     .FirstAsync(e => e.AttemptId == attemptId && e.ExamSubQuestionId == examSubQuestionId)
@@ -146,14 +157,27 @@ namespace GradProjectServer.Controllers
 
                 ProgrammingSubQuestionAnswerDto result = new()
                 {
-                    SubQuestion = _mapper.Map<ExamSubQuestionDto>(answer.SubQuestion),
+                    SubQuestion = _mapper.Map<ExamSubQuestionDto>(answer.ExamSubQuestion),
                     ProgrammingLanguage = answer.ProgrammingLanguage
                 };
                 return Ok(result);
             }
         }
 
-        [NonAction]
+        /// <remarks>
+        /// Returns the answer file for an exam sub question in the currently active attempt for logged in user.
+        /// </remarks>
+        /// <param name="examSubQuestionId">Exam sub question to get your recorded answer to it.</param>
+        /// <response code="200">Returns the response file with with header Content-Type: application/octet-stream.</response>
+        /// <response code="204">There is no recorded answer for this exam sub question form logged in user.</response>
+        /// <response code="403">There is no active exam attempt for the logged in user, or the question belongs to an exam other than the currently active one.</response>
+        /// <response code="404">There is no programming exam sub question with this id.</response>
+        [LoggedInFilter]
+        [HttpGet("GetProgrammingSubQuestionAnswerFile")]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status204NoContent)]
         public async Task<IActionResult> GetProgrammingSubQuestionAnswerFile([FromQuery] int examSubQuestionId)
         {
             var user = this.GetUser()!;
@@ -182,7 +206,7 @@ namespace GradProjectServer.Controllers
                     new ErrorDTO
                     {
                         Description =
-                            "The current user attempt doesn't have any programming sub question with the following id.",
+                            "The active user attempt doesn't have any programming sub question with the following id.",
                         Data = new()
                         {
                             ["ExamSubQuestionId"] = examSubQuestionId
@@ -206,7 +230,7 @@ namespace GradProjectServer.Controllers
 
             var answer = await _dbContext.ProgrammingSubQuestionAnswers
                 .FirstOrDefaultAsync(e =>
-                    e.Attempt.OwnerId == user.Id && e.SubQuestion.SubQuestion.Type == SubQuestionType.Programming &&
+                    e.Attempt.OwnerId == user.Id && e.ExamSubQuestion.SubQuestion.Type == SubQuestionType.Programming &&
                     e.ExamSubQuestionId == examSubQuestionId)
                 .ConfigureAwait(false);
             if (answer == null)
@@ -228,20 +252,34 @@ namespace GradProjectServer.Controllers
         /// 2- CreateMCQSubQuestionAnswerDto.
         /// 3- CreateProgrammingSubQuestionAnswerDto
         /// </param>
-        /// <response code="200">If every thing works fine and the new answer is recorded.</response>
+        /// <response code="201">If every thing works fine and the new answer is recorded.</response>
+        /// <response code="403">If there is no active exam attempts.</response>
+        /// <response code="404">If the active exam attempt have doesn't have any sub question with the specified id.</response>
         [LoggedInFilter]
         [HttpPost("Create")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Create([FromBody] CreateSubQuestionAnswerDto answer)
         {
+            var exams = GetPreparedQueryable();
             var user = this.GetUser()!;
-            var attempt = await _dbContext.ExamsAttempts.FirstAsync(e => e.OwnerId == user.Id).ConfigureAwait(false);
+            var attempt = await exams.FirstOrDefaultAsync(e => e.OwnerId == user.Id).ConfigureAwait(false);
             if (attempt == null)
             {
                 return StatusCode(StatusCodes.Status403Forbidden,
                     new ErrorDTO
                     {
                         Description = "User doesn't have any active exam attempts."
+                    });
+            }
+
+            if (attempt.IsOver)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    new ErrorDTO
+                    {
+                        Description = "The active exam attempt is over, but it's kept in the db for grading and feedback purposes."
                     });
             }
 
@@ -295,9 +333,13 @@ namespace GradProjectServer.Controllers
                 }
 
                 var previousAnswer = await _dbContext.SubQuestionAnswers
-                    .FirstAsync(e => e.AttemptId == attemptId && e.ExamSubQuestionId == examSubQuestionId)
+                    .FirstOrDefaultAsync(e => e.AttemptId == attemptId && e.ExamSubQuestionId == examSubQuestionId)
                     .ConfigureAwait(false);
-                _dbContext.SubQuestionAnswers.Remove(previousAnswer);
+                if (previousAnswer != null)
+                {
+                    _dbContext.SubQuestionAnswers.Remove(previousAnswer);
+                }
+
                 BlankSubQuestionAnswer entity = new()
                 {
                     Answer = blankAnswer.Answer,
@@ -347,7 +389,11 @@ namespace GradProjectServer.Controllers
 
                 var previousAnswers = _dbContext.SubQuestionAnswers
                     .Where(e => e.AttemptId == attemptId && e.ExamSubQuestionId == examSubQuestionId);
-                _dbContext.SubQuestionAnswers.RemoveRange(previousAnswers);
+                if (await previousAnswers.AnyAsync().ConfigureAwait(false))
+                {
+                    _dbContext.SubQuestionAnswers.RemoveRange(previousAnswers);
+                }
+
                 var entities = mcqAnswer.SelectedChoices
                     .Select(id => new MCQSubQuestionAnswer()
                     {
@@ -365,10 +411,14 @@ namespace GradProjectServer.Controllers
                 }
 
                 var previousAnswer = await _dbContext.ProgrammingSubQuestionAnswers
-                    .FirstAsync(e => e.AttemptId == attemptId && e.ExamSubQuestionId == examSubQuestionId)
+                    .FirstOrDefaultAsync(e => e.AttemptId == attemptId && e.ExamSubQuestionId == examSubQuestionId)
                     .ConfigureAwait(false);
-                _programmingSubQuestionAnswerFileManager.DeleteAnswer(previousAnswer);
-                _dbContext.SubQuestionAnswers.Remove(previousAnswer);
+                if (previousAnswer != null)
+                {
+                    _programmingSubQuestionAnswerFileManager.DeleteAnswer(previousAnswer);
+                    _dbContext.SubQuestionAnswers.Remove(previousAnswer);
+                }
+
                 ProgrammingSubQuestionAnswer entity = new()
                 {
                     FileExtension = programmingAnswer.Answer.FileExtension,
@@ -383,7 +433,8 @@ namespace GradProjectServer.Controllers
                 await _programmingSubQuestionAnswerFileManager.SaveAnswer(entity, answerStream);
             }
 
-            return Ok();
+//won't return the value because of mapping code for now
+            return CreatedAtAction(nameof(Get), new {examSubQuestionId}, null);
         }
     }
 }

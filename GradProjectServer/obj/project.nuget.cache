@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "WL4wUnZIOO8FRsvlX2V8gWmQGsIfQ7YcbzCQq0YVC7IFnJ0DmqUHjDNq75lPWM27y5sZcnPGknrxSHXjloW5Qg==",
+  "dgSpecHash": "GdciA0+3AIFqnDgW/GLNBNONTVNNFXssgB6jTZUAuzbPGTI5K7IgUhIcmudRdG5nu0Wk8h8CRua3AxSAbAgEiw==",
   "success": true,
   "projectFilePath": "/home/abdallah/Desktop/GraduationProject-Backend/GradProjectServer/GradProjectServer.csproj",
   "expectedPackageFiles": [
@@ -37,6 +37,7 @@
     "/home/abdallah/.nuget/packages/newtonsoft.json.bson/1.0.2/newtonsoft.json.bson.1.0.2.nupkg.sha512",
     "/home/abdallah/.nuget/packages/npgsql/5.0.4/npgsql.5.0.4.nupkg.sha512",
     "/home/abdallah/.nuget/packages/npgsql.entityframeworkcore.postgresql/5.0.5.1/npgsql.entityframeworkcore.postgresql.5.0.5.1.nupkg.sha512",
+    "/home/abdallah/.nuget/packages/restsharp/106.11.7/restsharp.106.11.7.nupkg.sha512",
     "/home/abdallah/.nuget/packages/skiasharp/2.80.2/skiasharp.2.80.2.nupkg.sha512",
     "/home/abdallah/.nuget/packages/skiasharp.nativeassets.linux/2.80.2/skiasharp.nativeassets.linux.2.80.2.nupkg.sha512",
     "/home/abdallah/.nuget/packages/swashbuckle.aspnetcore/6.1.3/swashbuckle.aspnetcore.6.1.3.nupkg.sha512",

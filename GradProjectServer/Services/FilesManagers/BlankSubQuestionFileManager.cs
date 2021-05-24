@@ -15,24 +15,64 @@ namespace GradProjectServer.Services.FilesManagers
     public class BlankSubQuestionFileManager
     {
         public static string SaveDirectory { get; private set; }
+        public static string CheckerSourceSaveDirectory { get; set; }
+        public static string CheckerBinarySaveDirectory { get; set; }
 
         public static void Init(IServiceProvider sp)
         {
             var appOptions = sp.GetRequiredService<IOptions<AppOptions>>().Value;
-            SaveDirectory = Path.Combine(appOptions.DataSaveDirectory, "BlankSubQuestionsCheckers");
-            if (!Directory.Exists(SaveDirectory))
+            SaveDirectory = Path.Combine(appOptions.DataSaveDirectory, "BlankSubQuestions");
+            CheckerSourceSaveDirectory = Path.Combine(SaveDirectory, "CheckersSources");
+            CheckerBinarySaveDirectory = Path.Combine(SaveDirectory, "CheckersBinaries");
+            foreach (var dir in new string[] {SaveDirectory, CheckerSourceSaveDirectory, CheckerBinarySaveDirectory})
             {
-                Directory.CreateDirectory(SaveDirectory);
+                if (!Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
             }
         }
 
-        public static string GetResourceFilePath(int subQuestionId) =>
-            Path.Combine(SaveDirectory, $"{subQuestionId}.zip");
+        #region CheckerBinary
 
-        public static string GetResourceFilePath(BlankSubQuestion blank) => GetResourceFilePath(blank.Id);
-        public static readonly IReadOnlyList<string> RequiredCheckerFiles = new[] {"Build.sh", "Init.sh", "Run.sh"};
+        public static string GetCheckerBinaryDirectory(int subQuestionId) =>
+            Path.Combine(CheckerBinarySaveDirectory, subQuestionId.ToString());
 
-        public bool VerifyChecker(Stream checker)
+        public static string GetCheckerBinaryDirectory(BlankSubQuestion subQuestion) =>
+            GetCheckerBinaryDirectory(subQuestion.Id);
+        
+        public void DeleteCheckerBinary(int subQuestionId)
+        {
+            var checkerDir = GetCheckerBinaryDirectory(subQuestionId);
+            if (Directory.Exists(checkerDir))
+            {
+                Directory.Delete(checkerDir, true);
+            }
+        }
+
+        public void DeleteCheckerBinary(BlankSubQuestion subQuestion) => DeleteCheckerBinary(subQuestion.Id);
+
+        public string CreateCheckerBinaryDirectory(int subQuestionId)
+        {
+            var checkerDir = GetCheckerBinaryDirectory(subQuestionId);
+            if (!Directory.Exists(checkerDir))
+            {
+                Directory.CreateDirectory(checkerDir);
+            }
+
+            return checkerDir;
+        }
+        public string CreateCheckerBinaryDirectory(BlankSubQuestion subQuestion) => CreateCheckerBinaryDirectory(subQuestion.Id);
+
+        #endregion
+
+        #region CheckerSource
+        public static string GetCheckerSourcePath(int subQuestionId) =>
+            Path.Combine(CheckerSourceSaveDirectory, $"{subQuestionId}.zip");
+
+        public static string GetCheckerSourcePath(BlankSubQuestion blank) => GetCheckerSourcePath(blank.Id);
+        public static readonly IReadOnlyList<string> RequiredCheckerFiles = new[] {"build.sh", "init.sh", "run.sh"};
+        public bool VerifyCheckerSource(Stream checker)
         {
             try
             {
@@ -46,18 +86,18 @@ namespace GradProjectServer.Services.FilesManagers
             }
         }
 
-        public Stream GetChecker(int subQuestionId)
+        public Stream GetCheckerSource(int subQuestionId)
         {
-            var checkerPath = GetResourceFilePath(subQuestionId);
+            var checkerPath = GetCheckerSourcePath(subQuestionId);
             return new FileStream(checkerPath, FileMode.Open, FileAccess.ReadWrite,
                 FileShare.ReadWrite);
         }
 
-        public Stream GetChecker(BlankSubQuestion subQuestion) => GetChecker(subQuestion.Id);
+        public Stream GetCheckerSource(BlankSubQuestion subQuestion) => GetCheckerSource(subQuestion.Id);
 
-        public async Task SaveChecker(int subQuestionId, Stream checker)
+        public async Task SaveCheckerSource(int subQuestionId, Stream checker)
         {
-            var checkerPath = GetResourceFilePath(subQuestionId);
+            var checkerPath = GetCheckerSourcePath(subQuestionId);
             await using var checkerFileStream = new FileStream(checkerPath, FileMode.OpenOrCreate, FileAccess.ReadWrite,
                 FileShare.ReadWrite);
             await checker.CopyToAsync(checkerFileStream).ConfigureAwait(false);
@@ -65,17 +105,20 @@ namespace GradProjectServer.Services.FilesManagers
             checkerFileStream.SetLength(checkerFileStream.Position);
         }
 
-        public Task SaveChecker(BlankSubQuestion subQuestion, Stream checker) => SaveChecker(subQuestion.Id, checker);
+        public Task SaveCheckerSource(BlankSubQuestion subQuestion, Stream checker) =>
+            SaveCheckerSource(subQuestion.Id, checker);
 
-        public void DeleteChecker(int subQuestionId)
+        public void DeleteCheckerSource(int subQuestionId)
         {
-            var checkerPath = GetResourceFilePath(subQuestionId);
+            var checkerPath = GetCheckerSourcePath(subQuestionId);
             if (File.Exists(checkerPath))
             {
                 File.Delete(checkerPath);
             }
         }
 
-        public void DeleteChecker(BlankSubQuestion subQuestion) => DeleteChecker(subQuestion.Id);
+        public void DeleteCheckerSource(BlankSubQuestion subQuestion) => DeleteCheckerSource(subQuestion.Id);
+
+        #endregion
     }
 }

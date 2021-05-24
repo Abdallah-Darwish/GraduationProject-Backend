@@ -1,4 +1,4 @@
-namespace DockerBroker.Models
+namespace DockerCommon
 {
     public class BuildJobDto
     {

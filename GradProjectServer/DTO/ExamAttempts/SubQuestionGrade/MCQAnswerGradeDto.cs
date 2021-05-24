@@ -2,7 +2,7 @@ using GradProjectServer.DTO.SubQuestions;
 
 namespace GradProjectServer.DTO.ExamAttempts.SubQuestionGrade
 {
-    public class MCQSubQuestionGradeDto : SubQuestionGradeDto
+    public class MCQAnswerGradeDto : AnswerGradeDto
     {
         /// <summary>
         /// Returns "Owned" variant so you would know the weight of each choice

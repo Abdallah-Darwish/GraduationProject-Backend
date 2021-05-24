@@ -4,11 +4,17 @@ using DockerCommon;
 namespace GradProjectServer.Services.CheckersManagers
 {
     [Serializable]
-    public class DockerException : Exception
+    public class DockerBrokerException : Exception
     {
-        public DockerException(JobResult result) : base($"Docker didn't e")
+        public JobResult Result { get; }
+
+        public DockerBrokerException(JobResult result)
         {
-            
+            Result = result;
+        }
+        public DockerBrokerException(JobResult result, string message) : base(message)
+        {
+            Result = result;
         }
     }
 }

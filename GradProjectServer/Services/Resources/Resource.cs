@@ -107,6 +107,7 @@ namespace GradProjectServer.Services.Resources
                 var users = User.Seed;
                 var seed = new List<Resource>();
                 var semesters = Enum.GetValues<Semester>();
+                var resourceTypes = Enum.GetValues<ResourceType>();
                 int id = 1;
                 foreach (var course in courses)
                 {
@@ -124,7 +125,8 @@ namespace GradProjectServer.Services.Resources
                             FileExtension = "txt",
                             CreationSemester = rand.NextElement(semesters),
                             CreationYear = rand.Next(2015, DateTime.Now.Year),
-                            IsApproved = rand.NextBool()
+                            IsApproved = rand.NextBool(),
+                            Type = rand.NextElement(resourceTypes)
                         };
                         seed.Add(resource);
                     }

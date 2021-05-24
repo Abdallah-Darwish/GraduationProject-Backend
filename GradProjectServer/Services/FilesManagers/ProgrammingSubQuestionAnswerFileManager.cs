@@ -9,11 +9,6 @@ namespace GradProjectServer.Services.FilesManagers
 {
     public class ProgrammingSubQuestionAnswerFileManager
     {
-        /*
-          * ProgrammingSubQuestionAnswer, needs extension:
-            - Save Answer
-            - Get Answer
-         */
         public static string SaveDirectory { get; private set; }
 
         public static void Init(IServiceProvider sp)

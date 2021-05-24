@@ -16,8 +16,8 @@ namespace GradProjectServer.Services.Exams.Entities
         public float Weight { get; set; }
         public int ExamQuestionId { get; set; }
         public int Order { get; set; }
-        public SubQuestion SubQuestion { get; set; }
-        public ExamQuestion ExamQuestion { get; set; }
+        public SubQuestion? SubQuestion { get; set; }
+        public ExamQuestion? ExamQuestion { get; set; }
 
         public static void ConfigureEntity(EntityTypeBuilder<ExamSubQuestion> b)
         {

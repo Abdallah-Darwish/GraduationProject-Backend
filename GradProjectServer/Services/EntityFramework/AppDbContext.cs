@@ -22,8 +22,7 @@ namespace GradProjectServer.Services.EntityFramework
         public DbSet<ExamAttempt> ExamsAttempts { get; set; }
         public DbSet<ExamSubQuestion> ExamSubQuestions { get; set; }
         public DbSet<ExamQuestion> ExamsQuestions { get; set; }
-        public DbSet<SubQuestionAnswer> SubQuestionsAnswers { get; set; }
-        public DbSet<MCQSubQuestion> MCQSubQuestions { get; set; }
+          public DbSet<MCQSubQuestion> MCQSubQuestions { get; set; }
         public DbSet<MCQSubQuestionChoice> MCQSubQuestionsChoices { get; set; }
         public DbSet<BlankSubQuestion> BlankSubQuestions { get; set; }
         public DbSet<ProgrammingSubQuestion> ProgrammingSubQuestions { get; set; }

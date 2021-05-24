@@ -20,6 +20,7 @@ namespace GradProjectServer.Services.Exams.Entities
     public class BlankSubQuestion : SubQuestion
     {
         public bool HasChecker { get; set; }
+        public bool IsCheckerBuilt { get; set; }
 
         /// <summary>
         /// It can't be null because it will be used as a key answer on grading.
@@ -34,6 +35,8 @@ namespace GradProjectServer.Services.Exams.Entities
                 .IsUnicode()
                 .IsRequired();
             b.Property(q => q.HasChecker)
+                .IsRequired();
+            b.Property(q => q.IsCheckerBuilt)
                 .IsRequired();
         }
 
@@ -93,7 +96,7 @@ namespace GradProjectServer.Services.Exams.Entities
             foreach (var blank in Seed.Where(b => b.HasChecker))
             {
                 checkerStream.Position = 0;
-                await fileManager.SaveChecker(blank, checkerStream).ConfigureAwait(false);
+                await fileManager.SaveCheckerSource(blank, checkerStream).ConfigureAwait(false);
             }
         }
     }

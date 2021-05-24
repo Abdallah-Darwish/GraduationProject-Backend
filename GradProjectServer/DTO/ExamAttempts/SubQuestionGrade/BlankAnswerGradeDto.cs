@@ -1,6 +1,6 @@
 namespace GradProjectServer.DTO.ExamAttempts.SubQuestionGrade
 {
-    public class BlankSubQuestionGradeDto : SubQuestionGradeDto
+    public class BlankAnswerGradeDto : AnswerGradeDto
     {
         public string UserAnswer { get; set; }
         public string KeyAnswer { get; set; }

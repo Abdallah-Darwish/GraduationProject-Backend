@@ -12,9 +12,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace GradProjectServer.Services.Exams.Entities
 {
+    //todo: maybe we should add "Allowed Answer Programming Languages"
     public class ProgrammingSubQuestion : SubQuestion
     {
         public string KeyAnswerFileExtension { get; set; }
+        public bool IsCheckerBuilt { get; set; }
 
         public static void ConfigureEntity(EntityTypeBuilder<ProgrammingSubQuestion> b)
         {
@@ -23,6 +25,9 @@ namespace GradProjectServer.Services.Exams.Entities
             b.Property(q => q.KeyAnswerFileExtension)
                 .IsUnicode()
                 .IsRequired();
+            b.Property(q => q.IsCheckerBuilt)
+                .IsRequired()
+                .HasDefaultValue(false);
         }
 
         private static ProgrammingSubQuestion[]? _seed = null;
@@ -82,7 +87,7 @@ namespace GradProjectServer.Services.Exams.Entities
             foreach (var pro in Seed.Where(q => q.Type == SubQuestionType.Programming))
             {
                 checkerStream.Position = 0;
-                await fileManager.SaveChecker(pro, checkerStream).ConfigureAwait(false);
+                await fileManager.SaveCheckerSource(pro, checkerStream).ConfigureAwait(false);
 
                 keyAnswerStream.Position = 0;
                 await using (StreamWriter keyAnswerWriter = new(keyAnswerStream, leaveOpen: true))

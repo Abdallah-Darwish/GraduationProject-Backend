@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using GradProjectServer.Services.UserSystem;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -7,7 +8,6 @@ namespace GradProjectServer.Services.Exams.Entities.ExamAttempts
 {
     public class ExamAttempt
     {
-        public static readonly TimeSpan BreakBeforeDeletingAttempt = TimeSpan.FromMinutes(5);
         public int Id { get; set; }
         public int ExamId { get; set; }
         public int OwnerId { get; set; }
@@ -17,14 +17,19 @@ namespace GradProjectServer.Services.Exams.Entities.ExamAttempts
         /// <summary>
         /// Over exam attempts are left in the db so the user can download his programming sub questions answers, it will be removed when he creates a new one.
         /// </summary>
-        public bool IsOver => (StartTime - DateTimeOffset.Now) >= BreakBeforeDeletingAttempt;
-       
+        public bool IsFinished { get; set; }
 
+        public bool IsTimeOver => (StartTime - DateTimeOffset.Now) >= Exam.Duration;
+        public bool IsOver => IsFinished || IsTimeOver;
+        public ICollection<SubQuestionAnswer> Answers { get; set; }
         public static void ConfigureEntity(EntityTypeBuilder<ExamAttempt> b)
         {
             b.HasKey(e => e.Id);
             b.Property(e => e.StartTime)
                 .IsRequired();
+            b.Property(e => e.IsFinished)
+                .IsRequired();
+            b.Ignore(e => e.IsTimeOver);
             b.Ignore(e => e.IsOver);
             b.HasOne(a => a.Exam)
                 .WithMany()

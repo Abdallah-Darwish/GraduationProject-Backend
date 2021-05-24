@@ -15,7 +15,8 @@ def build() -> None:
         print_error(f"{buildTargetPath} doesn't exist.")
 
     shutil.copytree(buildSrcPath, newBuildSourcePath)
-
+    subprocess.run(['chmod', '-R', '+x', newBuildSourcePath], check=True)
+    
     p = subprocess.run([os.path.join(newBuildSourcePath, 'build.sh'), buildTargetPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
     if p.returncode != 0:
@@ -39,10 +40,13 @@ def run_checker() -> None:
 
     shutil.copytree(checkerPath, newCheckerPath)
     shutil.copytree(submissionPath, newSubmissionPath)
+    subprocess.run(['chmod', '-R', '+x', newCheckerPath], check=True)
+    subprocess.run(['chmod', '-R', '+x', newSubmissionPath], check=True)
+
 
     p = subprocess.run([os.path.join(newCheckerPath, 'init.sh')], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if p.returncode != 0:
-        print_error(f'Init.sh returned {p.returncode}.')
+        print_error(f'init.sh returned {p.returncode}.')
 
     p = subprocess.run([os.path.join(newCheckerPath, 'run.sh'), newSubmissionPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if p.returncode != 0:

@@ -5,7 +5,7 @@ using DockerCommon;
 using Microsoft.Extensions.Options;
 using RestSharp;
 
-namespace GradProjectServer.Services.CheckersManagers.Docker
+namespace GradProjectServer.Services.CheckersManagers
 {
     public class DockerBroker
     {

@@ -19,6 +19,11 @@ namespace GradProjectServer.Services.CheckersManagers
     {
         public const string MetadataFilename = "metadata.txt";
         public const string ResultFileName = "result.txt";
+        /// <summary>
+        /// will be used if the answer is only one non-zip file or if the zip file can't be extracted
+        /// </summary>
+        public const string AnswerFileName = "answer";
+        public const string AnswerDirectoryName = "answer";
 
         private static readonly ImmutableDictionary<string, ProgrammingSubQuestionAnswerVerdict> VerdictsMapping =
             ImmutableDictionary.CreateRange(
@@ -38,17 +43,17 @@ namespace GradProjectServer.Services.CheckersManagers
                         ProgrammingSubQuestionAnswerVerdict.Accepted),
                 });
         
-        private readonly AppDbContext _appDbContext;
+        private readonly AppDbContext _dbContext;
         private readonly DockerBroker _broker;
         private readonly ProgrammingSubQuestionFileManager _programmingSubQuestionFileManager;
         private readonly ProgrammingSubQuestionAnswerFileManager _answerFileManager;
         private readonly TempDirectoryManager _tempDirectoryManager;
 
-        public ProgrammingCheckerManager(AppDbContext appDbContext, DockerBroker broker,
+        public ProgrammingCheckerManager(AppDbContext dbContext, DockerBroker broker,
             ProgrammingSubQuestionFileManager programmingSubQuestionFileManager,
             ProgrammingSubQuestionAnswerFileManager answerFileManager, TempDirectoryManager tempDirectoryManager)
         {
-            _appDbContext = appDbContext;
+            _dbContext = dbContext;
             _broker = broker;
             _programmingSubQuestionFileManager = programmingSubQuestionFileManager;
             _answerFileManager = answerFileManager;
@@ -59,7 +64,7 @@ namespace GradProjectServer.Services.CheckersManagers
         public async Task Build(int subQuestionId)
         {
             var subQuestion =
-                await _appDbContext.ProgrammingSubQuestions.FindAsync(subQuestionId).ConfigureAwait(false);
+                await _dbContext.ProgrammingSubQuestions.FindAsync(subQuestionId).ConfigureAwait(false);
             if (subQuestion.IsCheckerBuilt)
             {
                 return;
@@ -75,14 +80,14 @@ namespace GradProjectServer.Services.CheckersManagers
             }
 
             subQuestion.IsCheckerBuilt = true;
-            await _appDbContext.SaveChangesAsync().ConfigureAwait(false);
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public Task Build(ProgrammingSubQuestion subQuestion) => Build(subQuestion.Id);
 
-        public async Task<ProgrammingCheckerResult> Check(int subQuestionId, int answerId)
+        public async Task<ProgrammingCheckerResult> Check(int answerId)
         {
-            var answer = await _appDbContext.ProgrammingSubQuestionAnswers.FindAsync(answerId)
+            var answer = await _dbContext.ProgrammingSubQuestionAnswers.FindAsync(answerId)
                 .ConfigureAwait(false);
 
             var submissionDir = _tempDirectoryManager.Create($"ProgrammingAnswer{answerId}_Submission");
@@ -93,7 +98,7 @@ namespace GradProjectServer.Services.CheckersManagers
             await metadataWriter.WriteLineAsync(answer.ProgrammingLanguage.ToString().ToLowerInvariant())
                 .ConfigureAwait(false);
 
-            var answerDir = Path.Combine(submissionDir.Directory, "answer");
+            var answerDir = Path.Combine(submissionDir.Directory, AnswerDirectoryName);
             Directory.CreateDirectory(answerDir);
             await using var answerFileStream = _answerFileManager.GetAnswer(answer);
             if (answer.FileExtension.ToLowerInvariant() == "zip")
@@ -113,16 +118,24 @@ namespace GradProjectServer.Services.CheckersManagers
 
                     Directory.CreateDirectory(answerDir);
                     await using FileStream tempAnswerFileStream =
-                        new(Path.Combine(answerDir, "answer.zip"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare
+                        new(Path.Combine(answerDir, $"{AnswerFileName}.zip"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare
                             .ReadWrite);
                     await answerFileStream.CopyToAsync(tempAnswerFileStream).ConfigureAwait(false);
                     await tempAnswerFileStream.FlushAsync().ConfigureAwait(false);
                 }
             }
+            else
+            {
+                await using FileStream tempAnswerFileStream =
+                    new(Path.Combine(answerDir, $"{AnswerFileName}.{answer.FileExtension}"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare
+                        .ReadWrite);
+                await answerFileStream.CopyToAsync(tempAnswerFileStream).ConfigureAwait(false);
+                await tempAnswerFileStream.FlushAsync().ConfigureAwait(false);
+            }
 
             try
             {
-                await Build(subQuestionId).ConfigureAwait(false);
+                await Build(answer.ExamSubQuestionId).ConfigureAwait(false);
             }
             catch
             {
@@ -136,7 +149,7 @@ namespace GradProjectServer.Services.CheckersManagers
 
             var resultDir = _tempDirectoryManager.Create($"ProgrammingAnswer{answerId}_GradingResult");
             var checkResult = await _broker.Check(submissionDir.RelativeDirectory,
-                PathUtility.MakeRelative(ProgrammingSubQuestionFileManager.GetCheckerBinaryDirectory(subQuestionId)),
+                PathUtility.MakeRelative(ProgrammingSubQuestionFileManager.GetCheckerBinaryDirectory(answer.ExamSubQuestionId)),
                 resultDir.RelativeDirectory);
 
             if (checkResult != JobResult.Done)
@@ -178,5 +191,7 @@ namespace GradProjectServer.Services.CheckersManagers
                 };
             }
         }
+
+        public Task<ProgrammingCheckerResult> Check(ProgrammingSubQuestionAnswer answer) => Check(answer.Id);
     }
 }

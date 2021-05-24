@@ -115,7 +115,7 @@ namespace GradProjectServer.Services.UserSystem
                     {
                         Id = id++,
                         Email = $"{i}@{i}.com",
-                        IsAdmin = true,
+                        IsAdmin = rand.NextBool(),
                         Name = $"{rand.NextElement(firstNames)} {rand.NextElement(lastNames)}",
                         StudyPlanId = sp.Id,
                         PasswordHash = UserManager.HashPassword($"{i}123456789{i}"),
@@ -125,6 +125,10 @@ namespace GradProjectServer.Services.UserSystem
                     seed.Add(user);
                 }
 
+                for (int i = 0; i < 5 && i < seed.Count; i++)
+                {
+                    seed[i].IsAdmin = true;
+                }
                 _seed = seed.ToArray();
                 return _seed;
             }

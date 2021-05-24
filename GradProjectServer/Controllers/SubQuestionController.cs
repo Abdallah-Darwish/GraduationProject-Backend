@@ -216,7 +216,7 @@ namespace GradProjectServer.Controllers
                     {
                         await using var checker =
                             await Utility.DecodeBase64Async(blank.CheckerBase64).ConfigureAwait(false);
-                        await _blankSubQuestionFileManager.SaveChecker(bq, checker).ConfigureAwait(false);
+                        await _blankSubQuestionFileManager.SaveCheckerSource(bq, checker).ConfigureAwait(false);
                     }
 
                     break;
@@ -248,7 +248,7 @@ namespace GradProjectServer.Controllers
                     await using var keyAnswer =
                         await Utility.DecodeBase64Async(pro.KeyAnswer.ContentBase64).ConfigureAwait(false);
 
-                    await _programmingSubQuestionFileManager.SaveChecker(pq, checker);
+                    await _programmingSubQuestionFileManager.SaveCheckerSource(pq, checker);
                     await _programmingSubQuestionFileManager.SaveKeyAnswer(pq, keyAnswer);
                     break;
                 }
@@ -322,7 +322,7 @@ namespace GradProjectServer.Controllers
                 .Where(b => b.HasChecker);
             foreach (var blank in blanksWithCheckers)
             {
-                _blankSubQuestionFileManager.DeleteChecker(blank);
+                _blankSubQuestionFileManager.DeleteCheckerSource(blank);
             }
 
             var proIds = existingSubQuestions
@@ -333,7 +333,7 @@ namespace GradProjectServer.Controllers
                 .Where(b => proIds.Contains(b.Id));
             foreach (var pro in pros)
             {
-                _programmingSubQuestionFileManager.DeleteChecker(pro);
+                _programmingSubQuestionFileManager.DeleteCheckerSource(pro);
                 _programmingSubQuestionFileManager.DeleteKeyAnswer(pro);
             }
 
@@ -366,7 +366,7 @@ namespace GradProjectServer.Controllers
                     {
                         await using var checker = await Utility.DecodeBase64Async(blankUpdate.CheckerBase64)
                             .ConfigureAwait(false);
-                        await _blankSubQuestionFileManager.SaveChecker(bq, checker).ConfigureAwait(false);
+                        await _blankSubQuestionFileManager.SaveCheckerSource(bq, checker).ConfigureAwait(false);
                     }
 
                     break;
@@ -432,7 +432,7 @@ namespace GradProjectServer.Controllers
                     {
                         await using var checker =
                             await Utility.DecodeBase64Async(proUpdate.CheckerBase64).ConfigureAwait(false);
-                        await _programmingSubQuestionFileManager.SaveChecker(pro, checker).ConfigureAwait(false);
+                        await _programmingSubQuestionFileManager.SaveCheckerSource(pro, checker).ConfigureAwait(false);
                     }
 
                     if (proUpdate.KeyAnswer != null)

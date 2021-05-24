@@ -32,8 +32,13 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.13" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.5.1" />
+		<PackageReference Include="RestSharp" Version="106.11.7" />
 		<PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.80.2" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\DockerCommon\DockerCommon.csproj" />
 	</ItemGroup>
 
 </Project>

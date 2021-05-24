@@ -3,11 +3,11 @@ using Microsoft.Extensions.Options;
 
 namespace GradProjectServer.Services
 {
-    public class PathManager
+    public static class PathUtility
     {
-        private readonly string _absolutePrefix;
+        private static string _absolutePrefix;
 
-        public PathManager(IOptions<AppOptions> options)
+        public static void Init(IOptions<AppOptions> options)
         {
             _absolutePrefix = options.Value.DataSaveDirectory;
             if (_absolutePrefix[^1] == Path.PathSeparator)
@@ -16,7 +16,7 @@ namespace GradProjectServer.Services
             }
         }
 
-        public string MakeRelative(string absolutePath) => absolutePath[_absolutePrefix.Length ..];
-        public string MakeAbsolute(string relativePath) => $"{_absolutePrefix}{relativePath}";
+        public static string MakeRelative(string absolutePath) => absolutePath[_absolutePrefix.Length ..];
+        public static string MakeAbsolute(string relativePath) => $"{_absolutePrefix}{relativePath}";
     }
 }

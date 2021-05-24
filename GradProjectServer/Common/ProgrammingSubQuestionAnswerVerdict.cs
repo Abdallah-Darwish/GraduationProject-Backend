@@ -1,9 +1,9 @@
-namespace GradProjectServer.DTO.ExamAttempts.SubQuestionGrade
+namespace GradProjectServer.Common
 {
     public enum ProgrammingSubQuestionAnswerVerdict
     {
         /// <summary>
-        /// The checker TLEed or made a runtime exception
+        /// The checker TLEed or made a runtime error
         /// </summary>
         CheckerError,
         CompilationError,

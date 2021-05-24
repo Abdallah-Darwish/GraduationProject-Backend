@@ -4,4 +4,6 @@
 	A- owner or admin he can see everything
 	b- Non owner he can see everything except the (answer or checker in blanks, weights of choices in mcq, checker in programming)
 
-3-This project is meant to be only used with postgresql, and I am saying this because there is some dbms specific code
+3- This project is meant to be only used with postgresql, and I am saying this because there is some dbms specific code
+
+4- The only supported archive format is zip.

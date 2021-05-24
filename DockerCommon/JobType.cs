@@ -1,4 +1,4 @@
-namespace DockerBroker.Services
+namespace DockerCommon
 {
     public enum JobType : int
     {

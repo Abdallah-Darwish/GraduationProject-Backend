@@ -402,6 +402,15 @@
           "lib/netstandard2.1/Npgsql.EntityFrameworkCore.PostgreSQL.dll": {}
         }
       },
+      "RestSharp/106.11.7": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/RestSharp.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/RestSharp.dll": {}
+        }
+      },
       "SkiaSharp/2.80.2": {
         "type": "package",
         "dependencies": {
@@ -565,6 +574,16 @@
         },
         "runtime": {
           "lib/netcoreapp2.0/System.Runtime.CompilerServices.Unsafe.dll": {}
+        }
+      },
+      "DockerCommon/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v5.0",
+        "compile": {
+          "bin/placeholder/DockerCommon.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/DockerCommon.dll": {}
         }
       }
     }
@@ -1276,6 +1295,22 @@
         "postgresql.png"
       ]
     },
+    "RestSharp/106.11.7": {
+      "sha512": "NzndH096CTulvq+ihr7u1mBJ29oukdi9A8bypQJk+kaHxbRzTTrtgsEEQAb04ptTUZmQa7cgo7uF5z7NuEPX1Q==",
+      "type": "package",
+      "path": "restsharp/106.11.7",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net452/RestSharp.dll",
+        "lib/net452/RestSharp.xml",
+        "lib/netstandard2.0/RestSharp.dll",
+        "lib/netstandard2.0/RestSharp.xml",
+        "restsharp.106.11.7.nupkg.sha512",
+        "restsharp.nuspec",
+        "restsharp.png"
+      ]
+    },
     "SkiaSharp/2.80.2": {
       "sha512": "D25rzdCwh+3L+XyXqpNa+H/yiLJbE3/R3K/XexwHyQjGdzZvSufFW3oqf3En7hhqSIsxsJ8f5NEZ0J5W5wlGBg==",
       "type": "package",
@@ -1695,17 +1730,24 @@
         "useSharedDesignerContext.txt",
         "version.txt"
       ]
+    },
+    "DockerCommon/1.0.0": {
+      "type": "project",
+      "path": "../DockerCommon/DockerCommon.csproj",
+      "msbuildProject": "../DockerCommon/DockerCommon.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net5.0": [
       "AutoMapper.Collection.EntityFrameworkCore >= 7.0.1",
       "AutoMapper.Extensions.Microsoft.DependencyInjection >= 8.1.1",
+      "DockerCommon >= 1.0.0",
       "FluentValidation.AspNetCore >= 10.1.0",
       "Microsoft.AspNetCore.Mvc.NewtonsoftJson >= 5.0.5",
       "Microsoft.EntityFrameworkCore.Design >= 5.0.5",
       "Microsoft.VisualStudio.Azure.Containers.Tools.Targets >= 1.10.13",
       "Npgsql.EntityFrameworkCore.PostgreSQL >= 5.0.5.1",
+      "RestSharp >= 106.11.7",
       "SkiaSharp.NativeAssets.Linux >= 2.80.2",
       "Swashbuckle.AspNetCore >= 6.1.3"
     ]
@@ -1734,7 +1776,11 @@
       "frameworks": {
         "net5.0": {
           "targetAlias": "net5.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "/home/abdallah/Desktop/GraduationProject-Backend/DockerCommon/DockerCommon.csproj": {
+              "projectPath": "/home/abdallah/Desktop/GraduationProject-Backend/DockerCommon/DockerCommon.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
@@ -1776,6 +1822,10 @@
           "Npgsql.EntityFrameworkCore.PostgreSQL": {
             "target": "Package",
             "version": "[5.0.5.1, )"
+          },
+          "RestSharp": {
+            "target": "Package",
+            "version": "[106.11.7, )"
           },
           "SkiaSharp.NativeAssets.Linux": {
             "target": "Package",
