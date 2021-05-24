@@ -1,3 +1,5 @@
+using GradProjectServer.Common;
+
 namespace GradProjectServer.DTO.ExamAttempts.SubQuestionGrade
 {
     /// <summary>
@@ -6,6 +8,5 @@ namespace GradProjectServer.DTO.ExamAttempts.SubQuestionGrade
     public class ProgrammingSubQuestionGradeDto : SubQuestionGradeDto
     {
         public ProgrammingSubQuestionAnswerVerdict Verdict { get; set; }
-        
     }
 }
