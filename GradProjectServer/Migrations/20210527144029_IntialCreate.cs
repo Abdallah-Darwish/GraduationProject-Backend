@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace GradProjectServer.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class IntialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -296,7 +296,8 @@ namespace GradProjectServer.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ExamId = table.Column<int>(type: "integer", nullable: false),
                     OwnerId = table.Column<int>(type: "integer", nullable: false),
-                    StartTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    StartTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    IsFinished = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -370,6 +371,7 @@ namespace GradProjectServer.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     HasChecker = table.Column<bool>(type: "boolean", nullable: false),
+                    IsCheckerBuilt = table.Column<bool>(type: "boolean", nullable: false),
                     Answer = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -438,7 +440,8 @@ namespace GradProjectServer.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    KeyAnswerFileExtension = table.Column<string>(type: "text", nullable: false)
+                    KeyAnswerFileExtension = table.Column<string>(type: "text", nullable: false),
+                    IsCheckerBuilt = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
