@@ -41,11 +41,13 @@ namespace GradProjectServer.Services.UserSystem
         {
             _dbContext = dbContext;
         }
-
-        public async Task<User?> Login(string email, string password, IResponseCookies cookies)
+        /// <returns>User Id</returns>
+        public async Task<int?> Login(string email, string password, IResponseCookies cookies)
         {
             email = email.ToLowerInvariant();
-            var user = _dbContext.Users.FirstOrDefault(u => u.Email.ToLower() == email);
+            var user = _dbContext.
+                Users
+                .FirstOrDefault(u => u.Email.ToLower() == email);
             if (user == null || user.PasswordHash != HashPassword(password))
             {
                 return null;
@@ -62,7 +64,7 @@ namespace GradProjectServer.Services.UserSystem
             };
             cookies.Append(LoginCookieName, user.Token, cookieOptions);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return user;
+            return user.Id;
         }
 
         public async Task Logout(User user, IResponseCookies cookies)

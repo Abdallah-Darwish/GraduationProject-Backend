@@ -1,9 +1,8 @@
 ﻿FROM mcr.microsoft.com/dotnet/sdk AS base
 FROM base as publish
-WORKDIR /src
-COPY . DockerBroker/
-COPY ../DockerCommon DockerCommon/
-RUN dotnet publish "/src/DockerBroker.csproj" -c Release -o /app/publish
+COPY ./DockerBroker /src/DockerBroker/
+COPY ./DockerCommon /src/DockerCommon/
+RUN dotnet publish "/src/DockerBroker/DockerBroker.csproj" -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet AS final
 WORKDIR /app

@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GradProjectServer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20210504221408_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20210527144029_IntialCreate")]
+    partial class IntialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -78,6 +78,9 @@ namespace GradProjectServer.Migrations
 
                     b.Property<int>("ExamId")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("IsFinished")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("OwnerId")
                         .HasColumnType("integer");
@@ -578,6 +581,9 @@ namespace GradProjectServer.Migrations
                     b.Property<bool>("HasChecker")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsCheckerBuilt")
+                        .HasColumnType("boolean");
+
                     b.ToTable("BlankSubQuestion");
                 });
 
@@ -594,6 +600,11 @@ namespace GradProjectServer.Migrations
             modelBuilder.Entity("GradProjectServer.Services.Exams.Entities.ProgrammingSubQuestion", b =>
                 {
                     b.HasBaseType("GradProjectServer.Services.Exams.Entities.SubQuestion");
+
+                    b.Property<bool>("IsCheckerBuilt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("KeyAnswerFileExtension")
                         .IsRequired()
@@ -644,12 +655,12 @@ namespace GradProjectServer.Migrations
             modelBuilder.Entity("GradProjectServer.Services.Exams.Entities.ExamAttempts.SubQuestionAnswer", b =>
                 {
                     b.HasOne("GradProjectServer.Services.Exams.Entities.ExamAttempts.ExamAttempt", "Attempt")
-                        .WithMany()
+                        .WithMany("Answers")
                         .HasForeignKey("AttemptId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("GradProjectServer.Services.Exams.Entities.ExamSubQuestion", "SubQuestion")
+                    b.HasOne("GradProjectServer.Services.Exams.Entities.ExamSubQuestion", "ExamSubQuestion")
                         .WithMany()
                         .HasForeignKey("ExamSubQuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -657,7 +668,7 @@ namespace GradProjectServer.Migrations
 
                     b.Navigation("Attempt");
 
-                    b.Navigation("SubQuestion");
+                    b.Navigation("ExamSubQuestion");
                 });
 
             modelBuilder.Entity("GradProjectServer.Services.Exams.Entities.ExamQuestion", b =>
@@ -925,6 +936,11 @@ namespace GradProjectServer.Migrations
             modelBuilder.Entity("GradProjectServer.Services.Exams.Entities.Exam", b =>
                 {
                     b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("GradProjectServer.Services.Exams.Entities.ExamAttempts.ExamAttempt", b =>
+                {
+                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("GradProjectServer.Services.Exams.Entities.ExamQuestion", b =>

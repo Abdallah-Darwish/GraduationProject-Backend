@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "GdciA0+3AIFqnDgW/GLNBNONTVNNFXssgB6jTZUAuzbPGTI5K7IgUhIcmudRdG5nu0Wk8h8CRua3AxSAbAgEiw==",
+  "dgSpecHash": "s2LyMfR5jDQgktqdV/bP9ESRtHt4GDwzyX0rlH/Dlms3/p1pXzPJFvuuZ+yyRO/L/Md20oIgW43EaiFpM/QrlQ==",
   "success": true,
   "projectFilePath": "/home/abdallah/Desktop/GraduationProject-Backend/GradProjectServer/GradProjectServer.csproj",
   "expectedPackageFiles": [
@@ -49,8 +49,7 @@
     "/home/abdallah/.nuget/packages/system.diagnostics.diagnosticsource/5.0.1/system.diagnostics.diagnosticsource.5.0.1.nupkg.sha512",
     "/home/abdallah/.nuget/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512",
     "/home/abdallah/.nuget/packages/system.reflection.emit/4.7.0/system.reflection.emit.4.7.0.nupkg.sha512",
-    "/home/abdallah/.nuget/packages/system.runtime.compilerservices.unsafe/4.6.0/system.runtime.compilerservices.unsafe.4.6.0.nupkg.sha512",
-    "/home/abdallah/.nuget/packages/microsoft.aspnetcore.app.ref/5.0.0/microsoft.aspnetcore.app.ref.5.0.0.nupkg.sha512"
+    "/home/abdallah/.nuget/packages/system.runtime.compilerservices.unsafe/4.6.0/system.runtime.compilerservices.unsafe.4.6.0.nupkg.sha512"
   ],
   "logs": []
 }

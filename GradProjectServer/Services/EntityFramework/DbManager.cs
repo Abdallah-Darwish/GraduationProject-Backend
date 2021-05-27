@@ -37,9 +37,13 @@ namespace GradProjectServer.Services.EntityFramework
             var dirs = new[]
             {
                 BlankSubQuestionFileManager.SaveDirectory,
+                BlankSubQuestionFileManager.CheckerBinarySaveDirectory,
+                BlankSubQuestionFileManager.CheckerSourceSaveDirectory,
+                
                 ProgrammingSubQuestionFileManager.CheckerSourceSaveDirectory,
                 ProgrammingSubQuestionFileManager.CheckerBinarySaveDirectory,
                 ProgrammingSubQuestionFileManager.KeyAnswerSaveDirectory,
+                
                 ProgrammingSubQuestionAnswerFileManager.SaveDirectory,
                 ResourceFileManager.SaveDirectory,
                 UserFileManager.SaveDirectory

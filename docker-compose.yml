@@ -1,7 +1,8 @@
 services:
     api:
         build: 
-            context: GradProjectServer
+            context: .
+            dockerfile: GradProjectServer-Dockerfile
             args:
                 HostUserId: "1000"
                 HostGroupId: "1000"
@@ -16,7 +17,9 @@ services:
             - "/home/abdallah/Desktop/GraduationProject/Data:/app/data/"
     
     broker:
-        build: DockerBroker
+        build:
+            context: .
+            dockerfile: DockerBroker-Dockerfile
         ports:
             - 1235:1235
             - 1236:1236

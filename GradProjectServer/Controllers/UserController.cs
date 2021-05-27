@@ -178,12 +178,13 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         public async Task<ActionResult<LoginResultDto>> Login([FromBody] LoginDto info)
         {
-            var user = await _userManager.Login(info.Email, info.Password, Response.Cookies).ConfigureAwait(false);
-            if (user == null)
+            var userId = await _userManager.Login(info.Email, info.Password, Response.Cookies).ConfigureAwait(false);
+            if (userId == null)
             {
                 return Unauthorized("Invalid login credentials.");
             }
 
+            var user = await GetPreparedQueryable(false).FirstAsync(u => u.Id == userId).ConfigureAwait(false);
             LoginResultDto result = new()
             {
                 User = _mapper.Map<UserDto>(user),

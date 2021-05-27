@@ -10,6 +10,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		manager.py = manager.py
 		original-docker-compose.yml = original-docker-compose.yml
+		GradProjectServer-Dockerfile = GradProjectServer-Dockerfile
+		.dockerignore = .dockerignore
+		DockerBroker-Dockerfile = DockerBroker-Dockerfile
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DockerClient", "DockerClient\DockerClient.csproj", "{EE8BF995-E987-4E5B-BEC3-187270242A9E}"
