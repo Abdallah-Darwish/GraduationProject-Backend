@@ -1,6 +1,6 @@
 ﻿namespace GradProjectServer.DTO.Questions
 {
-    public abstract class CreateQuestionDto
+    public class CreateQuestionDto
     {
         public string Content { get; set; }
         public string Title { get; set; }

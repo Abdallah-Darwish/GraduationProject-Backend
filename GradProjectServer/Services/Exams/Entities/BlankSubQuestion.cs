@@ -88,9 +88,22 @@ namespace GradProjectServer.Services.Exams.Entities
                 var fileEntry = checkerArchive.CreateEntry(fileName);
                 await using var entryStream = fileEntry.Open();
                 await using var entryWriter = new StreamWriter(entryStream);
-                await entryWriter.WriteLineAsync($"Hello blank checker file: {fileName}").ConfigureAwait(false);
+                if (!fileName.StartsWith("run"))
+                {
+                    await entryWriter.WriteLineAsync($"echo \"Hello from blank checker file: {fileName}\"")
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    await entryWriter.WriteLineAsync("python checker.py $*").ConfigureAwait(false);
+                }
             }
-
+            var pyCheckerEntry = checkerArchive.CreateEntry("checker.py");
+            await using var pyCheckerStream = pyCheckerEntry.Open();
+            await using var pyCheckerWriter = new StreamWriter(pyCheckerStream);
+            await pyCheckerWriter.WriteAsync(@"import sys
+print('{}
+");
             checkerArchive.Dispose();
 
             foreach (var blank in Seed.Where(b => b.HasChecker))

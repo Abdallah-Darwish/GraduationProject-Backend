@@ -79,7 +79,7 @@ client_app_settings.write_text(json.dumps(app_settings))
 
 print_info('Building sandbox')
 docker_client = subprocess.Popen(['dotnet', str(client_publish_path.joinpath('DockerClient.dll')), '-v'], cwd =str(client_publish_path))
-    
+
 
 
 print_info('Starting Backend API, Docker Broker and DB server')

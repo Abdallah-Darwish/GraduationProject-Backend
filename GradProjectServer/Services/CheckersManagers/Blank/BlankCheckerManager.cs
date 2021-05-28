@@ -67,7 +67,7 @@ namespace GradProjectServer.Services.CheckersManagers
         {
             var answer = await _dbContext.BlankSubQuestionAnswers.FindAsync(answerId).ConfigureAwait(false);
 
-            var submissionDir = _tempDirectoryManager.Create($"ProgrammingAnswer{answerId}_Submission");
+            var submissionDir = _tempDirectoryManager.Create($"BlankAnswer{answerId}_Submission");
             await using FileStream answerFileStream =
                 new(Path.Combine(submissionDir.Directory, AnswerFileName), FileMode.CreateNew, FileAccess.ReadWrite,
                     FileShare.ReadWrite);
