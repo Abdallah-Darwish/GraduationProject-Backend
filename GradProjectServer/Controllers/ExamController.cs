@@ -305,7 +305,13 @@ namespace GradProjectServer.Controllers
                 VolunteerId = user.Id,
                 Year = data.Year,
             };
+            await _dbContext.Exams.AddAsync(exam).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+            exam = await _dbContext.Exams
+                .Include(e => e.Course)
+                .Include(e => e.Volunteer)
+                .FirstAsync(e => e.Id == exam.Id)
+                .ConfigureAwait(false);
             return CreatedAtAction(nameof(Get), new {examsIds = new int[] {exam.Id}, metadata = true},
                 _mapper.Map<ExamMetadataDto>(exam));
         }

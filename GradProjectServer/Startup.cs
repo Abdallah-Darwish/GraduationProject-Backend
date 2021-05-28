@@ -14,6 +14,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using FluentValidation;
 using GradProjectServer.Controllers;
 using GradProjectServer.Services.Exams.Entities;
 using GradProjectServer.Services.FilesManagers;
@@ -46,7 +47,12 @@ namespace GradProjectServer
             services.AddScoped<UserManager>();
             services.AddHttpContextAccessor();
             services.AddControllers()
-                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>())
+                .AddFluentValidation(fv =>
+                {
+                    fv.RegisterValidatorsFromAssemblyContaining<Startup>();
+                    fv.ValidatorOptions.CascadeMode = CascadeMode.Stop;
+                    
+                })
                 .AddNewtonsoftJson(op =>
                 {
                     op.SerializerSettings.TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Objects;

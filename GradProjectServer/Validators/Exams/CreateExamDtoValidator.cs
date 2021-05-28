@@ -21,6 +21,9 @@ namespace GradProjectServer.Validators.Exams
                 .IsInEnum();
             RuleFor(d => d.Semester)
                 .IsInEnum();
+            RuleFor(d => d.CourseId)
+                .MustAsync(async (id, _) => (await dbContext.Courses.FindAsync(id).ConfigureAwait(false)) != null)
+                .WithMessage("Course(Id: {PropertyValue}) doesn't exist.");
         }
     }
 }

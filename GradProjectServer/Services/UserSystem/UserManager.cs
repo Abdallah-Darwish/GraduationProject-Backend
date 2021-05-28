@@ -42,8 +42,12 @@ namespace GradProjectServer.Services.UserSystem
             _dbContext = dbContext;
         }
         /// <returns>User Id</returns>
-        public async Task<int?> Login(string email, string password, IResponseCookies cookies)
+        public async Task<int?> Login(string? email, string? password, IResponseCookies cookies)
         {
+            if (email == null || password == null)
+            {
+                return null;
+            }
             email = email.ToLowerInvariant();
             var user = _dbContext.
                 Users

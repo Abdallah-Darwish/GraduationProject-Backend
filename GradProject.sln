@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scratch", "Scratch\Scratch.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DockerCommon", "DockerCommon\DockerCommon.csproj", "{AAEC135E-DC0F-4894-BEF1-EEF082FDC4DA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GradProjectServer-Tests", "GradProjectServer-Tests\GradProjectServer-Tests.csproj", "{C7050A02-1D70-496F-96DF-113B64D82363}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{AAEC135E-DC0F-4894-BEF1-EEF082FDC4DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AAEC135E-DC0F-4894-BEF1-EEF082FDC4DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AAEC135E-DC0F-4894-BEF1-EEF082FDC4DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7050A02-1D70-496F-96DF-113B64D82363}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7050A02-1D70-496F-96DF-113B64D82363}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7050A02-1D70-496F-96DF-113B64D82363}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7050A02-1D70-496F-96DF-113B64D82363}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
