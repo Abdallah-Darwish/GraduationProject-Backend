@@ -72,7 +72,7 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(IEnumerable<ExamSubQuestionDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
-        public ActionResult<IEnumerable<ExamSubQuestionDto>> Get([FromBody] int[] examSubQuestionsIds)
+        public async Task<ActionResult<IEnumerable<ExamSubQuestionDto>>> Get([FromBody] int[] examSubQuestionsIds)
         {
             var existingExamSubQuestions = GetPreparedQueryable().Where(c => examSubQuestionsIds.Contains(c.Id));
             var nonExistingExamSubQuestions =
@@ -92,10 +92,11 @@ namespace GradProjectServer.Controllers
             if (!(user?.IsAdmin ?? false))
             {
                 int userId = user?.Id ?? -1;
-                var notOwnedExamSubQuestions = existingExamSubQuestions
+                var notOwnedExamSubQuestions = await existingExamSubQuestions
                     .Where(e => e.ExamQuestion.Exam.VolunteerId != userId && !e.ExamQuestion.Exam.IsApproved)
                     .Select(q => q.Id)
-                    .ToArray();
+                    .ToArrayAsync()
+                    .ConfigureAwait(false);
                 if (notOwnedExamSubQuestions.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,

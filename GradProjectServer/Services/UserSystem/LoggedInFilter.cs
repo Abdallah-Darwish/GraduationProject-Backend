@@ -8,7 +8,7 @@ namespace GradProjectServer.Services.UserSystem
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            var user = UserManager.Instance.IdentifyUser(context.HttpContext.Request);
+            var user = context.HttpContext.GetUser();
             if (user == null)
             {
                 context.Result = new ContentResult
@@ -20,7 +20,7 @@ namespace GradProjectServer.Services.UserSystem
                 return;
             }
 
-            context.HttpContext.Features.Set(user);
+           
             base.OnActionExecuting(context);
         }
     }

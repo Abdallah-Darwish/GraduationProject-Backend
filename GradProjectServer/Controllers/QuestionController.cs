@@ -81,7 +81,7 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(IEnumerable<QuestionMetadataDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
-        public IActionResult Get([FromBody] int[] questionsIds, [FromQuery] bool metadata = false)
+        public async Task<IActionResult> Get([FromBody] int[] questionsIds, [FromQuery] bool metadata = false)
         {
             var questions = GetPreparedQueryable(metadata);
             var existingQuestions = questions.Where(e => questionsIds.Contains(e.Id));
@@ -100,16 +100,18 @@ namespace GradProjectServer.Controllers
             }
 
             var user = this.GetUser();
-            if (user?.IsAdmin ?? false)
+            if (!(user?.IsAdmin ?? false))
             {
                 var notOwnedQuestions =
-                    existingQuestions.Where(e => e.VolunteerId != user.Id && !e.IsApproved).ToArray();
+                   await existingQuestions.Where(e => e.VolunteerId != user.Id && !e.IsApproved)
+                        .Select(q => q.Id)
+                        .ToArrayAsync().ConfigureAwait(false);
                 if (notOwnedQuestions.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,
                         new ErrorDTO
                         {
-                            Description = "User dosn't own the following not approved questions.",
+                            Description = "User doesn't own the following not approved questions.",
                             Data = new Dictionary<string, object> {["NotOwnedNotApprovedQuestions"] = notOwnedQuestions}
                         });
                 }
@@ -155,16 +157,17 @@ namespace GradProjectServer.Controllers
             var user = this.GetUser()!;
             if (!user.IsAdmin)
             {
-                var approvedOrNotOwnedQuestions = existingQuestions
+                var approvedOrNotOwnedQuestions = await existingQuestions
                     .Where(e => e.VolunteerId != user.Id || e.IsApproved)
                     .Select(q => q.Id)
-                    .ToArray();
+                    .ToArrayAsync()
+                    .ConfigureAwait(false);
                 if (approvedOrNotOwnedQuestions.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,
                         new ErrorDTO
                         {
-                            Description = "User dosn't own the following or they are approved.",
+                            Description = "User doesn't own the following or they are approved.",
                             Data = new Dictionary<string, object>
                                 {["NotOwnedOrApprovedQuestions"] = approvedOrNotOwnedQuestions}
                         });

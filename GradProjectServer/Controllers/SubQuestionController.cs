@@ -138,10 +138,12 @@ namespace GradProjectServer.Controllers
             }
 
             var user = this.GetUser();
-            if (user?.IsAdmin ?? false)
+            if (!(user?.IsAdmin ?? false))
             {
                 var notOwnedSubQuestions = existingSubQuestions
-                    .Where(e => e.Question.VolunteerId != user.Id && !e.Question.IsApproved).ToArray();
+                    .Where(e => e.Question.VolunteerId != user.Id && !e.Question.IsApproved)
+                    .Select(s => s.Id)
+                    .ToArray();
                 if (notOwnedSubQuestions.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,
@@ -202,6 +204,16 @@ namespace GradProjectServer.Controllers
         public async Task<ActionResult<SubQuestionMetadataDto>> Create([FromBody] CreateSubQuestionDto dto)
         {
             SubQuestion subQuestion;
+
+            void FillSubQuestion()
+            {
+                subQuestion.Content = dto.Content;
+                subQuestion.Type = dto.Type;
+                subQuestion.Tags =
+                    dto.Tags?.Select(t => new SubQuestionTag {TagId = t, SubQuestion = subQuestion}).ToArray() ??
+                    Array.Empty<SubQuestionTag>();
+                subQuestion.QuestionId = dto.QuestionId;
+            }
             switch (dto)
             {
                 case CreateBlankSubQuestionDto blank:
@@ -210,6 +222,7 @@ namespace GradProjectServer.Controllers
                         Answer = blank.Answer,
                     };
                     subQuestion = bq;
+                    FillSubQuestion();
                     await _dbContext.BlankSubQuestions.AddAsync(bq).ConfigureAwait(false);
                     await _dbContext.SaveChangesAsync().ConfigureAwait(false);
                     if (blank.CheckerBase64 != null)
@@ -234,6 +247,7 @@ namespace GradProjectServer.Controllers
                             SubQuestion = mq
                         }).ToArray();
                     subQuestion = mq;
+                    FillSubQuestion();
                     await _dbContext.MCQSubQuestions.AddAsync(mq).ConfigureAwait(false);
                     break;
                 case CreateProgrammingSubQuestionDto pro:
@@ -243,6 +257,7 @@ namespace GradProjectServer.Controllers
                         KeyAnswerFileExtension = pro.KeyAnswer.FileExtension
                     };
                     subQuestion = pq;
+                    FillSubQuestion();
                     await _dbContext.ProgrammingSubQuestions.AddAsync(pq).ConfigureAwait(false);
                     await using var checker = await Utility.DecodeBase64Async(pro.CheckerBase64).ConfigureAwait(false);
                     await using var keyAnswer =
@@ -256,12 +271,7 @@ namespace GradProjectServer.Controllers
                     throw new ArgumentOutOfRangeException(nameof(dto), "The dto isn't known.");
             }
 
-            subQuestion.Content = dto.Content;
-            subQuestion.Type = dto.Type;
-            subQuestion.Tags =
-                dto.Tags?.Select(t => new SubQuestionTag {TagId = t, SubQuestion = subQuestion}).ToArray() ??
-                Array.Empty<SubQuestionTag>();
-            subQuestion.QuestionId = dto.QuestionId;
+           
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return CreatedAtAction(nameof(Get), new {subQuestionsIds = new int[] {subQuestion.Id}, metadata = true},
                 _mapper.Map<SubQuestionMetadataDto>(subQuestion));
@@ -299,8 +309,12 @@ namespace GradProjectServer.Controllers
             var user = this.GetUser()!;
             if (!user.IsAdmin)
             {
-                var approvedOrNotOwnedSubQuestions = existingSubQuestions
-                    .Where(e => e.Question.VolunteerId != user.Id || e.Question.IsApproved).ToArray();
+                var approvedOrNotOwnedSubQuestions =await existingSubQuestions
+                    .Where(e => e.Question.VolunteerId != user.Id || e.Question.IsApproved)
+                    .Select(e => e.Id)
+                    .ToArrayAsync()
+                    .ConfigureAwait(false);
+                    
                 if (approvedOrNotOwnedSubQuestions.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,

@@ -84,7 +84,7 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ActionResult<IEnumerable<ResourceDto>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
-        public IActionResult Get([FromBody] int[] resourcesIds)
+        public async Task<IActionResult> Get([FromBody] int[] resourcesIds)
         {
             var resources = GetPreparedQueryable();
             var existingResources = resources.Where(r => resourcesIds.Contains(r.Id));
@@ -104,7 +104,10 @@ namespace GradProjectServer.Controllers
             {
                 var userId = user?.Id ?? -1;
                 var notOwnedResources =
-                    existingResources.Where(r => r.VolunteerId != userId && !r.IsApproved).ToArray();
+                  await existingResources.Where(r => r.VolunteerId != userId && !r.IsApproved)
+                        .Select(r => r.Id)
+                        .ToArrayAsync()
+                        .ConfigureAwait(false);
                 if (notOwnedResources.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,

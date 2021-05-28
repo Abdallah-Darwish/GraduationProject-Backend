@@ -106,7 +106,11 @@ namespace GradProjectServer.Controllers
             if (!(user?.IsAdmin ?? false))
             {
                 var userId = user?.Id ?? -1;
-                var notOwnedExams = existingExams.Where(e => e.VolunteerId != userId && !e.IsApproved).ToArray();
+                var notOwnedExams =await existingExams
+                    .Where(e => e.VolunteerId != userId && !e.IsApproved)
+                    .Select(e => e.Id)
+                    .ToArrayAsync()
+                    .ConfigureAwait(false);
                 if (notOwnedExams.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,
@@ -252,10 +256,11 @@ namespace GradProjectServer.Controllers
             var user = this.GetUser()!;
             if (!user.IsAdmin)
             {
-                var notOwnedExams = existingExams
+                var notOwnedExams =await existingExams
                     .Where(e => e.VolunteerId != user.Id)
                     .Select(e => e.Id)
-                    .ToArray();
+                    .ToArrayAsync()
+                    .ConfigureAwait(false);
                 if (notOwnedExams.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,
@@ -266,10 +271,11 @@ namespace GradProjectServer.Controllers
                         });
                 }
 
-                var approvedExams = existingExams
+                var approvedExams =  await existingExams
                     .Where(e => e.IsApproved)
                     .Select(e => e.Id)
-                    .ToArray();
+                    .ToArrayAsync()
+                    .ConfigureAwait(false);
                 if (approvedExams.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,

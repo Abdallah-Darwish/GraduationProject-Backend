@@ -127,7 +127,7 @@ namespace GradProjectServer.Services.UserSystem
             return user;
         }
 
-        public User? IdentifyUser(HttpRequest request)
+        public async Task<User?> IdentifyUser(HttpRequest request)
         {
             request.Cookies.TryGetValue(LoginCookieName, out var cookie);
             request.Headers.TryGetValue(LoginHeaderName, out var headers);
@@ -158,10 +158,10 @@ namespace GradProjectServer.Services.UserSystem
             }
             else
             {
-                token = header;
+                token = header!;
             }
 
-            var user = _dbContext.Users.FirstOrDefault(u => u.Token == token);
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Token == token).ConfigureAwait(false);
             return user;
         }
         //Todo: Add methods to validate user when signing up, or we can keep them in their own validator

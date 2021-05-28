@@ -74,7 +74,7 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(IEnumerable<UserDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
-        public IActionResult Get([FromBody] int[] usersIds, bool metadata = false)
+        public async Task<IActionResult> Get([FromBody] int[] usersIds, bool metadata = false)
         {
             var users = GetPreparedQueryable(metadata);
             var existingUsers = users.Where(e => usersIds.Contains(e.Id));
@@ -94,7 +94,10 @@ namespace GradProjectServer.Controllers
             {
                 var userId = user?.Id ?? -1;
                 //any requested users that are not the currently logged in user
-                var notAllowedToGetUsers = existingUsers.Where(e => e.Id != userId).ToArray();
+                var notAllowedToGetUsers = await existingUsers.Where(e => e.Id != userId)
+                    .Select(u => u.Id)
+                    .ToArrayAsync()
+                    .ConfigureAwait(false);
                 if (notAllowedToGetUsers.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,
@@ -242,9 +245,10 @@ namespace GradProjectServer.Controllers
         [LoggedInFilter]
         [HttpGet("GetLoggedIn")]
         [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
-        public ActionResult<UserDto> GetLoggedIn()
+        public async Task<ActionResult<UserDto>> GetLoggedIn()
         {
             var user = this.GetUser()!;
+            user = await GetPreparedQueryable(false).FirstAsync(u => u.Id == user.Id).ConfigureAwait(false);
             return Ok(_mapper.Map<UserDto>(user));
         }
     }

@@ -51,7 +51,6 @@ namespace GradProjectServer
                 {
                     fv.RegisterValidatorsFromAssemblyContaining<Startup>();
                     fv.ValidatorOptions.CascadeMode = CascadeMode.Stop;
-                    
                 })
                 .AddNewtonsoftJson(op =>
                 {
@@ -110,7 +109,7 @@ namespace GradProjectServer
             BlankSubQuestionFileManager.Init(serviceProvider);
             ProgrammingSubQuestionAnswerFileManager.Init(serviceProvider);
             ResourceFileManager.Init(serviceProvider);
-
+            
             dbManager.EnsureDb().Wait();
 
 
@@ -126,9 +125,9 @@ namespace GradProjectServer
                 .AllowAnyMethod()
                 .AllowAnyOrigin());
             //app.UseHttpsRedirection();
-
+            app.UseUserSystem();
             app.UseRouting();
-
+            
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
