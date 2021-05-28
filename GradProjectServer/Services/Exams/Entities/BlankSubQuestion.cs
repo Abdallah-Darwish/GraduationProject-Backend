@@ -98,12 +98,15 @@ namespace GradProjectServer.Services.Exams.Entities
                     await entryWriter.WriteLineAsync("python checker.py $*").ConfigureAwait(false);
                 }
             }
+
             var pyCheckerEntry = checkerArchive.CreateEntry("checker.py");
-            await using var pyCheckerStream = pyCheckerEntry.Open();
-            await using var pyCheckerWriter = new StreamWriter(pyCheckerStream);
-            await pyCheckerWriter.WriteAsync(@"import sys
+            await using (var pyCheckerStream = pyCheckerEntry.Open())
+            {
+                await using var pyCheckerWriter = new StreamWriter(pyCheckerStream);
+                await pyCheckerWriter.WriteAsync(@"import sys
 print('{}
 ");
+            }
             checkerArchive.Dispose();
 
             foreach (var blank in Seed.Where(b => b.HasChecker))

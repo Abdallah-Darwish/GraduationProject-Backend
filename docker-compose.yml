@@ -4,8 +4,8 @@ services:
             context: .
             dockerfile: GradProjectServer-Dockerfile
             args:
-                HostUserId: "1000"
-                HostGroupId: "1000"
+                HostUserId: '1000'
+                HostGroupId: '1000'
         depends_on:
             - broker
             - db
@@ -14,7 +14,7 @@ services:
         networks:
             - marje3network
         volumes:
-            - "/home/abdallah/Desktop/GraduationProject/Data:/app/data/"
+            - '/home/abdallah/Desktop/GraduationProject/Data:/app/data/'
     
     broker:
         build:
