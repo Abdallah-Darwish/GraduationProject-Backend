@@ -122,7 +122,11 @@ namespace GradProjectServer.Controllers
         [ProducesResponseType(typeof(ErrorDTO), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Get([FromBody] int[] subQuestionsIds, bool metadata = false)
         {
-            var existingSubQuestions = _dbContext.SubQuestions.Where(e => subQuestionsIds.Contains(e.Id)).ToArray();
+            var existingSubQuestions = await _dbContext.SubQuestions
+                .Include(s => s.Question)
+                .Where(e => subQuestionsIds.Contains(e.Id))
+                .ToArrayAsync()
+                .ConfigureAwait(false);
             var nonExistingSubQuestions = subQuestionsIds.Except(existingSubQuestions.Select(e => e.Id)).ToArray();
             if (nonExistingSubQuestions.Length > 0)
             {
