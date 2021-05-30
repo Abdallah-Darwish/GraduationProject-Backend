@@ -18,7 +18,12 @@ namespace GradProjectServer.Validators.Questions
                     RuleFor(d => d.QuestionId)
                         .CustomAsync(async (id, ctx, _) =>
                         {
-                            var user = httpContext.HttpContext!.GetUser()!;
+                            var user = httpContext.HttpContext!.GetUser();
+                            if (user == null)
+                            {
+                                ctx.AddFailure("Not logged in.");
+                                return;
+                            }
                             var question = await dbContext.Questions.FindAsync(id).ConfigureAwait(false);
                             if (!user.IsAdmin)
                             {

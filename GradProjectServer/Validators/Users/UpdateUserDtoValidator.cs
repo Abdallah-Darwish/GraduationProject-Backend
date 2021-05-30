@@ -17,7 +17,11 @@ namespace GradProjectServer.Validators.Users
                 .WithMessage("User(Id: {PropertyValue}) doesn't exist.")
                 .MustAsync(async (id, _) =>
                 {
-                    var caller = httpContext.HttpContext!.GetUser()!;
+                    var caller = httpContext.HttpContext!.GetUser();
+                    if (caller == null)
+                    {
+                        return false;
+                    }
                     var target = await dbContext.Users.FindAsync(id).ConfigureAwait(false);
                     return caller.Id == id || caller.IsAdmin && !target.IsAdmin;
                 })

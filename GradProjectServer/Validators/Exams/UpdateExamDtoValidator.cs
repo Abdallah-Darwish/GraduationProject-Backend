@@ -22,7 +22,12 @@ namespace GradProjectServer.Validators.Exams
                         .CustomAsync(async (id, ctx, _) =>
                         {
                             var exam = await dbContext.Exams.FindAsync(id).ConfigureAwait(false);
-                            var user = httpContext.HttpContext!.GetUser()!;
+                            var user = httpContext.HttpContext!.GetUser();
+                            if (user == null)
+                            {
+                                ctx.AddFailure("Not logged in.");
+                                return;
+                            }
                             if (!user.IsAdmin)
                             {
                                 if (exam.VolunteerId != user.Id)
