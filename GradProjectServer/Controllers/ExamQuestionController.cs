@@ -181,20 +181,6 @@ namespace GradProjectServer.Controllers
                 _mapper.Map<ExamQuestionDto>(examQuestion));
         }
 
-        /// <summary>Updates an exam question.</summary>
-        [LoggedInFilter]
-        [HttpPatch("Updated")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> Update([FromBody] UpdateExamQuestionDto update)
-        {
-            var examQuestion = await _dbContext.ExamsQuestions.FindAsync(update.Id).ConfigureAwait(false);
-            if (update.Order.HasValue)
-            {
-                examQuestion.Order = update.Order.Value;
-            }
-
-            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return Ok();
-        }
+       //No update because also you need to update sub question so just recreate.
     }
 }

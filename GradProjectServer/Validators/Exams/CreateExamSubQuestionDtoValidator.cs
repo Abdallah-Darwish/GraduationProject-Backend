@@ -20,7 +20,16 @@ namespace GradProjectServer.Validators.Exams
                         .ConfigureAwait(false);
                     return subQuestion?.Question.IsApproved ?? false;
                 })
-                .WithMessage("SubQuestion(Id: {PropertyValue}) doesn't exist or isn't approved yet.");
+                .WithMessage("SubQuestion(Id: {PropertyValue}) doesn't exist or isn't approved yet.")
+                .MustAsync(async (id, _) =>
+                    {
+                        var subQuestion = await dbContext.SubQuestions
+                            .Include(sq=>sq.Question)
+                            .FirstOrDefaultAsync(sq => sq.Id == id)
+                            .ConfigureAwait(false);
+                        return subQuestion?.Question.IsApproved ?? false;
+                    })
+                .WithMessage(d => $"SubQuestion(Id: {{PropertyValue}}) doesn't belong to the same course of Exam(Id: {d.}");
         }
     }
 }
