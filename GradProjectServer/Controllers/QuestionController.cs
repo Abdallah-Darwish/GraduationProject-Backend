@@ -102,10 +102,12 @@ namespace GradProjectServer.Controllers
             var user = this.GetUser();
             if (!(user?.IsAdmin ?? false))
             {
+                int userId = user?.Id ?? -1;
                 var notOwnedQuestions =
-                   await existingQuestions.Where(e => e.VolunteerId != user.Id && !e.IsApproved)
+                   await existingQuestions.Where(e => e.VolunteerId != userId && !e.IsApproved)
                         .Select(q => q.Id)
-                        .ToArrayAsync().ConfigureAwait(false);
+                        .ToArrayAsync()
+                        .ConfigureAwait(false);
                 if (notOwnedQuestions.Length > 0)
                 {
                     return StatusCode(StatusCodes.Status403Forbidden,

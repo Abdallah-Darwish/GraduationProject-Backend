@@ -140,8 +140,9 @@ namespace GradProjectServer.Controllers
             var user = this.GetUser();
             if (!(user?.IsAdmin ?? false))
             {
+                int userId = user?.Id ?? -1;
                 var notOwnedSubQuestions = existingSubQuestions
-                    .Where(e => e.Question.VolunteerId != user.Id && !e.Question.IsApproved)
+                    .Where(e => e.Question.VolunteerId != userId && !e.Question.IsApproved)
                     .Select(s => s.Id)
                     .ToArray();
                 if (notOwnedSubQuestions.Length > 0)

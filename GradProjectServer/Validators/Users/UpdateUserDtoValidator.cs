@@ -20,7 +20,8 @@ namespace GradProjectServer.Validators.Users
                     var caller = httpContext.HttpContext!.GetUser()!;
                     var target = await dbContext.Users.FindAsync(id).ConfigureAwait(false);
                     return caller.Id == id || caller.IsAdmin && !target.IsAdmin;
-                });
+                })
+                .WithMessage("Non admins can only update himself.");
             RuleFor(d => d.IsAdmin)
                 .Must(_ => httpContext.HttpContext!.GetUser()!.IsAdmin)
                 .WithMessage("{PropertyName} can't have value unless caller is an admin.")
@@ -33,7 +34,7 @@ namespace GradProjectServer.Validators.Users
                 .When(d => d.Password != null);
             RuleFor(d => d.StudyPlanId)
                 .MustAsync(async (id, _) => (await dbContext.StudyPlans.FindAsync(id).ConfigureAwait(false)) != null)
-                .WithMessage("StudyPlan(Id: {PropertyValue}) doesn't exist")
+                .WithMessage("StudyPlan(Id: {PropertyValue}) doesn't exist.")
                 .When(d=>d.StudyPlanId.HasValue);
             RuleFor(d => d.ProfilePictureJpgBase64)
                 .MustAsync(async (base64, _) =>
