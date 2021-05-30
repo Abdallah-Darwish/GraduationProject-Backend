@@ -25,7 +25,11 @@ namespace GradProjectServer.Validators.ExamQuestions
                         return false;
                     }
 
-                    return !exam.IsApproved || user.IsAdmin;
+                    if (user.IsAdmin)
+                    {
+                        return true;
+                    }
+                    return !exam.IsApproved && exam.VolunteerId == user.Id;
                 })
                 .WithMessage("Exam(Id: {PropertyValue}) doesn't exist or approved or not owned by caller.");
             RuleFor(d => d.QuestionId)

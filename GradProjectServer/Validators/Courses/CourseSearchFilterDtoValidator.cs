@@ -15,7 +15,7 @@ namespace GradProjectServer.Validators.Courses
                 .GreaterThanOrEqualTo(0)
                 .When(d => d.MinCreditHours.HasValue)
                 .LessThanOrEqualTo(d => d.MaxCreditHours)
-                .When(d => d.MaxCreditHours.HasValue);
+                .When(d => d.MinCreditHours.HasValue && d.MaxCreditHours.HasValue);
             RuleFor(d => d.MaxCreditHours)
                 .GreaterThanOrEqualTo(0)
                 .When(d => d.MaxCreditHours.HasValue);
