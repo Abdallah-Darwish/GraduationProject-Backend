@@ -33,7 +33,24 @@ namespace GradProjectServerTests
             var client =await _ctx.GetNonAdminClient(ControllerName);
             var response = await client.ExecutePostAsync<ErrorDTO>(request).ConfigureAwait(false);
             
-            //Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+        [Fact]
+        public async Task Create_Admin_201AndReturnTag()
+        {
+            CreateTagDto dto = new()
+            {
+                Name = "Abdallah",
+            };
+
+            RestRequest request = new("Create");
+            request.AddJsonBody(dto);
+
+            var client =await _ctx.GetAdminClient(ControllerName);
+            var response = await client.ExecutePostAsync<TagDto>(request).ConfigureAwait(false);
+            
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(dto.Name, response.Data.Name);
         }
     }
 }

@@ -15,6 +15,7 @@ using GradProjectServer.Services.Resources;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualBasic;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 
 namespace GradProjectServer.Services.EntityFramework
 {
@@ -66,7 +67,7 @@ namespace GradProjectServer.Services.EntityFramework
                 {
                     await dropCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
-
+                NpgsqlConnection.ClearAllPools();
                 using (var createCommand = new NpgsqlCommand($"CREATE DATABASE \"{_appOptions.DbName}\";", postgreCon))
                 {
                     await createCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
@@ -99,6 +100,10 @@ namespace GradProjectServer.Services.EntityFramework
 
         public async Task Seed()
         {
+            _dbContext.ChangeTracker.Clear();
+            await _dbContext.Database.CloseConnectionAsync();
+            NpgsqlConnection.ClearAllPools();
+            
             await _dbContext.Courses.AddRangeAsync(Course.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 

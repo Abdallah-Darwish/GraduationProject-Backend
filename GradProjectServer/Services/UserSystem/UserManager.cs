@@ -58,13 +58,14 @@ namespace GradProjectServer.Services.UserSystem
             }
 
             user.Token = GenerateToken(user);
-            var cookieOptions = new CookieOptions()
+            var cookieOptions = new CookieOptions
             {
                 Path = "/",
-                Expires = DateTimeOffset.MaxValue,
+                Expires = DateTimeOffset.Now + TimeSpan.FromDays(10),
                 IsEssential = true,
                 HttpOnly = false,
                 Secure = false,
+                MaxAge = TimeSpan.FromDays(11)
             };
             cookies.Append(LoginCookieName, user.Token, cookieOptions);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);

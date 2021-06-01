@@ -118,7 +118,7 @@ namespace GradProjectServer.Services.UserSystem
                         IsAdmin = rand.NextBool(),
                         Name = $"{rand.NextElement(firstNames)} {rand.NextElement(lastNames)}",
                         StudyPlanId = sp.Id,
-                        PasswordHash = UserManager.HashPassword($"{i}123456789{i}"),
+                        PasswordHash = UserManager.HashPassword($"+{i}123456789{i}+"),
                         Token = null
                     };
 

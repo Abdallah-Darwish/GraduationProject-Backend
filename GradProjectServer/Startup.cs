@@ -16,8 +16,11 @@ using System.Linq;
 using System.Reflection;
 using FluentValidation;
 using GradProjectServer.Controllers;
+using GradProjectServer.Services.CheckersManagers;
+using GradProjectServer.Services.Exams;
 using GradProjectServer.Services.Exams.Entities;
 using GradProjectServer.Services.FilesManagers;
+using GradProjectServer.Services.FilesManagers.Temp;
 using GradProjectServer.Services.UserSystem;
 using SkiaSharp;
 
@@ -43,7 +46,12 @@ namespace GradProjectServer
                 .AddScoped<ProgrammingSubQuestionAnswerFileManager>()
                 .AddScoped<ProgrammingSubQuestionFileManager>()
                 .AddScoped<ResourceFileManager>()
-                .AddScoped<UserFileManager>();
+                .AddScoped<UserFileManager>()
+                .AddScoped<ExamAttemptGrader>()
+                .AddScoped<BlankCheckerManager>()
+                .AddScoped<ProgrammingCheckerManager>()
+                .AddScoped<TempDirectoryManager>()
+                .AddScoped<DockerBroker>();
             services.AddScoped<UserManager>();
             services.AddHttpContextAccessor();
             services.AddControllers()
