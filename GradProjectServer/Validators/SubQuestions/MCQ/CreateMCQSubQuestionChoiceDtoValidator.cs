@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using GradProjectServer.DTO.SubQuestions;
 
-namespace GradProjectServer.Validators.SubQuestions
+namespace GradProjectServer.Validators.SubQuestions.MCQ
 {
     public class CreateMCQSubQuestionChoiceDtoValidator : AbstractValidator<CreateMCQSubQuestionChoiceDto>
     {

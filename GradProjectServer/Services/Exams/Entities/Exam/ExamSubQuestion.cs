@@ -38,7 +38,6 @@ namespace GradProjectServer.Services.Exams.Entities
                 .OnDelete(DeleteBehavior.Cascade);
 
             b.HasCheckConstraint("CK_EXAMSUBQUESTION_WEIGHT", $"\"{nameof(Weight)}\" > 0");
-            b.HasCheckConstraint("CK_EXAMSUBQUESTION_ORDER", $"\"{nameof(Order)}\" >= 0");
         }
 
         private static ExamSubQuestion[]? _seed = null;

@@ -12,7 +12,7 @@ namespace GradProjectServer.Validators.ExamSubQuestions
         public CreateExamSubQuestionDtoValidator(AppDbContext dbContext, IHttpContextAccessor httpContext)
         {
             RuleFor(d => d.Weight)
-                .InclusiveBetween(0.0f, 1.0f);
+                .GreaterThan(0.0f);
             RuleFor(d => d.ExamQuestionId)
                 .MustAsync(async (id, _) =>
                 {

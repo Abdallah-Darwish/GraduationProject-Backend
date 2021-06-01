@@ -3,7 +3,7 @@ using GradProjectServer.DTO.SubQuestions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace GradProjectServer.Validators.SubQuestions
+namespace GradProjectServer.Validators.SubQuestions.MCQ
 {
     public class CreateMCQSubQuestionDtoValidator : AbstractValidator<CreateMCQSubQuestionDto>
     {
