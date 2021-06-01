@@ -155,7 +155,7 @@ namespace GradProjectServer.Controllers
             var user = await _dbContext.Users.FindAsync(update.Id).ConfigureAwait(false);
             var loggedInUser = this.GetUser()!;
             await _userManager.UpdateUser(user.Id, update.Password, update.Name,
-                loggedInUser.IsAdmin && update.IsAdmin.HasValue ? update.IsAdmin.Value : (bool?) null,
+                loggedInUser.IsAdmin && update.IsAdmin.HasValue ? update.IsAdmin.Value : null,
                 update.StudyPlanId).ConfigureAwait(false);
             if (update.ProfilePictureJpgBase64 != null)
             {

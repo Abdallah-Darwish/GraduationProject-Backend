@@ -473,11 +473,6 @@ namespace GradProjectServer.Controllers
                 baseSubQuestion.Content = update.Content;
             }
 
-            if (update.QuestionId.HasValue)
-            {
-                baseSubQuestion.QuestionId = update.QuestionId.Value;
-            }
-
             if ((update.TagsToAdd?.Length ?? 0) > 0)
             {
                 await _dbContext.SubQuestionsTags

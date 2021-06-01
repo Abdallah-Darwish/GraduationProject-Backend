@@ -9,7 +9,7 @@ namespace GradProjectServer.Validators.ExamQuestions
 {
     public class UpdateExamQuestionDtoValidator : AbstractValidator<UpdateExamQuestionDto>
     {
-        public UpdateExamQuestionDtoValidator(AppDbContext dbContext, HttpContextAccessor httpContext)
+        public UpdateExamQuestionDtoValidator(AppDbContext dbContext, IHttpContextAccessor httpContext)
         {
             RuleFor(d => d.Id)
                 .MustAsync(async (id, _) =>

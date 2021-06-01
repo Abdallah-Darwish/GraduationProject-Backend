@@ -6,6 +6,6 @@
         public string? Content { get; set; }
         public int[]? TagsToDelete { get; set; }
         public int[]? TagsToAdd { get; set; }
-        public int? QuestionId { get; set; }
+        //can't update QuestionId because of approval and ownership issues.
     }
 }

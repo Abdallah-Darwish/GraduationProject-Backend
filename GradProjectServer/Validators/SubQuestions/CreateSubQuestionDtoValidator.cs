@@ -4,16 +4,36 @@ using GradProjectServer.Services.EntityFramework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GradProjectServer.Services.UserSystem;
+using Microsoft.AspNetCore.Http;
 
 namespace GradProjectServer.Validators.SubQuestions
 {
     public class CreateSubQuestionDtoValidator : AbstractValidator<CreateSubQuestionDto>
     {
-        public CreateSubQuestionDtoValidator(AppDbContext dbContext)
+        public CreateSubQuestionDtoValidator(AppDbContext dbContext, IHttpContextAccessor httpContext)
         {
             RuleFor(d => d.QuestionId)
-                .MustAsync(async (id, _) => (await dbContext.Questions.FindAsync(id).ConfigureAwait(false)) != null)
-                .WithMessage("Question(Id: {PropertyValue}) doesn't exist.");
+                .MustAsync(async (id, _) =>
+                {
+                    var user = httpContext.HttpContext!.GetUser();
+                    if (user == null)
+                    {
+                        return false;
+                    }
+                    var question = await dbContext.Questions.FindAsync(id).ConfigureAwait(false);
+                    if (question == null)
+                    {
+                        return false;
+                    }
+                    if (user.IsAdmin)
+                    {
+                        return true;
+                    }
+
+                    return !question.IsApproved;
+                })
+                .WithMessage("Question(Id: {PropertyValue}) doesn't exist or is apporved.");
             RuleFor(d => d.Content)
                 .NotEmpty();
             RuleFor(d => d.Tags)

@@ -9,7 +9,7 @@ namespace GradProjectServer.Validators.ExamSubQuestions
 {
     public class UpdateExamSubQuestionDtoValidator : AbstractValidator<UpdateExamSubQuestionDto>
     {
-        public UpdateExamSubQuestionDtoValidator(AppDbContext dbContext, HttpContextAccessor httpContext)
+        public UpdateExamSubQuestionDtoValidator(AppDbContext dbContext, IHttpContextAccessor httpContext)
         {
             RuleFor(d => d.Weight)
                 .InclusiveBetween(0.0f, 1.0f)
