@@ -105,7 +105,7 @@ compose = subprocess.Popen(['docker-compose', '-f', str(new_docker_compose), 'up
 time.sleep(10)
 
 print_info('Starting docker client')
-#docker_client = subprocess.Popen(['dotnet', str(client_publish_path.joinpath('DockerClient.dll'))], cwd =str(client_publish_path))
+docker_client = subprocess.Popen(['dotnet', str(client_publish_path.joinpath('DockerClient.dll'))], cwd =str(client_publish_path))
 
 
 
@@ -125,6 +125,6 @@ print_info('Stopping Backend API, Docker Broker and DB server')
 compose.terminate()
 
 print_info('Stopping Docker Client')
-#docker_client.terminate()
+docker_client.terminate()
 
 print_info('C Ya')
