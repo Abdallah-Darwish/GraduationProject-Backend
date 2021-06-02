@@ -330,7 +330,7 @@ namespace GradProjectServer.Controllers
             {
                 resource.Type = update.Type.Value;
             }
-
+            
             if (update.Resource != null)
             {
                 _resourceFileManager.DeleteResource(resource);
@@ -341,6 +341,7 @@ namespace GradProjectServer.Controllers
                 await _resourceFileManager.SaveResource(resource, resourceStream).ConfigureAwait(false);
             }
 
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             return Ok();
         }
 
