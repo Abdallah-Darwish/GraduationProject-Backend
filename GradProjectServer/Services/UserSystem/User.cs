@@ -58,14 +58,12 @@ namespace GradProjectServer.Services.UserSystem
             Random rand = new();
             var fileManager = sp.GetRequiredService<UserFileManager>();
 
-//todo: fix me
             async Task GenerateProfilePicture(User u)
             {
                 using SKBitmap bmp = new(200, 200);
                 using (SKCanvas can = new(bmp))
                 {
                     can.Clear(new SKColor((uint) rand.Next(100, int.MaxValue)));
-                    can.DrawText(u.Name, new SKPoint(0, 0), paint);
                     can.Flush();
                 }
 
@@ -129,6 +127,12 @@ namespace GradProjectServer.Services.UserSystem
                 {
                     seed[i].IsAdmin = true;
                 }
+
+                for (int i = seed.Count - 1, e = 5; i >= 5; i--)
+                {
+                    seed[i].IsAdmin = false;
+                }
+
                 _seed = seed.ToArray();
                 return _seed;
             }

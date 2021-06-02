@@ -113,6 +113,10 @@ namespace GradProjectServer.Services.Exams.Entities
                     seed[i - 1].Id = i;
                 }
 
+                for (int i = 0; i < 5 && i < seed.Count; i++)
+                {
+                    seed[i].IsApproved = true;
+                }
                 _seed = seed.ToArray();
                 return _seed;
             }
