@@ -12,6 +12,7 @@ using GradProjectServer.Services.Exams.Entities;
 using GradProjectServer.Services.Exams.Entities.ExamAttempts;
 using GradProjectServer.Services.FilesManagers;
 using GradProjectServer.Services.FilesManagers.Temp;
+using Microsoft.EntityFrameworkCore;
 
 namespace GradProjectServer.Services.CheckersManagers
 {
@@ -87,7 +88,9 @@ namespace GradProjectServer.Services.CheckersManagers
 
         public async Task<ProgrammingCheckerResult> Check(int answerId)
         {
-            var answer = await _dbContext.ProgrammingSubQuestionAnswers.FindAsync(answerId)
+            var answer = await _dbContext.ProgrammingSubQuestionAnswers
+                .Include(e => e.ExamSubQuestion)
+                .FirstAsync(a => a.Id == answerId)
                 .ConfigureAwait(false);
 
             var submissionDir = _tempDirectoryManager.Create($"ProgrammingAnswer{answerId}_Submission");
@@ -135,7 +138,7 @@ namespace GradProjectServer.Services.CheckersManagers
 
             try
             {
-                await Build(answer.ExamSubQuestionId).ConfigureAwait(false);
+                await Build(answer.ExamSubQuestion!.SubQuestionId).ConfigureAwait(false);
             }
             catch
             {
@@ -149,7 +152,7 @@ namespace GradProjectServer.Services.CheckersManagers
 
             var resultDir = _tempDirectoryManager.Create($"ProgrammingAnswer{answerId}_GradingResult");
             var checkResult = await _broker.Check(submissionDir.RelativeDirectory,
-                PathUtility.MakeRelative(ProgrammingSubQuestionFileManager.GetCheckerBinaryDirectory(answer.ExamSubQuestionId)),
+                PathUtility.MakeRelative(ProgrammingSubQuestionFileManager.GetCheckerBinaryDirectory(answer.ExamSubQuestion.SubQuestionId)),
                 resultDir.RelativeDirectory);
 
             if (checkResult != JobResult.Done)

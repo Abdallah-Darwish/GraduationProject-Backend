@@ -1,7 +1,10 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +19,7 @@ namespace DockerClient
         public static readonly TimeSpan Timeout = TimeSpan.FromMinutes(5);
         public static string DockerVolumeDirectory { get; set; }
         public static string CentralDataDirectory { get; set; }
+
         public static void Init(IServiceProvider sp)
         {
             var appOptions = sp.GetRequiredService<IOptions<AppOptions>>().Value;
@@ -27,7 +31,9 @@ namespace DockerClient
             }
         }
 
-        private static string AbsoluteCentralDirectory(string relativeCentralDirectory) => Path.Join(CentralDataDirectory, relativeCentralDirectory);
+        private static string AbsoluteCentralDirectory(string relativeCentralDirectory) =>
+            Path.Join(CentralDataDirectory, relativeCentralDirectory);
+
         private readonly ILogger<DockerManager> _logger;
 
         public DockerManager(ILogger<DockerManager> logger)
@@ -39,7 +45,7 @@ namespace DockerClient
         {
             string archivePath = AbsoluteCentralDirectory(relativeArchivePath);
             string savePath = AbsoluteCentralDirectory(relativeSavePath);
-            
+
             var extractionPath = Path.Join(DockerVolumeDirectory, $"Src{DateTime.Now.Ticks}");
             try
             {
@@ -104,7 +110,8 @@ namespace DockerClient
             }
         }
 
-        public async Task Check(string relativeCheckerDirectory, string relativeResultDirectory, string relativeSubmissionDirectory)
+        public async Task Check(string relativeCheckerDirectory, string relativeResultDirectory,
+            string relativeSubmissionDirectory)
         {
             string checkerDirectory = AbsoluteCentralDirectory(relativeCheckerDirectory);
             string resultDirectory = AbsoluteCentralDirectory(relativeResultDirectory);
@@ -201,6 +208,25 @@ namespace DockerClient
             return false;
         }
 
+        private async Task<string> GetOutput(string fileName, IEnumerable<string> args)
+        {
+            ProcessStartInfo processStartInfo = new()
+            {
+                FileName = fileName,
+                WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            foreach (string arg in args)
+            {
+                processStartInfo.ArgumentList.Add(arg);
+            }
+
+            var p = Process.Start(processStartInfo);
+            await p.WaitForExitAsync().ConfigureAwait(false);
+            return await p.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+        }
+
         public async Task BuildImage()
         {
             var marje3SandBoxDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Marje3SandBoxDir");
@@ -211,7 +237,24 @@ namespace DockerClient
 
             Directory.CreateDirectory(marje3SandBoxDirectory);
             File.Copy("DockerClient.py", Path.Join(marje3SandBoxDirectory, "DockerClient.py"));
-            File.Copy("Marje3SandBox", Path.Join(marje3SandBoxDirectory, "Dockerfile"));
+
+            var dockerFilePath = Path.Join(marje3SandBoxDirectory, "Dockerfile");
+            File.Copy("Marje3SandBox", dockerFilePath);
+            var newDockerFile = await File.ReadAllTextAsync(dockerFilePath).ConfigureAwait(false);
+            string userId = "1000", groupId = "1000";
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                userId = await GetOutput("id", new[] {"-u"}).ConfigureAwait(false);
+                groupId = await GetOutput("id", new[] {"-g"}).ConfigureAwait(false);
+
+                userId = userId.Trim();
+                groupId = groupId.Trim();
+            }
+
+            newDockerFile = newDockerFile
+                .Replace("#HostUserId#", userId)
+                .Replace("#HostGroupId#", groupId);
+            await File.WriteAllTextAsync(dockerFilePath, newDockerFile).ConfigureAwait(false);
             ProcessStartInfo containerStartInfo = new()
             {
                 FileName = "docker",

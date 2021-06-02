@@ -105,7 +105,7 @@ compose = subprocess.Popen(['docker-compose', '-f', str(new_docker_compose), 'up
 time.sleep(10)
 
 print_info('Starting docker client')
-docker_client = subprocess.Popen(['dotnet', str(client_publish_path.joinpath('DockerClient.dll'))], cwd =str(client_publish_path))
+#docker_client = subprocess.Popen(['dotnet', str(client_publish_path.joinpath('DockerClient.dll'))], cwd =str(client_publish_path))
 
 
 

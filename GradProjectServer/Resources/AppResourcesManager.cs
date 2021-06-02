@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 
 namespace GradProjectServer.Resources
 {
-    public static class ResourcesManager
+    public static class AppResourcesManager
     {
         private static readonly string AssemblyName = "GradProjectServer.Resources.";
 
         public static Stream GetStream(string name)
         {
-            var assembly = typeof(ResourcesManager).Assembly;
+            var assembly = typeof(AppResourcesManager).Assembly;
             return assembly.GetManifestResourceStream(AssemblyName + name)!;
         }
 

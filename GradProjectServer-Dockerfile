@@ -1,6 +1,14 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk as publish
-COPY ./GradProjectServer ./src/GradProjectServer
-COPY ./DockerCommon /src/DockerCommon/
+﻿FROM mcr.microsoft.com/dotnet/sdk as nuget
+COPY ./GradProjectServer/GradProjectServer.csproj /src/GradProjectServer/
+COPY ./DockerCommon/DockerCommon.csproj /src/DockerCommon/
+
+RUN dotnet restore "/src/GradProjectServer/GradProjectServer.csproj"
+RUN dotnet restore "/src/DockerCommon/DockerCommon.csproj"
+
+FROM nuget as publish
+
+COPY ./GradProjectServer/ /src/GradProjectServer/
+COPY ./DockerCommon/ /src/DockerCommon/
 RUN dotnet publish "/src/GradProjectServer/GradProjectServer.csproj" -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet as final

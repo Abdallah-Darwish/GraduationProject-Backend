@@ -33,12 +33,7 @@ namespace GradProjectServer.Services.Exams.Entities
                 List<MCQSubQuestion> seed = new();
                 foreach (var question in Question.Seed)
                 {
-                    if (!rand.NextBool())
-                    {
-                        continue;
-                    }
-
-                    for (int i = 0; i < rand.Next(1, 3); i++)
+                    for (int i = 1, e = rand.Next(1, 3); i <= e; i++)
                     {
                         var sq = new MCQSubQuestion
                         {

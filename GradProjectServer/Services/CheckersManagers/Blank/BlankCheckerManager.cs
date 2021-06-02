@@ -9,6 +9,8 @@ using GradProjectServer.Services.Exams.Entities;
 using GradProjectServer.Services.Exams.Entities.ExamAttempts;
 using GradProjectServer.Services.FilesManagers;
 using GradProjectServer.Services.FilesManagers.Temp;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GradProjectServer.Services.CheckersManagers
 {
@@ -22,14 +24,16 @@ namespace GradProjectServer.Services.CheckersManagers
         private readonly DockerBroker _broker;
         private readonly BlankSubQuestionFileManager _blankSubQuestionFileManager;
         private readonly TempDirectoryManager _tempDirectoryManager;
+        private readonly ILogger<BlankCheckerManager> _logger;
 
         public BlankCheckerManager(AppDbContext dbContext, DockerBroker broker,
-            BlankSubQuestionFileManager blankSubQuestionFileManager, TempDirectoryManager tempDirectoryManager)
+            BlankSubQuestionFileManager blankSubQuestionFileManager, TempDirectoryManager tempDirectoryManager, ILogger<BlankCheckerManager> logger)
         {
             _dbContext = dbContext;
             _broker = broker;
             _blankSubQuestionFileManager = blankSubQuestionFileManager;
             _tempDirectoryManager = tempDirectoryManager;
+            _logger = logger;
         }
 
 
@@ -65,7 +69,10 @@ namespace GradProjectServer.Services.CheckersManagers
 
         public async Task<BlankCheckerResult> Check(int answerId)
         {
-            var answer = await _dbContext.BlankSubQuestionAnswers.FindAsync(answerId).ConfigureAwait(false);
+            var answer = await _dbContext.BlankSubQuestionAnswers
+                .Include(e => e.ExamSubQuestion)
+                .FirstAsync(a => a.Id == answerId)
+                .ConfigureAwait(false);
 
             var submissionDir = _tempDirectoryManager.Create($"BlankAnswer{answerId}_Submission");
             await using FileStream answerFileStream =
@@ -76,10 +83,11 @@ namespace GradProjectServer.Services.CheckersManagers
             await answerWriter.FlushAsync().ConfigureAwait(false);
             try
             {
-                await Build(answer.ExamSubQuestionId).ConfigureAwait(false);
+                await Build(answer.ExamSubQuestion.SubQuestionId).ConfigureAwait(false);
             }
-            catch
+            catch(Exception ex)
             {
+                _logger.LogCritical(ex, "Blank build failed");
                 return new()
                 {
                     Comment = "Couldn't build checker successfully",
@@ -90,7 +98,7 @@ namespace GradProjectServer.Services.CheckersManagers
             var resultDir = _tempDirectoryManager.Create($"BlankAnswer{answerId}_GradingResult");
             var checkResult = await _broker.Check(submissionDir.RelativeDirectory,
                 PathUtility.MakeRelative(
-                    BlankSubQuestionFileManager.GetCheckerBinaryDirectory(answer.ExamSubQuestionId)),
+                    BlankSubQuestionFileManager.GetCheckerBinaryDirectory(answer.ExamSubQuestion.SubQuestionId)),
                 resultDir.RelativeDirectory);
 
             if (checkResult != JobResult.Done)

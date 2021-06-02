@@ -75,7 +75,7 @@ namespace GradProjectServer.Services.EntityFramework
             }
 
             NpgsqlConnection.ClearAllPools();
-            string dbScript = await ResourcesManager.GetText("DbInitScript.sql").ConfigureAwait(false);
+            string dbScript = await AppResourcesManager.GetText("DbInitScript.sql").ConfigureAwait(false);
 
             using (var dbCon = new NpgsqlConnection(_appOptions.BuildAppConnectionString()))
             using (var initCommand = new NpgsqlCommand(dbScript, dbCon))
@@ -145,6 +145,9 @@ namespace GradProjectServer.Services.EntityFramework
             await _dbContext.MCQSubQuestionsChoices.AddRangeAsync(MCQSubQuestionChoice.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
+            await _dbContext.ProgrammingSubQuestions.AddRangeAsync(ProgrammingSubQuestion.Seed).ConfigureAwait(false);
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+            
             await _dbContext.SubQuestionsTags.AddRangeAsync(SubQuestionTag.Seed).ConfigureAwait(false);
             await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 

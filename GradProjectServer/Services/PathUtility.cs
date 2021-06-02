@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace GradProjectServer.Services
@@ -7,9 +9,10 @@ namespace GradProjectServer.Services
     {
         private static string _absolutePrefix;
 
-        public static void Init(IOptions<AppOptions> options)
+        public static void Init(IServiceProvider sp)
         {
-            _absolutePrefix = options.Value.DataSaveDirectory;
+            var options = sp.GetRequiredService<IOptions<AppOptions>>().Value;
+            _absolutePrefix = options.DataSaveDirectory;
             if (_absolutePrefix[^1] == Path.PathSeparator)
             {
                 _absolutePrefix += Path.PathSeparator;

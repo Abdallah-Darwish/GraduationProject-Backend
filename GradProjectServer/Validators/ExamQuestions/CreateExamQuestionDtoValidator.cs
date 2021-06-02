@@ -39,8 +39,8 @@ namespace GradProjectServer.Validators.ExamQuestions
                     var exam = await dbContext.Exams.FindAsync(d.ExamId).ConfigureAwait(false);
                     return (question?.IsApproved ?? false) && question.CourseId == exam.CourseId;
                 })
-                .WithMessage(
-                    "Question(Id: {PropertyValue}) doesn't exist or not approved or doesn't belong to same course of Exam(Id: {PropertyValue}).");
+                .WithMessage(d=>
+                    $"Question(Id: {{PropertyValue}}) doesn't exist or not approved or doesn't belong to same course of Exam(Id: {d.ExamId}).");
             
         }
     }

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using GradProjectServer.Common;
+using GradProjectServer.Resources;
 using GradProjectServer.Services.FilesManagers;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -88,25 +89,30 @@ namespace GradProjectServer.Services.Exams.Entities
                 var fileEntry = checkerArchive.CreateEntry(fileName);
                 await using var entryStream = fileEntry.Open();
                 await using var entryWriter = new StreamWriter(entryStream);
-                if (!fileName.StartsWith("run"))
+                entryWriter.NewLine = "\n";
+                if (fileName.StartsWith("run", StringComparison.OrdinalIgnoreCase))
                 {
-                    await entryWriter.WriteLineAsync($"echo \"Hello from blank checker file: {fileName}\"")
-                        .ConfigureAwait(false);
+                    await entryWriter.WriteAsync(await AppResourcesManager.GetText("Run.sh").ConfigureAwait(false)).ConfigureAwait(false);
+                }
+                else if (fileName.StartsWith("build", StringComparison.OrdinalIgnoreCase))
+                {
+                    await entryWriter.WriteAsync(await AppResourcesManager.GetText("Build.sh").ConfigureAwait(false)).ConfigureAwait(false);
                 }
                 else
                 {
-                    await entryWriter.WriteLineAsync("python checker.py $*").ConfigureAwait(false);
+                    await entryWriter.WriteLineAsync("#!/bin/bash").ConfigureAwait(false);
+                    await entryWriter.WriteLineAsync($"echo \"Hello from blank checker file: {fileName}\"")
+                        .ConfigureAwait(false);
                 }
             }
 
             var pyCheckerEntry = checkerArchive.CreateEntry("checker.py");
             await using (var pyCheckerStream = pyCheckerEntry.Open())
             {
-                await using var pyCheckerWriter = new StreamWriter(pyCheckerStream);
-                await pyCheckerWriter.WriteAsync(@"import sys
-print('{}
-");
+                await using var pyChecker = AppResourcesManager.GetStream("BlankChecker.py");
+                await pyChecker.CopyToAsync(pyCheckerStream).ConfigureAwait(false);
             }
+
             checkerArchive.Dispose();
 
             foreach (var blank in Seed.Where(b => b.HasChecker))

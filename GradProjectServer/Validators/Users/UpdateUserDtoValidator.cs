@@ -25,7 +25,7 @@ namespace GradProjectServer.Validators.Users
                     var target = await dbContext.Users.FindAsync(id).ConfigureAwait(false);
                     return caller.Id == id || caller.IsAdmin && !target.IsAdmin;
                 })
-                .WithMessage("Non admins can only update himself.");
+                .WithMessage("Non admin can only update himself.");
             RuleFor(d => d.IsAdmin)
                 .Must(_ => httpContext.HttpContext!.GetUser()!.IsAdmin)
                 .WithMessage("{PropertyName} can't have value unless caller is an admin.")

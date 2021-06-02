@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using GradProjectServer.Common;
+using GradProjectServer.Resources;
 using GradProjectServer.Services.FilesManagers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -45,12 +46,7 @@ namespace GradProjectServer.Services.Exams.Entities
                 List<ProgrammingSubQuestion> seed = new();
                 foreach (var question in Question.Seed)
                 {
-                    if (!rand.NextBool())
-                    {
-                        continue;
-                    }
-
-                    for (int i = 0; i < rand.Next(1, 3); i++)
+                    for (int i = 1, e = rand.Next(1, 2); i <= e; i++)
                     {
                         ProgrammingSubQuestion sq = new()
                         {
@@ -77,14 +73,35 @@ namespace GradProjectServer.Services.Exams.Entities
             {
                 var fileEntry = checkerArchive.CreateEntry(fileName);
                 await using var entryStream = fileEntry.Open();
-                await using StreamWriter entryWriter = new(entryStream);
-                await entryWriter.WriteLineAsync($"Hello programming checker file: {fileName}").ConfigureAwait(false);
+                await using var entryWriter = new StreamWriter(entryStream);
+                entryWriter.NewLine = "\n";
+                if (fileName.StartsWith("run", StringComparison.OrdinalIgnoreCase))
+                {
+                    await entryWriter.WriteAsync(await AppResourcesManager.GetText("Run.sh").ConfigureAwait(false)).ConfigureAwait(false);
+                }
+                else if (fileName.StartsWith("build", StringComparison.OrdinalIgnoreCase))
+                {
+                    await entryWriter.WriteAsync(await AppResourcesManager.GetText("Build.sh").ConfigureAwait(false)).ConfigureAwait(false);
+                }
+                else
+                {
+                    await entryWriter.WriteLineAsync("#!/bin/bash").ConfigureAwait(false);
+                    await entryWriter.WriteLineAsync($"echo \"Hello from programming checker file: {fileName}\"")
+                        .ConfigureAwait(false);
+                }
+            }
+
+            var pyCheckerEntry = checkerArchive.CreateEntry("checker.py");
+            await using (var pyCheckerStream = pyCheckerEntry.Open())
+            {
+                await using var pyChecker = AppResourcesManager.GetStream("ProgrammingChecker.py");
+                await pyChecker.CopyToAsync(pyCheckerStream).ConfigureAwait(false);
             }
 
             checkerArchive.Dispose();
             await using MemoryStream keyAnswerStream = new();
             Random rand = new();
-            foreach (var pro in Seed.Where(q => q.Type == SubQuestionType.Programming))
+            foreach (var pro in Seed)
             {
                 checkerStream.Position = 0;
                 await fileManager.SaveCheckerSource(pro, checkerStream).ConfigureAwait(false);

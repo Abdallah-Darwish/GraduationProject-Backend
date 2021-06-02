@@ -53,25 +53,34 @@ namespace GradProjectServer.Services.Exams.Entities
 
                 var subQuestionsByQuestion = SubQuestion.Seed
                     .GroupBy(sq => sq.QuestionId)
-                    .ToDictionary(g => g.Key, g => g.ToArray());
+                    .ToDictionary(g => g.Key,
+                        g => g.GroupBy(s => s.Type).Select(s => s.ToArray()).ToArray());
                 Random rand = new();
                 List<ExamSubQuestion> seed = new();
                 foreach (var examQuestion in ExamQuestion.Seed)
                 {
-                    var subQuestions = subQuestionsByQuestion[examQuestion.QuestionId];
-                    var lastSubQuestionIdx = subQuestions.Length - 1;
-                    var examSubQuestionsCount = rand.Next(1, subQuestions.Length);
-                    for (int i = 0; i < examSubQuestionsCount; i++)
+                    var subQuestionsGroups = subQuestionsByQuestion[examQuestion.QuestionId];
+                    foreach (var subQuestionGroup in subQuestionsGroups)
                     {
-                        var subQuestion = rand.NextElementAndSwap(subQuestions, lastSubQuestionIdx--);
-                        var examSubQuestion = new ExamSubQuestion
+                        if (subQuestionGroup.Length == 0)
                         {
-                            ExamQuestionId = examQuestion.Id,
-                            Order = rand.Next(1, 100),
-                            SubQuestionId = subQuestion.Id,
-                            Weight = rand.Next(1, 5)
-                        };
-                        seed.Add(examSubQuestion);
+                            continue;
+                        }
+
+                        var lastSubQuestionIdx = subQuestionGroup.Length - 1;
+                        var examSubQuestionsCount = rand.Next(1, subQuestionGroup.Length);
+                        for (int i = 0; i < examSubQuestionsCount; i++)
+                        {
+                            var subQuestion = rand.NextElementAndSwap(subQuestionGroup, lastSubQuestionIdx--);
+                            var examSubQuestion = new ExamSubQuestion
+                            {
+                                ExamQuestionId = examQuestion.Id,
+                                Order = rand.Next(1, 100),
+                                SubQuestionId = subQuestion.Id,
+                                Weight = rand.Next(1, 10)
+                            };
+                            seed.Add(examSubQuestion);
+                        }
                     }
                 }
 

@@ -47,11 +47,18 @@ namespace GradProjectServer.Services.Exams.Entities
                 Random rand = new();
                 List<ExamQuestion> seed = new();
                 var questionsByCourse = Question.Seed
+                    .Where(q => q.IsApproved)
                     .GroupBy(q => q.Course)
                     .ToDictionary(g => g.Key, g => g.ToArray());
+
                 foreach (var exam in Exam.Seed)
                 {
                     var questions = questionsByCourse[exam.Course];
+                    if (questions.Length == 0)
+                    {
+                        continue;
+                    }
+
                     int questionsLastIndex = questions.Length - 1;
                     var questionsCount = rand.Next(1, questions.Length);
                     for (int i = 0; i < questionsCount; i++)

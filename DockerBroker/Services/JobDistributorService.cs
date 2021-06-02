@@ -72,7 +72,7 @@ namespace DockerBroker.Services
                msg.Append(check.RelativeResultDirectory);
                msg.Append(check.RelativeSubmissionDirectory);
            }
-
+           _logger.LogInformation("Pushing Job(Id: {Id})", job.Id);
            _jobs.TryAdd(job.Id, job);
            _serverPush.SendMultipartMessage(msg);
            _serverPushLock.Release();

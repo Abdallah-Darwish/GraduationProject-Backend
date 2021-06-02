@@ -29,6 +29,9 @@ namespace GradProjectServer.Controllers
         {
             IQueryable<ExamAttempt> q = _dbContext.ExamsAttempts
                 .Include(e => e.Exam)
+                .ThenInclude(e => e.Course)
+                .Include(e => e.Exam)
+                .ThenInclude(e => e.Volunteer)
                 .Include(e => e.Owner);
 
             return q;

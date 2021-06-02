@@ -16,6 +16,7 @@ using System.Linq;
 using System.Reflection;
 using FluentValidation;
 using GradProjectServer.Controllers;
+using GradProjectServer.Services;
 using GradProjectServer.Services.CheckersManagers;
 using GradProjectServer.Services.Exams;
 using GradProjectServer.Services.Exams.Entities;
@@ -117,6 +118,8 @@ namespace GradProjectServer
             BlankSubQuestionFileManager.Init(serviceProvider);
             ProgrammingSubQuestionAnswerFileManager.Init(serviceProvider);
             ResourceFileManager.Init(serviceProvider);
+            TempDirectoryManager.Init(serviceProvider);
+            PathUtility.Init(serviceProvider);
             
             dbManager.EnsureDb().Wait();
 

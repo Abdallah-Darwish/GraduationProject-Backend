@@ -28,7 +28,7 @@ namespace GradProjectServer.Services.FilesManagers
         {
             var answerPath = GetAnswerPath(answerId, extension);
             await using var answerFileStream =
-                new FileStream(answerPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+                new FileStream(answerPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
             await content.CopyToAsync(answerFileStream).ConfigureAwait(false);
             content.SetLength(content.Position);
         }

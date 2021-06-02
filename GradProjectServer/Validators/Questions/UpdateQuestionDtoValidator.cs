@@ -24,22 +24,25 @@ namespace GradProjectServer.Validators.Questions
                                 ctx.AddFailure("Not logged in.");
                                 return;
                             }
-                            var question = await dbContext.Questions.FindAsync(id).ConfigureAwait(false);
-                            if (!user.IsAdmin)
-                            {
-                                if (question.VolunteerId != user.Id)
-                                {
-                                    ctx.AddFailure(nameof(UpdateQuestionDto.QuestionId),
-                                        $"The user doesn't own the Question(Id: {id}).");
-                                    return;
-                                }
 
-                                if (question.IsApproved)
-                                {
-                                    ctx.AddFailure(nameof(UpdateQuestionDto.QuestionId),
-                                        $"The user can't update the Question(Id: {id}) because its already approved, only admins can update it now.");
-                                    return;
-                                }
+                            var question = await dbContext.Questions.FindAsync(id).ConfigureAwait(false);
+                            if (user.IsAdmin)
+                            {
+                                return;
+                            }
+
+                            if (question.VolunteerId != user.Id)
+                            {
+                                ctx.AddFailure(nameof(UpdateQuestionDto.QuestionId),
+                                    $"The user doesn't own the Question(Id: {id}).");
+                                return;
+                            }
+
+                            if (question.IsApproved)
+                            {
+                                ctx.AddFailure(nameof(UpdateQuestionDto.QuestionId),
+                                    $"The user can't update the Question(Id: {id}) because its already approved, only admins can update it now.");
+                                return;
                             }
                         });
                     RuleFor(d => d.Content)
