@@ -137,6 +137,7 @@ namespace GradProjectServer.Controllers
         public async Task<IActionResult> Create([FromQuery] int examId)
         {
             var user = this.GetUser()!;
+           
             var exam = await _dbContext.Exams.FindAsync(examId).ConfigureAwait(false);
             if (exam == null)
             {
@@ -147,8 +148,11 @@ namespace GradProjectServer.Controllers
                         Data = new() {["ExamId"] = examId}
                     });
             }
-
-            var activeAttempt = await _dbContext.ExamsAttempts.FirstOrDefaultAsync(e => e.OwnerId == user.Id)
+            
+            var examsAttempts = GetPreparedQueryable();
+            
+            var activeAttempt = await examsAttempts
+                .FirstOrDefaultAsync(e => e.OwnerId == user.Id)
                 .ConfigureAwait(false);
             if (activeAttempt != null)
             {
