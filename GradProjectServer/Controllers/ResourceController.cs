@@ -178,6 +178,10 @@ namespace GradProjectServer.Controllers
                 resources = resources.Where(e => filter.Types!.Contains(e.Type));
             }
 
+            if (filter.IsApproved.HasValue)
+            {
+                resources = resources.Where(r => r.IsApproved == filter.IsApproved);
+            }
             resources = resources
                 .OrderByDescending(r => r.CreationYear)
                 .ThenBy(r => r.CreationSemester)
