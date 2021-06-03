@@ -56,11 +56,11 @@ namespace GradProjectServer
             services.AddScoped<UserManager>();
             services.AddHttpContextAccessor();
             services.AddControllers()
-                .AddFluentValidation(fv =>
-                {
-                    fv.RegisterValidatorsFromAssemblyContaining<Startup>();
-                    fv.ValidatorOptions.CascadeMode = CascadeMode.Stop;
-                })
+                // .AddFluentValidation(fv =>
+                // {
+                //     fv.RegisterValidatorsFromAssemblyContaining<Startup>();
+                //     fv.ValidatorOptions.CascadeMode = CascadeMode.Stop;
+                // })
                 .AddNewtonsoftJson(op =>
                 {
                     op.SerializerSettings.TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Objects;

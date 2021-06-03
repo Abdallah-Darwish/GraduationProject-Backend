@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System;
 using System.Linq;
+using System.Security.Cryptography;
 using GradProjectServer.Services.EntityFramework;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -33,7 +34,15 @@ namespace GradProjectServer.Services.UserSystem
         /// <summary>
         /// Its public to be used only by <see cref="User.Seed"/>.
         /// </summary>
-        public static string HashPassword(string password) => password;
+        public static string HashPassword(string password)
+        {
+            var bytes = System.Text.Encoding.Unicode.GetBytes(password);
+            var sha1 = new SHA1CryptoServiceProvider();
+            var sha1data = sha1.ComputeHash(bytes);
+            var str = System.Text.Encoding.Unicode.GetString(sha1data);
+            //return str;
+            return password;
+        }
 
         private readonly AppDbContext _dbContext;
 
