@@ -1,0 +1,65 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31105.61
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GradProjectServer", "GradProjectServer\GradProjectServer.csproj", "{F1BA781E-A9FA-4F3D-88B4-22232514A206}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{565CD7E3-4D63-4D78-AC51-F8C692CABAD5}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		manager.py = manager.py
+		original-docker-compose.yml = original-docker-compose.yml
+		GradProjectServer-Dockerfile = GradProjectServer-Dockerfile
+		.dockerignore = .dockerignore
+		DockerBroker-Dockerfile = DockerBroker-Dockerfile
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DockerClient", "DockerClient\DockerClient.csproj", "{EE8BF995-E987-4E5B-BEC3-187270242A9E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DockerBroker", "DockerBroker\DockerBroker.csproj", "{D322378F-A567-4AFE-82E2-D613B75B0C37}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scratch", "Scratch\Scratch.csproj", "{ACB36981-8CD5-421C-A9A4-D894A9FFEF82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DockerCommon", "DockerCommon\DockerCommon.csproj", "{AAEC135E-DC0F-4894-BEF1-EEF082FDC4DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GradProjectServer-Tests", "GradProjectServer-Tests\GradProjectServer-Tests.csproj", "{C7050A02-1D70-496F-96DF-113B64D82363}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F1BA781E-A9FA-4F3D-88B4-22232514A206}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1BA781E-A9FA-4F3D-88B4-22232514A206}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1BA781E-A9FA-4F3D-88B4-22232514A206}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1BA781E-A9FA-4F3D-88B4-22232514A206}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE8BF995-E987-4E5B-BEC3-187270242A9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE8BF995-E987-4E5B-BEC3-187270242A9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE8BF995-E987-4E5B-BEC3-187270242A9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE8BF995-E987-4E5B-BEC3-187270242A9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D322378F-A567-4AFE-82E2-D613B75B0C37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D322378F-A567-4AFE-82E2-D613B75B0C37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D322378F-A567-4AFE-82E2-D613B75B0C37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D322378F-A567-4AFE-82E2-D613B75B0C37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACB36981-8CD5-421C-A9A4-D894A9FFEF82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACB36981-8CD5-421C-A9A4-D894A9FFEF82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACB36981-8CD5-421C-A9A4-D894A9FFEF82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACB36981-8CD5-421C-A9A4-D894A9FFEF82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAEC135E-DC0F-4894-BEF1-EEF082FDC4DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAEC135E-DC0F-4894-BEF1-EEF082FDC4DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAEC135E-DC0F-4894-BEF1-EEF082FDC4DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAEC135E-DC0F-4894-BEF1-EEF082FDC4DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7050A02-1D70-496F-96DF-113B64D82363}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7050A02-1D70-496F-96DF-113B64D82363}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7050A02-1D70-496F-96DF-113B64D82363}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7050A02-1D70-496F-96DF-113B64D82363}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9819D22A-07AE-4C0D-87E4-2F61036CFC41}
+	EndGlobalSection
+EndGlobal

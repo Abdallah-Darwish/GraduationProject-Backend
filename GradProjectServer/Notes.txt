@@ -1,0 +1,9 @@
+﻿1- Every controller should be responsible of the CRUD operations of its model(.....duh), but its model can be embedded inside other models (in the read operation)
+
+2- Questions and SubQuestions and exams need to be returned in two forms:
+	A- owner or admin he can see everything
+	b- Non owner he can see everything except the (answer or checker in blanks, weights of choices in mcq, checker in programming)
+
+3- This project is meant to be only used with postgresql, and I am saying this because there is some dbms specific code
+
+4- The only supported archive format is zip.

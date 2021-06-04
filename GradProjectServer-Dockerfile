@@ -1,0 +1,29 @@
+﻿FROM mcr.microsoft.com/dotnet/sdk as nuget
+COPY ./GradProjectServer/GradProjectServer.csproj /src/GradProjectServer/
+COPY ./DockerCommon/DockerCommon.csproj /src/DockerCommon/
+
+RUN dotnet restore "/src/GradProjectServer/GradProjectServer.csproj"
+RUN dotnet restore "/src/DockerCommon/DockerCommon.csproj"
+
+FROM nuget as publish
+
+COPY ./GradProjectServer/ /src/GradProjectServer/
+COPY ./DockerCommon/ /src/DockerCommon/
+RUN dotnet publish "/src/GradProjectServer/GradProjectServer.csproj" -c Release -o /app/publish
+
+FROM mcr.microsoft.com/dotnet/aspnet as final
+RUN apt-get update && \
+    apt-get install -y \
+    fontconfig && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+
+ARG HostUserId
+ARG HostGroupId
+RUN addgroup --gid $HostGroupId nonroot
+RUN adduser --disabled-password --gecos '' --uid $HostUserId --gid $HostGroupId nonroot
+USER nonroot
+
+COPY --from=publish /app/publish/ .
+EXPOSE 1234
+ENTRYPOINT ["dotnet", "GradProjectServer.dll"]
