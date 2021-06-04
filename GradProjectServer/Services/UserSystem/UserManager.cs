@@ -40,8 +40,8 @@ namespace GradProjectServer.Services.UserSystem
             var sha1 = new SHA1CryptoServiceProvider();
             var sha1data = sha1.ComputeHash(bytes);
             var str = System.Text.Encoding.Unicode.GetString(sha1data);
-            //return str;
-            return password;
+            return str;
+            //return password;
         }
 
         private readonly AppDbContext _dbContext;

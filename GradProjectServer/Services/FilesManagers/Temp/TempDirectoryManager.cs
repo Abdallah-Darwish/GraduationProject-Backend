@@ -27,6 +27,10 @@ namespace GradProjectServer.Services.FilesManagers.Temp
         {
             var options = sp.GetRequiredService<IOptions<AppOptions>>().Value;
             SaveDirectory = Path.Combine(options.DataSaveDirectory, "Temp");
+            if (!Directory.Exists(SaveDirectory))
+            {
+                Directory.CreateDirectory(SaveDirectory);
+            }
         }
         private readonly List<TempDirectory> _directories = new();
 
